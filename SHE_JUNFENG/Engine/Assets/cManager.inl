@@ -305,7 +305,7 @@ eae6320::cResult eae6320::Assets::cManager<tAsset, tKey>::CleanUp()
 }
 
 	template <class tAsset, class tKey>
-eae6320::Assets::cManager<tAsset, tKey>::~cManager<tAsset, tKey>()
+eae6320::Assets::cManager<tAsset, tKey>::~cManager()
 {
 	const auto result = CleanUp();
 	EAE6320_ASSERT( result );

@@ -47,23 +47,6 @@
       <Project>{2bc54f48-d7bf-416b-9c09-e0f292ca4eb1}</Project>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="settings.ini">
-      <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copy "%(FullPath)" "$(OutputDir)%(Filename)%(Extension)" /y</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">copy "%(FullPath)" "$(OutputDir)%(Filename)%(Extension)" /y</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copy "%(FullPath)" "$(OutputDir)%(Filename)%(Extension)" /y</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">copy "%(FullPath)" "$(OutputDir)%(Filename)%(Extension)" /y</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Copying user settings</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Copying user settings</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Copying user settings</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Copying user settings</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutputDir)%(Filename)%(Extension)</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutputDir)%(Filename)%(Extension)</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutputDir)%(Filename)%(Extension)</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutputDir)%(Filename)%(Extension)</Outputs>
-    </CustomBuild>
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{54116086-BD9D-4DAC-B791-EC675B9CADAB}</ProjectGuid>

@@ -6,9 +6,9 @@ return
 {
 	shaders =
 	{
-		{ path = "Shaders/Vertex/standard.shader", arguments = { "vertex" } },
-		{ path = "Shaders/Fragment/standard.shader", arguments = { "fragment" } },
+		{ path = "shaders/vertex/standard.shader", arguments = { "vertex" } },
+		{ path = "shaders/fragment/standard.shader", arguments = { "fragment" } },
 
-		{ path = "Shaders/Vertex/vertexInputLayout_3dObject.shader", arguments = { "vertex" } },
+		{ path = "shaders/vertex/vertexinputlayout_3dobject.shader", arguments = { "vertex" } },
 	},
 }

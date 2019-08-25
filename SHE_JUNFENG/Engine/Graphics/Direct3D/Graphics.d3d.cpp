@@ -566,12 +566,12 @@ namespace
 			EAE6320_ASSERTF( false, "Can't initialize shading data without vertex shader" );
 			return result;
 		}
-		/*if ( !( result = eae6320::Graphics::cShader::s_manager.Load( "data/shaders/fragment/animatedColor.shader",
+		if ( !( result = eae6320::Graphics::cShader::s_manager.Load( "data/shaders/fragment/standard.shader",
 			s_fragmentShader, eae6320::Graphics::ShaderTypes::Fragment ) ) )
 		{
 			EAE6320_ASSERTF( false, "Can't initialize shading data without fragment shader" );
 			return result;
-		}*/
+		}
 		{
 			constexpr uint8_t defaultRenderState = 0;
 			if ( !( result = eae6320::Graphics::cRenderState::s_manager.Load( defaultRenderState, s_renderState ) ) )

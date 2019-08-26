@@ -626,7 +626,7 @@ namespace
 			EAE6320_ASSERTF( false, "Can't initialize shading data without vertex shader" );
 			return result;
 		}
-		if ( !( result = eae6320::Graphics::cShader::s_manager.Load( "data/shaders/fragment/standard.shader",
+		if ( !( result = eae6320::Graphics::cShader::s_manager.Load( "data/shaders/fragment/change_color.shader",
 			s_fragmentShader, eae6320::Graphics::ShaderTypes::Fragment ) ) )
 		{
 			EAE6320_ASSERTF( false, "Can't initialize shading data without fragment shader" );

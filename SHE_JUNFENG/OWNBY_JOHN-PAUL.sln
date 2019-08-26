@@ -3,6 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29201.188
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MyGame", "MyGame", "{BFEABC71-E4D9-4995-BC61-E2D8A0C5201B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyGame", "MyGame_\MyGame\MyGame.vcxproj", "{3BFF20AB-2623-46CA-BA1F-D5EDDCF8F173}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BuildMyGameAssets", "MyGame_\BuildMyGameAssets\BuildMyGameAssets.vcxproj", "{9DC4FA5C-7003-4F65-9B93-548F5905E6A3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{08EFE31C-CA8A-4271-B255-6F92BD2ADA4B} = {08EFE31C-CA8A-4271-B255-6F92BD2ADA4B}
+		{54116086-BD9D-4DAC-B791-EC675B9CADAB} = {54116086-BD9D-4DAC-B791-EC675B9CADAB}
+		{5FE0EAD5-3429-4525-A533-8CF75C85D4F1} = {5FE0EAD5-3429-4525-A533-8CF75C85D4F1}
+	EndProjectSection
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExampleGame", "ExampleGame", "{AC0EBDC3-8723-4A43-9112-DB863C2C3694}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExampleGame", "ExampleGame_\ExampleGame\ExampleGame.vcxproj", "{C4A8A8ED-1817-46FC-97E1-E77CA8057D9E}"
@@ -72,17 +83,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ScopeGuard", "Engine\ScopeGuard\ScopeGuard.vcxproj", "{B7ED3F7D-BFA1-42C9-9089-C6401FFDE3D4}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Graphics", "Engine\Graphics\Graphics.vcxproj", "{CD3D68D0-EAA0-4961-9D14-CD7091B5D8EE}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MyGame", "MyGame", "{BFEABC71-E4D9-4995-BC61-E2D8A0C5201B}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyGame", "MyGame_\MyGame\MyGame.vcxproj", "{3BFF20AB-2623-46CA-BA1F-D5EDDCF8F173}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BuildMyGameAssets", "MyGame_\BuildMyGameAssets\BuildMyGameAssets.vcxproj", "{9DC4FA5C-7003-4F65-9B93-548F5905E6A3}"
-	ProjectSection(ProjectDependencies) = postProject
-		{08EFE31C-CA8A-4271-B255-6F92BD2ADA4B} = {08EFE31C-CA8A-4271-B255-6F92BD2ADA4B}
-		{54116086-BD9D-4DAC-B791-EC675B9CADAB} = {54116086-BD9D-4DAC-B791-EC675B9CADAB}
-		{5FE0EAD5-3429-4525-A533-8CF75C85D4F1} = {5FE0EAD5-3429-4525-A533-8CF75C85D4F1}
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

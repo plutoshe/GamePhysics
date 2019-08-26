@@ -36,7 +36,7 @@ namespace eae6320
 		// so that it's easy to tell at a glance what kind of build is running.
 		virtual const char* GetMainWindowName() const override
 		{
-			return "John-Paul's EAE6320 Plutoshe's Game"
+			return "Plutoshe's Game"
 				" -- "
 #if defined( EAE6320_PLATFORM_D3D )
 				"Direct3D"
@@ -57,7 +57,7 @@ namespace eae6320
 		// You don't need to worry about this for our class,
 		// but if you ever ship a real project using this code as a base you should set this to something unique
 		// (a generated GUID would be fine since this string is never seen)
-		virtual const char* GetMainWindowClassName() const override { return "John-Paul's EAE6320 Plutoshe's Main Window Class"; }
+		virtual const char* GetMainWindowClassName() const override { return "Plutoshe's Main Window Class"; }
 		// The following three icons are provided:
 		//	* IDI_EAEGAMEPAD
 		//	* IDI_EAEALIEN

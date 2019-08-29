@@ -60,7 +60,7 @@ void main(
 
 float random(float randomSeed)
 {
-	return frac(sin(dot(float2(randomSeed, randomSeed * 3),float2(12.9898,78.233)))*43758.5453123);
+	return fract(sin(dot(vec2(randomSeed, randomSeed * 3),vec2(12.9898,78.233)))*43758.5453123);
 }
 
 // Constant Buffers
@@ -90,7 +90,7 @@ out vec4 o_color;
 void main()
 {
 	// Output solid white
-	o_color = float4(
+	o_color = vec4(
 		// RGB (color)
 		random(g_elapsedSecondCount_systemTime), 
 		random(g_elapsedSecondCount_systemTime * 2), 

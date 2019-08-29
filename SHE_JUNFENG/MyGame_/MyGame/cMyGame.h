@@ -63,8 +63,8 @@ namespace eae6320
 		//	* IDI_EAEALIEN
 		//	* IDI_VSDEFAULT_LARGE / IDI_VSDEFAULT_SMALL
 		// If you want to try creating your own a convenient website that will help is: http://icoconvert.com/
-		virtual const WORD* GetLargeIconId() const override { static constexpr WORD iconId_large = IDI_VSDEFAULT_LARGE; return &iconId_large; }
-		virtual const WORD* GetSmallIconId() const override { static constexpr WORD iconId_small = IDI_VSDEFAULT_SMALL; return &iconId_small; }
+		virtual const WORD* GetLargeIconId() const override { static constexpr WORD iconId_large = IDI_PLUTOSHE_MYGAME; return &iconId_large; }
+		virtual const WORD* GetSmallIconId() const override { static constexpr WORD iconId_small = IDI_PLUTOSHE_MYGAME; return &iconId_small; }
 #endif
 
 		// Run

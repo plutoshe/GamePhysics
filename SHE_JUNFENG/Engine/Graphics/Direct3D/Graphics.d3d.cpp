@@ -10,7 +10,7 @@
 #include "../cShader.h"
 #include "../cVertexFormat.h"
 #include "../sContext.h"
-#include "../VertexFormats.h"
+#include "../cGeometry.h"
 
 #include <Engine/Asserts/Asserts.h>
 #include <Engine/Concurrency/cEvent.h>
@@ -216,7 +216,7 @@ void eae6320::Graphics::RenderFrame()
 			constexpr unsigned int startingSlot = 0;
 			constexpr unsigned int vertexBufferCount = 1;
 			// The "stride" defines how large a single vertex is in the stream of data
-			constexpr unsigned int bufferStride = sizeof( VertexFormats::s3dObject );
+			constexpr unsigned int bufferStride = sizeof( Graphics::Geometry::cGeometryVertex );
 			// It's possible to start streaming data in the middle of a vertex buffer
 			constexpr unsigned int bufferOffset = 0;
 			direct3dImmediateContext->IASetVertexBuffers( startingSlot, vertexBufferCount, &s_vertexBuffer, &bufferStride, &bufferOffset );
@@ -239,7 +239,7 @@ void eae6320::Graphics::RenderFrame()
 		{
 			// As of this comment only a single triangle is drawn
 			// (you will have to update this code in future assignments!)
-			constexpr unsigned int triangleCount = 1;
+			constexpr unsigned int triangleCount = 2;
 			constexpr unsigned int vertexCountPerTriangle = 3;
 			constexpr auto vertexCountToRender = triangleCount * vertexCountPerTriangle;
 			// It's possible to start rendering primitives in the middle of the stream
@@ -509,26 +509,26 @@ namespace
 		}
 		// Vertex Buffer
 		{
-			constexpr unsigned int triangleCount = 1;
+			constexpr unsigned int triangleCount = 2;
 			constexpr unsigned int vertexCountPerTriangle = 3;
 			constexpr auto vertexCount = triangleCount * vertexCountPerTriangle;
-			eae6320::Graphics::VertexFormats::s3dObject vertexData[vertexCount];
+			eae6320::Graphics::Geometry::cGeometryVertex vertices[4] =
 			{
-				vertexData[0].x = 0.0f;
-				vertexData[0].y = 0.0f;
-				vertexData[0].z = 0.0f;
-
-				vertexData[1].x = 1.0f;
-				vertexData[1].y = 1.0f;
-				vertexData[1].z = 0.0f;
-
-				vertexData[2].x = 1.0f;
-				vertexData[2].y = 0.0f;
-				vertexData[2].z = 0.0f;
-			}
+				eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 0.0f, 0.0f),
+				eae6320::Graphics::Geometry::cGeometryVertex(1.0f, 0.0f, 0.0f),
+				eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 1.0f, 0.0f),
+				eae6320::Graphics::Geometry::cGeometryVertex(1.0f, 1.0f, 0.0f),
+			};
+			eae6320::Graphics::Geometry::cGeometryFace faces[2] = {
+				eae6320::Graphics::Geometry::cGeometryFace(vertices[0], vertices[1], vertices[2]),
+				eae6320::Graphics::Geometry::cGeometryFace(vertices[1], vertices[3], vertices[2]),
+			};
+			eae6320::Graphics::Geometry::cGeometryRenderTarget geometryData;
+			geometryData.AddFace(faces[0]);
+			geometryData.AddFace(faces[1]);
 			D3D11_BUFFER_DESC bufferDescription{};
 			{
-				const auto bufferSize = vertexCount * sizeof( eae6320::Graphics::VertexFormats::s3dObject );
+				const auto bufferSize = geometryData.BufferSize();
 				EAE6320_ASSERT( bufferSize < ( uint64_t( 1u ) << ( sizeof( bufferDescription.ByteWidth ) * 8 ) ) );
 				bufferDescription.ByteWidth = static_cast<unsigned int>( bufferSize );
 				bufferDescription.Usage = D3D11_USAGE_IMMUTABLE;	// In our class the buffer will never change after it's been created
@@ -539,7 +539,7 @@ namespace
 			}
 			D3D11_SUBRESOURCE_DATA initialData{};
 			{
-				initialData.pSysMem = vertexData;
+				initialData.pSysMem = geometryData.GetVertexData();
 				// (The other data members are ignored for non-texture buffers)
 			}
 

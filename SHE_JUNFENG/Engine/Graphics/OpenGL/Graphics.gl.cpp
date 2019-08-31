@@ -9,7 +9,7 @@
 #include "../cRenderState.h"
 #include "../cShader.h"
 #include "../sContext.h"
-#include "../VertexFormats.h"
+#include "../cGeometry.h"
 
 #include <Engine/Asserts/Asserts.h>
 #include <Engine/Concurrency/cEvent.h>
@@ -213,7 +213,7 @@ void eae6320::Graphics::RenderFrame()
 			constexpr GLenum mode = GL_TRIANGLES;
 			// As of this comment only a single triangle is drawn
 			// (you will have to update this code in future assignments!)
-			constexpr unsigned int triangleCount = 1;
+			constexpr unsigned int triangleCount = 2;
 			constexpr unsigned int vertexCountPerTriangle = 3;
 			constexpr auto vertexCountToRender = triangleCount * vertexCountPerTriangle;
 			// It's possible to start rendering primitives in the middle of the stream
@@ -541,26 +541,27 @@ namespace
 		}
 		// Assign the data to the buffer
 		{
-			constexpr unsigned int triangleCount = 1;
+			constexpr unsigned int triangleCount = 2;
 			constexpr unsigned int vertexCountPerTriangle = 3;
 			const auto vertexCount = triangleCount * vertexCountPerTriangle;
-			eae6320::Graphics::VertexFormats::s3dObject vertexData[vertexCount];
+			eae6320::Graphics::Geometry::cGeometryVertex vertices[4] =
 			{
-				vertexData[0].x = 0.0f;
-				vertexData[0].y = 0.0f;
-				vertexData[0].z = 0.0f;
+				eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 0.0f, 0.0f),
+				eae6320::Graphics::Geometry::cGeometryVertex(1.0f, 0.0f, 0.0f),
+				eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 1.0f, 0.0f),
+				eae6320::Graphics::Geometry::cGeometryVertex(1.0f, 1.0f, 0.0f),
+			};
+			eae6320::Graphics::Geometry::cGeometryFace faces[2] = {
+				eae6320::Graphics::Geometry::cGeometryFace(vertices[0], vertices[1], vertices[2]),
+				eae6320::Graphics::Geometry::cGeometryFace(vertices[1], vertices[3], vertices[2]),
+			};
+			eae6320::Graphics::Geometry::cGeometryRenderTarget geometryData;
+			geometryData.AddFace(faces[0]);
+			geometryData.AddFace(faces[1]);
 
-				vertexData[1].x = 1.0f;
-				vertexData[1].y = 0.0f;
-				vertexData[1].z = 0.0f;
-
-				vertexData[2].x = 1.0f;
-				vertexData[2].y = 1.0f;
-				vertexData[2].z = 0.0f;
-			}
-			const auto bufferSize = vertexCount * sizeof( *vertexData );
+			const auto bufferSize = geometryData.BufferSize();
 			EAE6320_ASSERT( bufferSize < ( uint64_t( 1u ) << ( sizeof( GLsizeiptr ) * 8 ) ) );
-			glBufferData( GL_ARRAY_BUFFER, static_cast<GLsizeiptr>( bufferSize ), reinterpret_cast<GLvoid*>( vertexData ),
+			glBufferData( GL_ARRAY_BUFFER, static_cast<GLsizeiptr>( bufferSize ), reinterpret_cast<GLvoid*>(geometryData.GetVertexData()),
 				// In our class we won't ever read from the buffer
 				GL_STATIC_DRAW );
 			const auto errorCode = glGetError();
@@ -577,7 +578,7 @@ namespace
 		{
 			// The "stride" defines how large a single vertex is in the stream of data
 			// (or, said another way, how far apart each position element is)
-			const auto stride = static_cast<GLsizei>( sizeof( eae6320::Graphics::VertexFormats::s3dObject ) );
+			const auto stride = static_cast<GLsizei>( sizeof(eae6320::Graphics::Geometry::cGeometryVertex) );
 
 			// Position (0)
 			// 3 floats == 12 bytes
@@ -586,8 +587,7 @@ namespace
 				constexpr GLuint vertexElementLocation = 0;
 				constexpr GLint elementCount = 3;
 				constexpr GLboolean notNormalized = GL_FALSE;	// The given floats should be used as-is
-				glVertexAttribPointer( vertexElementLocation, elementCount, GL_FLOAT, notNormalized, stride,
-					reinterpret_cast<GLvoid*>( offsetof( eae6320::Graphics::VertexFormats::s3dObject, x ) ) );
+				glVertexAttribPointer( vertexElementLocation, elementCount, GL_FLOAT, notNormalized, stride, 0);
 				const auto errorCode = glGetError();
 				if ( errorCode == GL_NO_ERROR )
 				{

@@ -5,7 +5,6 @@
 
 #include "Includes.h"
 #include "../sContext.h"
-#include "../VertexFormats.h"
 
 #include <Engine/Asserts/Asserts.h>
 #include <Engine/Logging/Logging.h>
@@ -66,7 +65,7 @@ eae6320::cResult eae6320::Graphics::cVertexFormat::Initialize( const VertexTypes
 						positionElement.SemanticIndex = 0;	// (Semantics without modifying indices at the end can always use zero)
 						positionElement.Format = DXGI_FORMAT_R32G32B32_FLOAT;
 						positionElement.InputSlot = 0;
-						positionElement.AlignedByteOffset = offsetof( VertexFormats::s3dObject, x );
+						positionElement.AlignedByteOffset = 0;
 						positionElement.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 						positionElement.InstanceDataStepRate = 0;	// (Must be zero for per-vertex data)
 					}

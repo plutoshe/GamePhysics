@@ -40,6 +40,7 @@
     <ClCompile Include="cVertexFormat.cpp" />
     <ClCompile Include="sContext.cpp" />
     <ClCompile Include="cGeometry.cpp" />
+    <ClCompile Include="cEffect.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Direct3D\Includes.h">
@@ -61,6 +62,7 @@
     <ClInclude Include="sContext.h" />
     <ClInclude Include="VertexFormats.h" />
     <ClInclude Include="cGeometry.h" />
+    <ClInclude Include="cEffect.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Direct3D">

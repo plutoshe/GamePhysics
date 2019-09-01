@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cConstantBuffer.cpp" />
+    <ClCompile Include="cEffect.cpp" />
     <ClCompile Include="cGeometry.cpp" />
     <ClCompile Include="cRenderState.cpp" />
     <ClCompile Include="cShader.cpp" />
@@ -72,6 +73,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cConstantBuffer.h" />
+    <ClInclude Include="cEffect.h" />
     <ClInclude Include="cGeometry.h" />
     <ClInclude Include="Configuration.h" />
     <ClInclude Include="ConstantBufferFormats.h" />

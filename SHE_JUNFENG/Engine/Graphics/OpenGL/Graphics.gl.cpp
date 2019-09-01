@@ -10,6 +10,7 @@
 #include "../cShader.h"
 #include "../sContext.h"
 #include "../cGeometry.h"
+#include "../cEffect.h"
 
 #include <Engine/Asserts/Asserts.h>
 #include <Engine/Concurrency/cEvent.h>
@@ -619,17 +620,13 @@ namespace
 	eae6320::cResult InitializeShadingData()
 	{
 		auto result = eae6320::Results::Success;
-
-		if ( !( result = eae6320::Graphics::cShader::s_manager.Load( "data/shaders/vertex/standard.shader",
-			s_vertexShader, eae6320::Graphics::ShaderTypes::Vertex ) ) )
+		
+		eae6320::Graphics::Effect effects;
+		effects.AddShader(eae6320::Graphics::ShaderEffect("data/shaders/vertex/standard.shader", eae6320::Graphics::ShaderTypes::Vertex));
+		effects.AddShader(eae6320::Graphics::ShaderEffect("data/shaders/fragment/change_color.shader", eae6320::Graphics::ShaderTypes::Fragment));
+		if (!(result = effects.Load(eae6320::Graphics::cShader::s_manager, s_vertexShader, s_fragmentShader)))
 		{
-			EAE6320_ASSERTF( false, "Can't initialize shading data without vertex shader" );
-			return result;
-		}
-		if ( !( result = eae6320::Graphics::cShader::s_manager.Load( "data/shaders/fragment/change_color.shader",
-			s_fragmentShader, eae6320::Graphics::ShaderTypes::Fragment ) ) )
-		{
-			EAE6320_ASSERTF( false, "Can't initialize shading data without fragment shader" );
+			EAE6320_ASSERTF(false, "Can't initialize effects");
 			return result;
 		}
 		{

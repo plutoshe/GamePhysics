@@ -55,6 +55,8 @@ namespace eae6320
 					this->AddFace(faces[0]);
 					this->AddFace(faces[1]);
 				}
+				void Draw();
+				unsigned int vertexCountToRender();
 			};
 		}
 	}

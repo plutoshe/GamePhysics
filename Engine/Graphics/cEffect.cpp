@@ -48,5 +48,12 @@ void eae6320::Graphics::Effect::Bind(eae6320::Assets::cManager<eae6320::Graphics
 	glUseProgram(eae6320::Graphics::Env::s_programId);
 	EAE6320_ASSERT(glGetError() == GL_NO_ERROR);
 #endif
+	// Render state
+	{
+		EAE6320_ASSERT(eae6320::Graphics::Env::s_renderState);
+		auto* const renderState = cRenderState::s_manager.Get(eae6320::Graphics::Env::s_renderState);
+		EAE6320_ASSERT(renderState);
+		renderState->Bind();
+	}
 }
 

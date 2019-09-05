@@ -133,41 +133,11 @@ void eae6320::Graphics::RenderFrame()
 
 	// Bind the shading data
 	{
-		//s_effect.Bind(s_programId);
 		eae6320::Graphics::Env::s_effect.Bind(cShader::s_manager, eae6320::Graphics::Env::s_vertexShader, eae6320::Graphics::Env::s_fragmentShader);
-		
-		// Render state
-		{
-			EAE6320_ASSERT(eae6320::Graphics::Env::s_renderState );
-			auto* const renderState = cRenderState::s_manager.Get(eae6320::Graphics::Env::s_renderState );
-			EAE6320_ASSERT( renderState );
-			renderState->Bind();
-		}
 	}
 	// Draw the geometry
 	{
-		// Bind a specific vertex buffer to the device as a data source
-		{
-			EAE6320_ASSERT(eae6320::Graphics::Env::s_vertexArrayId != 0 );
-			glBindVertexArray(eae6320::Graphics::Env::s_vertexArrayId );
-			EAE6320_ASSERT( glGetError() == GL_NO_ERROR );
-		}
-		// Render triangles from the currently-bound vertex buffer
-		{
-			// The mode defines how to interpret multiple vertices as a single "primitive";
-			// a triangle list is defined
-			// (meaning that every primitive is a triangle and will be defined by three vertices)
-			constexpr GLenum mode = GL_TRIANGLES;
-			// As of this comment only a single triangle is drawn
-			// (you will have to update this code in future assignments!)
-			constexpr unsigned int triangleCount = 2;
-			constexpr unsigned int vertexCountPerTriangle = 3;
-			constexpr auto vertexCountToRender = triangleCount * vertexCountPerTriangle;
-			// It's possible to start rendering primitives in the middle of the stream
-			constexpr unsigned int indexOfFirstVertexToRender = 0;
-			glDrawArrays( mode, indexOfFirstVertexToRender, vertexCountToRender );
-			EAE6320_ASSERT( glGetError() == GL_NO_ERROR );
-		}
+		eae6320::Graphics::Env::s_geometry.Draw();
 	}
 
 	// Everything has been drawn to the "back buffer", which is just an image in memory.
@@ -488,27 +458,12 @@ namespace
 		}
 		// Assign the data to the buffer
 		{
-			constexpr unsigned int triangleCount = 2;
-			constexpr unsigned int vertexCountPerTriangle = 3;
-			const auto vertexCount = triangleCount * vertexCountPerTriangle;
-			eae6320::Graphics::Geometry::cGeometryVertex vertices[4] =
-			{
-				eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 0.0f, 0.0f),
-				eae6320::Graphics::Geometry::cGeometryVertex(1.0f, 0.0f, 0.0f),
-				eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 1.0f, 0.0f),
-				eae6320::Graphics::Geometry::cGeometryVertex(1.0f, 1.0f, 0.0f),
-			};
-			eae6320::Graphics::Geometry::cGeometryFace faces[2] = {
-				eae6320::Graphics::Geometry::cGeometryFace(vertices[0], vertices[1], vertices[2]),
-				eae6320::Graphics::Geometry::cGeometryFace(vertices[1], vertices[3], vertices[2]),
-			};
-			eae6320::Graphics::Geometry::cGeometryRenderTarget geometryData;
-			geometryData.AddFace(faces[0]);
-			geometryData.AddFace(faces[1]);
 
-			const auto bufferSize = geometryData.BufferSize();
+			eae6320::Graphics::Env::s_geometry.LoadData();
+
+			const auto bufferSize = eae6320::Graphics::Env::s_geometry.BufferSize();
 			EAE6320_ASSERT( bufferSize < ( uint64_t( 1u ) << ( sizeof( GLsizeiptr ) * 8 ) ) );
-			glBufferData( GL_ARRAY_BUFFER, static_cast<GLsizeiptr>( bufferSize ), reinterpret_cast<GLvoid*>(geometryData.GetVertexData()),
+			glBufferData( GL_ARRAY_BUFFER, static_cast<GLsizeiptr>( bufferSize ), reinterpret_cast<GLvoid*>(eae6320::Graphics::Env::s_geometry.GetVertexData()),
 				// In our class we won't ever read from the buffer
 				GL_STATIC_DRAW );
 			const auto errorCode = glGetError();

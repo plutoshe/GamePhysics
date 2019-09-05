@@ -127,52 +127,11 @@ void eae6320::Graphics::RenderFrame()
 	// Bind the shading data
 	{
 		eae6320::Graphics::Env::s_effect.Bind(cShader::s_manager, eae6320::Graphics::Env::s_vertexShader, eae6320::Graphics::Env::s_fragmentShader);
-		// Render state
-		{
-			EAE6320_ASSERT(eae6320::Graphics::Env::s_renderState);
-			auto* const renderState = cRenderState::s_manager.Get(eae6320::Graphics::Env::s_renderState);
-			EAE6320_ASSERT(renderState);
-			renderState->Bind();
-		}
+
 	}
 	// Draw the geometry
 	{
-		// Bind a specific vertex buffer to the device as a data source
-		{
-			EAE6320_ASSERT(eae6320::Graphics::Env::s_vertexBuffer);
-			constexpr unsigned int startingSlot = 0;
-			constexpr unsigned int vertexBufferCount = 1;
-			// The "stride" defines how large a single vertex is in the stream of data
-			constexpr unsigned int bufferStride = sizeof(Graphics::Geometry::cGeometryVertex);
-			// It's possible to start streaming data in the middle of a vertex buffer
-			constexpr unsigned int bufferOffset = 0;
-			direct3dImmediateContext->IASetVertexBuffers(startingSlot, vertexBufferCount, &eae6320::Graphics::Env::s_vertexBuffer, &bufferStride, &bufferOffset);
-		}
-		// Specify what kind of data the vertex buffer holds
-		{
-			// Bind the vertex format (which defines how to interpret a single vertex)
-			{
-				EAE6320_ASSERT(eae6320::Graphics::Env::s_vertexFormat);
-				auto* const vertexFormat = cVertexFormat::s_manager.Get(eae6320::Graphics::Env::s_vertexFormat);
-				EAE6320_ASSERT(vertexFormat);
-				vertexFormat->Bind();
-			}
-			// Set the topology (which defines how to interpret multiple vertices as a single "primitive";
-			// the vertex buffer was defined as a triangle list
-			// (meaning that every primitive is a triangle and will be defined by three vertices)
-			direct3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		}
-		// Render triangles from the currently-bound vertex buffer
-		{
-			// As of this comment only a single triangle is drawn
-			// (you will have to update this code in future assignments!)
-			constexpr unsigned int triangleCount = 2;
-			constexpr unsigned int vertexCountPerTriangle = 3;
-			constexpr auto vertexCountToRender = triangleCount * vertexCountPerTriangle;
-			// It's possible to start rendering primitives in the middle of the stream
-			constexpr unsigned int indexOfFirstVertexToRender = 0;
-			direct3dImmediateContext->Draw(vertexCountToRender, indexOfFirstVertexToRender);
-		}
+		eae6320::Graphics::Env::s_geometry.Draw();
 	}
 
 	// Everything has been drawn to the "back buffer", which is just an image in memory.
@@ -436,9 +395,6 @@ namespace
 		}
 		// Vertex Buffer
 		{
-			constexpr unsigned int triangleCount = 2;
-			constexpr unsigned int vertexCountPerTriangle = 3;
-			constexpr auto vertexCount = triangleCount * vertexCountPerTriangle;
 			eae6320::Graphics::Env::s_geometry.LoadData();
 
 			D3D11_BUFFER_DESC bufferDescription{};

@@ -40,6 +40,23 @@ namespace eae6320
 				void AddFace(cGeometryFace face);
 				cGeometryVertex* GetVertexData();
 				std::vector<cGeometryVertex> vertices;
+				void LoadData() {
+					eae6320::Graphics::Geometry::cGeometryVertex vertices[4] =
+					{
+						eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 0.0f, 0.0f),
+						eae6320::Graphics::Geometry::cGeometryVertex(1.0f, 0.0f, 0.0f),
+						eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 1.0f, 0.0f),
+						eae6320::Graphics::Geometry::cGeometryVertex(1.0f, 1.0f, 0.0f),
+					};
+					eae6320::Graphics::Geometry::cGeometryFace faces[2] = {
+						eae6320::Graphics::Geometry::cGeometryFace(vertices[0], vertices[1], vertices[2]),
+						eae6320::Graphics::Geometry::cGeometryFace(vertices[1], vertices[3], vertices[2]),
+					};
+					this->AddFace(faces[0]);
+					this->AddFace(faces[1]);
+				}
+				void Draw();
+				unsigned int vertexCountToRender();
 			};
 		}
 	}

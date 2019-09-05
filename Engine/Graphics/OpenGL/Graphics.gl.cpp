@@ -11,6 +11,7 @@
 #include "../sContext.h"
 #include "../cGeometry.h"
 #include "../cEffect.h"
+#include "../GraphicsEnv.h"
 
 #include <Engine/Asserts/Asserts.h>
 #include <Engine/Concurrency/cEvent.h>
@@ -20,59 +21,6 @@
 #include <Engine/Time/Time.h>
 #include <Engine/UserOutput/UserOutput.h>
 #include <utility>
-
-// Static Data Initialization
-//===========================
-
-namespace
-{
-	// Constant buffer object
-	eae6320::Graphics::cConstantBuffer s_constantBuffer_frame( eae6320::Graphics::ConstantBufferTypes::Frame );
-
-	// Submission Data
-	//----------------
-
-	// This struct's data is populated at submission time;
-	// it must cache whatever is necessary in order to render a frame
-	struct sDataRequiredToRenderAFrame
-	{
-		eae6320::Graphics::ConstantBufferFormats::sFrame constantData_frame;
-	};
-	// In our class there will be two copies of the data required to render a frame:
-	//	* One of them will be in the process of being populated by the data currently being submitted by the application loop thread
-	//	* One of them will be fully populated and in the process of being rendered from in the render thread
-	// (In other words, one is being produced while the other is being consumed)
-	sDataRequiredToRenderAFrame s_dataRequiredToRenderAFrame[2];
-	auto* s_dataBeingSubmittedByApplicationThread = &s_dataRequiredToRenderAFrame[0];
-	auto* s_dataBeingRenderedByRenderThread = &s_dataRequiredToRenderAFrame[1];
-	// The following two events work together to make sure that
-	// the main/render thread and the application loop thread can work in parallel but stay in sync:
-	// This event is signaled by the application loop thread when it has finished submitting render data for a frame
-	// (the main/render thread waits for the signal)
-	eae6320::Concurrency::cEvent s_whenAllDataHasBeenSubmittedFromApplicationThread;
-	// This event is signaled by the main/render thread when it has swapped render data pointers.
-	// This means that the renderer is now working with all the submitted data it needs to render the next frame,
-	// and the application loop thread can start submitting data for the following frame
-	// (the application loop thread waits for the signal)
-	eae6320::Concurrency::cEvent s_whenDataForANewFrameCanBeSubmittedFromApplicationThread;
-
-	// Shading Data
-	//-------------
-
-	eae6320::Graphics::cShader::Handle s_vertexShader;
-	eae6320::Graphics::cShader::Handle s_fragmentShader;
-	GLuint s_programId = 0;
-
-	eae6320::Graphics::cRenderState::Handle s_renderState;
-
-	// Geometry Data
-	//--------------
-
-	// A vertex buffer holds the data for each vertex
-	GLuint s_vertexBufferId = 0;
-	// A vertex array encapsulates the vertex data as well as the vertex input layout
-	GLuint s_vertexArrayId = 0;
-}
 
 // Helper Function Declarations
 //=============================
@@ -91,20 +39,20 @@ namespace
 
 void eae6320::Graphics::SubmitElapsedTime( const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_simulationTime )
 {
-	EAE6320_ASSERT( s_dataBeingSubmittedByApplicationThread );
-	auto& constantData_frame = s_dataBeingSubmittedByApplicationThread->constantData_frame;
+	EAE6320_ASSERT(eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread );
+	auto& constantData_frame = eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread->constantData_frame;
 	constantData_frame.g_elapsedSecondCount_systemTime = i_elapsedSecondCount_systemTime;
 	constantData_frame.g_elapsedSecondCount_simulationTime = i_elapsedSecondCount_simulationTime;
 }
 
 eae6320::cResult eae6320::Graphics::WaitUntilDataForANewFrameCanBeSubmitted( const unsigned int i_timeToWait_inMilliseconds )
 {
-	return Concurrency::WaitForEvent( s_whenDataForANewFrameCanBeSubmittedFromApplicationThread, i_timeToWait_inMilliseconds );
+	return Concurrency::WaitForEvent(eae6320::Graphics::Env::s_whenDataForANewFrameCanBeSubmittedFromApplicationThread, i_timeToWait_inMilliseconds );
 }
 
 eae6320::cResult eae6320::Graphics::SignalThatAllDataForAFrameHasBeenSubmitted()
 {
-	return s_whenAllDataHasBeenSubmittedFromApplicationThread.Signal();
+	return eae6320::Graphics::Env::s_whenAllDataHasBeenSubmittedFromApplicationThread.Signal();
 }
 
 // Render
@@ -114,14 +62,14 @@ void eae6320::Graphics::RenderFrame()
 {
 	// Wait for the application loop to submit data to be rendered
 	{
-		const auto result = Concurrency::WaitForEvent( s_whenAllDataHasBeenSubmittedFromApplicationThread );
+		const auto result = Concurrency::WaitForEvent(eae6320::Graphics::Env::s_whenAllDataHasBeenSubmittedFromApplicationThread );
 		if ( result )
 		{
 			// Switch the render data pointers so that
 			// the data that the application just submitted becomes the data that will now be rendered
-			std::swap( s_dataBeingSubmittedByApplicationThread, s_dataBeingRenderedByRenderThread );
+			std::swap(eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread, eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread );
 			// Once the pointers have been swapped the application loop can submit new data
-			const auto result = s_whenDataForANewFrameCanBeSubmittedFromApplicationThread.Signal();
+			const auto result = eae6320::Graphics::Env::s_whenDataForANewFrameCanBeSubmittedFromApplicationThread.Signal();
 			if ( !result )
 			{
 				EAE6320_ASSERTF( false, "Couldn't signal that new graphics data can be submitted" );
@@ -174,54 +122,22 @@ void eae6320::Graphics::RenderFrame()
 		}
 	}
 
-	EAE6320_ASSERT( s_dataBeingRenderedByRenderThread );
+	EAE6320_ASSERT(eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread );
 
 	// Update the frame constant buffer
 	{
 		// Copy the data from the system memory that the application owns to GPU memory
-		auto& constantData_frame = s_dataBeingRenderedByRenderThread->constantData_frame;
-		s_constantBuffer_frame.Update( &constantData_frame );
+		auto& constantData_frame = eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->constantData_frame;
+		eae6320::Graphics::Env::s_constantBuffer_frame.Update( &constantData_frame );
 	}
 
 	// Bind the shading data
 	{
-		{
-			EAE6320_ASSERT( s_programId != 0 );
-			glUseProgram( s_programId );
-			EAE6320_ASSERT( glGetError() == GL_NO_ERROR );
-		}
-		// Render state
-		{
-			EAE6320_ASSERT( s_renderState );
-			auto* const renderState = cRenderState::s_manager.Get( s_renderState );
-			EAE6320_ASSERT( renderState );
-			renderState->Bind();
-		}
+		eae6320::Graphics::Env::s_effect.Bind(cShader::s_manager, eae6320::Graphics::Env::s_vertexShader, eae6320::Graphics::Env::s_fragmentShader);
 	}
 	// Draw the geometry
 	{
-		// Bind a specific vertex buffer to the device as a data source
-		{
-			EAE6320_ASSERT( s_vertexArrayId != 0 );
-			glBindVertexArray( s_vertexArrayId );
-			EAE6320_ASSERT( glGetError() == GL_NO_ERROR );
-		}
-		// Render triangles from the currently-bound vertex buffer
-		{
-			// The mode defines how to interpret multiple vertices as a single "primitive";
-			// a triangle list is defined
-			// (meaning that every primitive is a triangle and will be defined by three vertices)
-			constexpr GLenum mode = GL_TRIANGLES;
-			// As of this comment only a single triangle is drawn
-			// (you will have to update this code in future assignments!)
-			constexpr unsigned int triangleCount = 2;
-			constexpr unsigned int vertexCountPerTriangle = 3;
-			constexpr auto vertexCountToRender = triangleCount * vertexCountPerTriangle;
-			// It's possible to start rendering primitives in the middle of the stream
-			constexpr unsigned int indexOfFirstVertexToRender = 0;
-			glDrawArrays( mode, indexOfFirstVertexToRender, vertexCountToRender );
-			EAE6320_ASSERT( glGetError() == GL_NO_ERROR );
-		}
+		eae6320::Graphics::Env::s_geometry.Draw();
 	}
 
 	// Everything has been drawn to the "back buffer", which is just an image in memory.
@@ -270,11 +186,11 @@ eae6320::cResult eae6320::Graphics::Initialize( const sInitializationParameters&
 	}
 	// Initialize the platform-independent graphics objects
 	{
-		if ( result = s_constantBuffer_frame.Initialize() )
+		if ( result = eae6320::Graphics::Env::s_constantBuffer_frame.Initialize() )
 		{
 			// There is only a single frame constant buffer that is reused
 			// and so it can be bound at initialization time and never unbound
-			s_constantBuffer_frame.Bind(
+			eae6320::Graphics::Env::s_constantBuffer_frame.Bind(
 				// In our class both vertex and fragment shaders use per-frame constant data
 				ShaderTypes::Vertex | ShaderTypes::Fragment );
 		}
@@ -286,12 +202,12 @@ eae6320::cResult eae6320::Graphics::Initialize( const sInitializationParameters&
 	}
 	// Initialize the events
 	{
-		if ( !( result = s_whenAllDataHasBeenSubmittedFromApplicationThread.Initialize( Concurrency::EventType::ResetAutomaticallyAfterBeingSignaled ) ) )
+		if ( !( result = eae6320::Graphics::Env::s_whenAllDataHasBeenSubmittedFromApplicationThread.Initialize( Concurrency::EventType::ResetAutomaticallyAfterBeingSignaled ) ) )
 		{
 			EAE6320_ASSERTF( false, "Can't initialize Graphics without event for when data has been submitted from the application thread" );
 			return result;
 		}
-		if ( !( result = s_whenDataForANewFrameCanBeSubmittedFromApplicationThread.Initialize( Concurrency::EventType::ResetAutomaticallyAfterBeingSignaled,
+		if ( !( result = eae6320::Graphics::Env::s_whenDataForANewFrameCanBeSubmittedFromApplicationThread.Initialize( Concurrency::EventType::ResetAutomaticallyAfterBeingSignaled,
 			Concurrency::EventState::Signaled ) ) )
 		{
 			EAE6320_ASSERTF( false, "Can't initialize Graphics without event for when data can be submitted from the application thread" );
@@ -323,7 +239,7 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 	auto result = Results::Success;
 
 	{
-		if ( s_vertexArrayId != 0 )
+		if (eae6320::Graphics::Env::s_vertexArrayId != 0 )
 		{
 			// Make sure that the vertex array isn't bound
 			{
@@ -342,7 +258,7 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 				}
 			}
 			constexpr GLsizei arrayCount = 1;
-			glDeleteVertexArrays( arrayCount, &s_vertexArrayId );
+			glDeleteVertexArrays( arrayCount, &eae6320::Graphics::Env::s_vertexArrayId );
 			const auto errorCode = glGetError();
 			if ( errorCode != GL_NO_ERROR )
 			{
@@ -354,12 +270,12 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 				Logging::OutputError( "OpenGL failed to delete the vertex array: %s",
 					reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
 			}
-			s_vertexArrayId = 0;
+			eae6320::Graphics::Env::s_vertexArrayId = 0;
 		}
-		if ( s_vertexBufferId != 0 )
+		if (eae6320::Graphics::Env::s_vertexBufferId != 0 )
 		{
 			constexpr GLsizei bufferCount = 1;
-			glDeleteBuffers( bufferCount, &s_vertexBufferId );
+			glDeleteBuffers( bufferCount, &eae6320::Graphics::Env::s_vertexBufferId );
 			const auto errorCode = glGetError();
 			if ( errorCode != GL_NO_ERROR )
 			{
@@ -371,12 +287,12 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 				Logging::OutputError( "OpenGL failed to delete the vertex buffer: %s",
 					reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
 			}
-			s_vertexBufferId = 0;
+			eae6320::Graphics::Env::s_vertexBufferId = 0;
 		}
 	}
-	if ( s_programId != 0 )
+	if (eae6320::Graphics::Env::s_programId != 0 )
 	{
-		glDeleteProgram( s_programId );
+		glDeleteProgram(eae6320::Graphics::Env::s_programId );
 		const auto errorCode = glGetError();
 		if ( errorCode != GL_NO_ERROR )
 		{
@@ -388,11 +304,11 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 			eae6320::Logging::OutputError( "OpenGL failed to delete the program: %s",
 				reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
 		}
-		s_programId = 0;
+		eae6320::Graphics::Env::s_programId = 0;
 	}
-	if ( s_vertexShader )
+	if (eae6320::Graphics::Env::s_vertexShader )
 	{
-		const auto result_vertexShader = cShader::s_manager.Release( s_vertexShader );
+		const auto result_vertexShader = cShader::s_manager.Release(eae6320::Graphics::Env::s_vertexShader );
 		if ( !result_vertexShader )
 		{
 			EAE6320_ASSERT( false );
@@ -402,9 +318,9 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 			}
 		}
 	}
-	if ( s_fragmentShader )
+	if (eae6320::Graphics::Env::s_fragmentShader )
 	{
-		const auto result_fragmentShader = cShader::s_manager.Release( s_fragmentShader );
+		const auto result_fragmentShader = cShader::s_manager.Release(eae6320::Graphics::Env::s_fragmentShader );
 		if ( !result_fragmentShader )
 		{
 			EAE6320_ASSERT( false );
@@ -414,9 +330,9 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 			}
 		}
 	}
-	if ( s_renderState )
+	if (eae6320::Graphics::Env::s_renderState )
 	{
-		const auto result_renderState = cRenderState::s_manager.Release( s_renderState );
+		const auto result_renderState = cRenderState::s_manager.Release(eae6320::Graphics::Env::s_renderState );
 		if ( !result_renderState )
 		{
 			EAE6320_ASSERT( false );
@@ -428,7 +344,7 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 	}
 
 	{
-		const auto result_constantBuffer_frame = s_constantBuffer_frame.CleanUp();
+		const auto result_constantBuffer_frame = eae6320::Graphics::Env::s_constantBuffer_frame.CleanUp();
 		if ( !result_constantBuffer_frame )
 		{
 			EAE6320_ASSERT( false );
@@ -489,11 +405,11 @@ namespace
 		// Create a vertex array object and make it active
 		{
 			constexpr GLsizei arrayCount = 1;
-			glGenVertexArrays( arrayCount, &s_vertexArrayId );
+			glGenVertexArrays( arrayCount, &eae6320::Graphics::Env::s_vertexArrayId );
 			const auto errorCode = glGetError();
 			if ( errorCode == GL_NO_ERROR )
 			{
-				glBindVertexArray( s_vertexArrayId );
+				glBindVertexArray(eae6320::Graphics::Env::s_vertexArrayId );
 				const auto errorCode = glGetError();
 				if ( errorCode != GL_NO_ERROR )
 				{
@@ -516,11 +432,11 @@ namespace
 		// Create a vertex buffer object and make it active
 		{
 			constexpr GLsizei bufferCount = 1;
-			glGenBuffers( bufferCount, &s_vertexBufferId );
+			glGenBuffers( bufferCount, &eae6320::Graphics::Env::s_vertexBufferId );
 			const auto errorCode = glGetError();
 			if ( errorCode == GL_NO_ERROR )
 			{
-				glBindBuffer( GL_ARRAY_BUFFER, s_vertexBufferId );
+				glBindBuffer( GL_ARRAY_BUFFER, eae6320::Graphics::Env::s_vertexBufferId );
 				const auto errorCode = glGetError();
 				if ( errorCode != GL_NO_ERROR )
 				{
@@ -542,27 +458,12 @@ namespace
 		}
 		// Assign the data to the buffer
 		{
-			constexpr unsigned int triangleCount = 2;
-			constexpr unsigned int vertexCountPerTriangle = 3;
-			const auto vertexCount = triangleCount * vertexCountPerTriangle;
-			eae6320::Graphics::Geometry::cGeometryVertex vertices[4] =
-			{
-				eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 0.0f, 0.0f),
-				eae6320::Graphics::Geometry::cGeometryVertex(1.0f, 0.0f, 0.0f),
-				eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 1.0f, 0.0f),
-				eae6320::Graphics::Geometry::cGeometryVertex(1.0f, 1.0f, 0.0f),
-			};
-			eae6320::Graphics::Geometry::cGeometryFace faces[2] = {
-				eae6320::Graphics::Geometry::cGeometryFace(vertices[0], vertices[1], vertices[2]),
-				eae6320::Graphics::Geometry::cGeometryFace(vertices[1], vertices[3], vertices[2]),
-			};
-			eae6320::Graphics::Geometry::cGeometryRenderTarget geometryData;
-			geometryData.AddFace(faces[0]);
-			geometryData.AddFace(faces[1]);
 
-			const auto bufferSize = geometryData.BufferSize();
+			eae6320::Graphics::Env::s_geometry.LoadData();
+
+			const auto bufferSize = eae6320::Graphics::Env::s_geometry.BufferSize();
 			EAE6320_ASSERT( bufferSize < ( uint64_t( 1u ) << ( sizeof( GLsizeiptr ) * 8 ) ) );
-			glBufferData( GL_ARRAY_BUFFER, static_cast<GLsizeiptr>( bufferSize ), reinterpret_cast<GLvoid*>(geometryData.GetVertexData()),
+			glBufferData( GL_ARRAY_BUFFER, static_cast<GLsizeiptr>( bufferSize ), reinterpret_cast<GLvoid*>(eae6320::Graphics::Env::s_geometry.GetVertexData()),
 				// In our class we won't ever read from the buffer
 				GL_STATIC_DRAW );
 			const auto errorCode = glGetError();
@@ -620,20 +521,18 @@ namespace
 	eae6320::cResult InitializeShadingData()
 	{
 		auto result = eae6320::Results::Success;
-		
-		eae6320::Graphics::Effect effects;
-		effects.AddShader(eae6320::Graphics::ShaderEffect("data/shaders/vertex/standard.shader", eae6320::Graphics::ShaderTypes::Vertex));
-		effects.AddShader(eae6320::Graphics::ShaderEffect("data/shaders/fragment/change_color.shader", eae6320::Graphics::ShaderTypes::Fragment));
-		if (!(result = effects.Load(eae6320::Graphics::cShader::s_manager, s_vertexShader, s_fragmentShader)))
+		eae6320::Graphics::Env::s_effect.SetVertexShaderPath("data/shaders/vertex/standard.shader");
+		eae6320::Graphics::Env::s_effect.SetFragmentShaderPath("data/shaders/fragment/change_color.shader");
+		if (!(result = eae6320::Graphics::Env::s_effect.Load(eae6320::Graphics::cShader::s_manager, eae6320::Graphics::Env::s_vertexShader, eae6320::Graphics::Env::s_fragmentShader)))
 		{
 			EAE6320_ASSERTF(false, "Can't initialize effects");
 			return result;
 		}
 		{
 			constexpr uint8_t defaultRenderState = 0;
-			if ( !( result = eae6320::Graphics::cRenderState::s_manager.Load( defaultRenderState, s_renderState ) ) )
+			if (!(result = eae6320::Graphics::cRenderState::s_manager.Load(defaultRenderState, eae6320::Graphics::Env::s_renderState)))
 			{
-				EAE6320_ASSERTF( false, "Can't initialize shading data without render state" );
+				EAE6320_ASSERTF(false, "Can't initialize shading data without render state");
 				return result;
 			}
 		}
@@ -643,9 +542,9 @@ namespace
 			{
 				if ( !result )
 				{
-					if ( s_programId != 0 )
+					if (eae6320::Graphics::Env::s_programId != 0 )
 					{
-						glDeleteProgram( s_programId );
+						glDeleteProgram(eae6320::Graphics::Env::s_programId );
 						const auto errorCode = glGetError();
 						if ( errorCode != GL_NO_ERROR )
 						{
@@ -653,12 +552,12 @@ namespace
 							eae6320::Logging::OutputError( "OpenGL failed to delete the program: %s",
 								reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
 						}
-						s_programId = 0;
+						eae6320::Graphics::Env::s_programId = 0;
 					}
 				}
 			} );
 		{
-			s_programId = glCreateProgram();
+			eae6320::Graphics::Env::s_programId = glCreateProgram();
 			const auto errorCode = glGetError();
 			if ( errorCode != GL_NO_ERROR )
 			{
@@ -668,7 +567,7 @@ namespace
 					reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
 				return result;
 			}
-			else if ( s_programId == 0 )
+			else if (eae6320::Graphics::Env::s_programId == 0 )
 			{
 				result = eae6320::Results::Failure;
 				EAE6320_ASSERT( false );
@@ -680,7 +579,7 @@ namespace
 		{
 			// Vertex
 			{
-				glAttachShader( s_programId, eae6320::Graphics::cShader::s_manager.Get( s_vertexShader )->m_shaderId );
+				glAttachShader(eae6320::Graphics::Env::s_programId, eae6320::Graphics::cShader::s_manager.Get(eae6320::Graphics::Env::s_vertexShader )->m_shaderId );
 				const auto errorCode = glGetError();
 				if ( errorCode != GL_NO_ERROR )
 				{
@@ -693,7 +592,7 @@ namespace
 			}
 			// Fragment
 			{
-				glAttachShader( s_programId, eae6320::Graphics::cShader::s_manager.Get( s_fragmentShader )->m_shaderId );
+				glAttachShader(eae6320::Graphics::Env::s_programId, eae6320::Graphics::cShader::s_manager.Get(eae6320::Graphics::Env::s_fragmentShader )->m_shaderId );
 				const auto errorCode = glGetError();
 				if ( errorCode != GL_NO_ERROR )
 				{
@@ -707,7 +606,7 @@ namespace
 		}
 		// Link the program
 		{
-			glLinkProgram( s_programId );
+			glLinkProgram(eae6320::Graphics::Env::s_programId );
 			const auto errorCode = glGetError();
 			if ( errorCode == GL_NO_ERROR )
 			{
@@ -717,7 +616,7 @@ namespace
 				std::string linkInfo;
 				{
 					GLint infoSize;
-					glGetProgramiv( s_programId, GL_INFO_LOG_LENGTH, &infoSize );
+					glGetProgramiv(eae6320::Graphics::Env::s_programId, GL_INFO_LOG_LENGTH, &infoSize );
 					const auto errorCode = glGetError();
 					if ( errorCode == GL_NO_ERROR )
 					{
@@ -728,7 +627,7 @@ namespace
 							~sLogInfo() { if ( memory ) free( memory ); }
 						} info( static_cast<size_t>( infoSize ) );
 						constexpr GLsizei* const dontReturnLength = nullptr;
-						glGetProgramInfoLog( s_programId, static_cast<GLsizei>( infoSize ), dontReturnLength, info.memory );
+						glGetProgramInfoLog(eae6320::Graphics::Env::s_programId, static_cast<GLsizei>( infoSize ), dontReturnLength, info.memory );
 						const auto errorCode = glGetError();
 						if ( errorCode == GL_NO_ERROR )
 						{
@@ -755,7 +654,7 @@ namespace
 				// Check to see if there were link errors
 				GLint didLinkingSucceed;
 				{
-					glGetProgramiv( s_programId, GL_LINK_STATUS, &didLinkingSucceed );
+					glGetProgramiv(eae6320::Graphics::Env::s_programId, GL_LINK_STATUS, &didLinkingSucceed );
 					const auto errorCode = glGetError();
 					if ( errorCode == GL_NO_ERROR )
 					{

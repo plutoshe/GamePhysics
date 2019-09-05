@@ -12,6 +12,7 @@
 #include "../sContext.h"
 #include "../cGeometry.h"
 #include "../cEffect.h"
+#include "../GraphicsEnv.h"
 
 #include <Engine/Asserts/Asserts.h>
 #include <Engine/Concurrency/cEvent.h>
@@ -21,64 +22,6 @@
 #include <Engine/Time/Time.h>
 #include <Engine/UserOutput/UserOutput.h>
 #include <utility>
-
-// Static Data Initialization
-//===========================
-
-namespace
-{
-	// In Direct3D "views" are objects that allow a texture to be used a particular way:
-	// A render target view allows a texture to have color rendered to it
-	ID3D11RenderTargetView* s_renderTargetView = nullptr;
-	// A depth/stencil view allows a texture to have depth rendered to it
-	ID3D11DepthStencilView* s_depthStencilView = nullptr;
-
-	// Constant buffer object
-	eae6320::Graphics::cConstantBuffer s_constantBuffer_frame(eae6320::Graphics::ConstantBufferTypes::Frame);
-
-	// Submission Data
-	//----------------
-
-	// This struct's data is populated at submission time;
-	// it must cache whatever is necessary in order to render a frame
-	struct sDataRequiredToRenderAFrame
-	{
-		eae6320::Graphics::ConstantBufferFormats::sFrame constantData_frame;
-	};
-	// In our class there will be two copies of the data required to render a frame:
-	//	* One of them will be in the process of being populated by the data currently being submitted by the application loop thread
-	//	* One of them will be fully populated and in the process of being rendered from in the render thread
-	// (In other words, one is being produced while the other is being consumed)
-	sDataRequiredToRenderAFrame s_dataRequiredToRenderAFrame[2];
-	auto* s_dataBeingSubmittedByApplicationThread = &s_dataRequiredToRenderAFrame[0];
-	auto* s_dataBeingRenderedByRenderThread = &s_dataRequiredToRenderAFrame[1];
-	// The following two events work together to make sure that
-	// the main/render thread and the application loop thread can work in parallel but stay in sync:
-	// This event is signaled by the application loop thread when it has finished submitting render data for a frame
-	// (the main/render thread waits for the signal)
-	eae6320::Concurrency::cEvent s_whenAllDataHasBeenSubmittedFromApplicationThread;
-	// This event is signaled by the main/render thread when it has swapped render data pointers.
-	// This means that the renderer is now working with all the submitted data it needs to render the next frame,
-	// and the application loop thread can start submitting data for the following frame
-	// (the application loop thread waits for the signal)
-	eae6320::Concurrency::cEvent s_whenDataForANewFrameCanBeSubmittedFromApplicationThread;
-
-	// Shading Data
-	//-------------
-
-	eae6320::Graphics::cShader::Handle s_vertexShader;
-	eae6320::Graphics::cShader::Handle s_fragmentShader;
-
-	eae6320::Graphics::cRenderState::Handle s_renderState;
-
-	// Geometry Data
-	//--------------
-
-	eae6320::Graphics::cVertexFormat::Handle s_vertexFormat;
-
-	// A vertex buffer holds the data for each vertex
-	ID3D11Buffer* s_vertexBuffer = nullptr;
-}
 
 // Helper Function Declarations
 //=============================
@@ -98,20 +41,20 @@ namespace
 
 void eae6320::Graphics::SubmitElapsedTime(const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_simulationTime)
 {
-	EAE6320_ASSERT(s_dataBeingSubmittedByApplicationThread);
-	auto& constantData_frame = s_dataBeingSubmittedByApplicationThread->constantData_frame;
+	EAE6320_ASSERT(eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread);
+	auto& constantData_frame = eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread->constantData_frame;
 	constantData_frame.g_elapsedSecondCount_systemTime = i_elapsedSecondCount_systemTime;
 	constantData_frame.g_elapsedSecondCount_simulationTime = i_elapsedSecondCount_simulationTime;
 }
 
 eae6320::cResult eae6320::Graphics::WaitUntilDataForANewFrameCanBeSubmitted(const unsigned int i_timeToWait_inMilliseconds)
 {
-	return Concurrency::WaitForEvent(s_whenDataForANewFrameCanBeSubmittedFromApplicationThread, i_timeToWait_inMilliseconds);
+	return Concurrency::WaitForEvent(eae6320::Graphics::Env::s_whenDataForANewFrameCanBeSubmittedFromApplicationThread, i_timeToWait_inMilliseconds);
 }
 
 eae6320::cResult eae6320::Graphics::SignalThatAllDataForAFrameHasBeenSubmitted()
 {
-	return s_whenAllDataHasBeenSubmittedFromApplicationThread.Signal();
+	return eae6320::Graphics::Env::s_whenAllDataHasBeenSubmittedFromApplicationThread.Signal();
 }
 
 // Render
@@ -121,14 +64,14 @@ void eae6320::Graphics::RenderFrame()
 {
 	// Wait for the application loop to submit data to be rendered
 	{
-		const auto result = Concurrency::WaitForEvent(s_whenAllDataHasBeenSubmittedFromApplicationThread);
+		const auto result = Concurrency::WaitForEvent(eae6320::Graphics::Env::s_whenAllDataHasBeenSubmittedFromApplicationThread);
 		if (result)
 		{
 			// Switch the render data pointers so that
 			// the data that the application just submitted becomes the data that will now be rendered
-			std::swap(s_dataBeingSubmittedByApplicationThread, s_dataBeingRenderedByRenderThread);
+			std::swap(eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread, eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread);
 			// Once the pointers have been swapped the application loop can submit new data
-			const auto result = s_whenDataForANewFrameCanBeSubmittedFromApplicationThread.Signal();
+			const auto result = eae6320::Graphics::Env::s_whenDataForANewFrameCanBeSubmittedFromApplicationThread.Signal();
 			if (!result)
 			{
 				EAE6320_ASSERTF(false, "Couldn't signal that new graphics data can be submitted");
@@ -155,98 +98,40 @@ void eae6320::Graphics::RenderFrame()
 	// Before drawing anything, then, the previous image will be erased
 	// by "clearing" the image buffer (filling it with a solid color)
 	{
-		EAE6320_ASSERT(s_renderTargetView);
+		EAE6320_ASSERT(eae6320::Graphics::Env::s_renderTargetView);
 
 		// Black is usually used
 		constexpr float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-		direct3dImmediateContext->ClearRenderTargetView(s_renderTargetView, clearColor);
+		direct3dImmediateContext->ClearRenderTargetView(eae6320::Graphics::Env::s_renderTargetView, clearColor);
 	}
 	// In addition to the color buffer there is also a hidden image called the "depth buffer"
 	// which is used to make it less important which order draw calls are made.
 	// It must also be "cleared" every frame just like the visible color buffer.
 	{
-		EAE6320_ASSERT(s_depthStencilView);
+		EAE6320_ASSERT(eae6320::Graphics::Env::s_depthStencilView);
 
 		constexpr float clearToFarDepth = 1.0f;
 		constexpr uint8_t stencilValue = 0;	// Arbitrary if stencil isn't used
-		direct3dImmediateContext->ClearDepthStencilView(s_depthStencilView, D3D11_CLEAR_DEPTH, clearToFarDepth, stencilValue);
+		direct3dImmediateContext->ClearDepthStencilView(eae6320::Graphics::Env::s_depthStencilView, D3D11_CLEAR_DEPTH, clearToFarDepth, stencilValue);
 	}
 
-	EAE6320_ASSERT(s_dataBeingRenderedByRenderThread);
+	EAE6320_ASSERT(eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread);
 
 	// Update the frame constant buffer
 	{
 		// Copy the data from the system memory that the application owns to GPU memory
-		auto& constantData_frame = s_dataBeingRenderedByRenderThread->constantData_frame;
-		s_constantBuffer_frame.Update(&constantData_frame);
+		auto& constantData_frame = eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->constantData_frame;
+		eae6320::Graphics::Env::s_constantBuffer_frame.Update(&constantData_frame);
 	}
 
 	// Bind the shading data
 	{
-		{
-			constexpr ID3D11ClassInstance* const* noInterfaces = nullptr;
-			constexpr unsigned int interfaceCount = 0;
-			// Vertex shader
-			{
-				EAE6320_ASSERT(s_vertexShader);
-				auto* const shader = cShader::s_manager.Get(s_vertexShader);
-				EAE6320_ASSERT(shader && shader->m_shaderObject.vertex);
-				direct3dImmediateContext->VSSetShader(shader->m_shaderObject.vertex, noInterfaces, interfaceCount);
-			}
-			// Fragment shader
-			{
-				EAE6320_ASSERT(s_fragmentShader);
-				auto* const shader = cShader::s_manager.Get(s_fragmentShader);
-				EAE6320_ASSERT(shader && shader->m_shaderObject.fragment);
-				direct3dImmediateContext->PSSetShader(shader->m_shaderObject.fragment, noInterfaces, interfaceCount);
-			}
-		}
-		// Render state
-		{
-			EAE6320_ASSERT(s_renderState);
-			auto* const renderState = cRenderState::s_manager.Get(s_renderState);
-			EAE6320_ASSERT(renderState);
-			renderState->Bind();
-		}
+		eae6320::Graphics::Env::s_effect.Bind(cShader::s_manager, eae6320::Graphics::Env::s_vertexShader, eae6320::Graphics::Env::s_fragmentShader);
+
 	}
 	// Draw the geometry
 	{
-		// Bind a specific vertex buffer to the device as a data source
-		{
-			EAE6320_ASSERT(s_vertexBuffer);
-			constexpr unsigned int startingSlot = 0;
-			constexpr unsigned int vertexBufferCount = 1;
-			// The "stride" defines how large a single vertex is in the stream of data
-			constexpr unsigned int bufferStride = sizeof(Graphics::Geometry::cGeometryVertex);
-			// It's possible to start streaming data in the middle of a vertex buffer
-			constexpr unsigned int bufferOffset = 0;
-			direct3dImmediateContext->IASetVertexBuffers(startingSlot, vertexBufferCount, &s_vertexBuffer, &bufferStride, &bufferOffset);
-		}
-		// Specify what kind of data the vertex buffer holds
-		{
-			// Bind the vertex format (which defines how to interpret a single vertex)
-			{
-				EAE6320_ASSERT(s_vertexFormat);
-				auto* const vertexFormat = cVertexFormat::s_manager.Get(s_vertexFormat);
-				EAE6320_ASSERT(vertexFormat);
-				vertexFormat->Bind();
-			}
-			// Set the topology (which defines how to interpret multiple vertices as a single "primitive";
-			// the vertex buffer was defined as a triangle list
-			// (meaning that every primitive is a triangle and will be defined by three vertices)
-			direct3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		}
-		// Render triangles from the currently-bound vertex buffer
-		{
-			// As of this comment only a single triangle is drawn
-			// (you will have to update this code in future assignments!)
-			constexpr unsigned int triangleCount = 2;
-			constexpr unsigned int vertexCountPerTriangle = 3;
-			constexpr auto vertexCountToRender = triangleCount * vertexCountPerTriangle;
-			// It's possible to start rendering primitives in the middle of the stream
-			constexpr unsigned int indexOfFirstVertexToRender = 0;
-			direct3dImmediateContext->Draw(vertexCountToRender, indexOfFirstVertexToRender);
-		}
+		eae6320::Graphics::Env::s_geometry.Draw();
 	}
 
 	// Everything has been drawn to the "back buffer", which is just an image in memory.
@@ -302,11 +187,11 @@ eae6320::cResult eae6320::Graphics::Initialize(const sInitializationParameters& 
 	}
 	// Initialize the platform-independent graphics objects
 	{
-		if (result = s_constantBuffer_frame.Initialize())
+		if (result = eae6320::Graphics::Env::s_constantBuffer_frame.Initialize())
 		{
 			// There is only a single frame constant buffer that is reused
 			// and so it can be bound at initialization time and never unbound
-			s_constantBuffer_frame.Bind(
+			eae6320::Graphics::Env::s_constantBuffer_frame.Bind(
 				// In our class both vertex and fragment shaders use per-frame constant data
 				ShaderTypes::Vertex | ShaderTypes::Fragment);
 		}
@@ -318,12 +203,12 @@ eae6320::cResult eae6320::Graphics::Initialize(const sInitializationParameters& 
 	}
 	// Initialize the events
 	{
-		if (!(result = s_whenAllDataHasBeenSubmittedFromApplicationThread.Initialize(Concurrency::EventType::ResetAutomaticallyAfterBeingSignaled)))
+		if (!(result = eae6320::Graphics::Env::s_whenAllDataHasBeenSubmittedFromApplicationThread.Initialize(Concurrency::EventType::ResetAutomaticallyAfterBeingSignaled)))
 		{
 			EAE6320_ASSERTF(false, "Can't initialize Graphics without event for when data has been submitted from the application thread");
 			return result;
 		}
-		if (!(result = s_whenDataForANewFrameCanBeSubmittedFromApplicationThread.Initialize(Concurrency::EventType::ResetAutomaticallyAfterBeingSignaled,
+		if (!(result = eae6320::Graphics::Env::s_whenDataForANewFrameCanBeSubmittedFromApplicationThread.Initialize(Concurrency::EventType::ResetAutomaticallyAfterBeingSignaled,
 			Concurrency::EventState::Signaled)))
 		{
 			EAE6320_ASSERTF(false, "Can't initialize Graphics without event for when data can be submitted from the application thread");
@@ -362,24 +247,24 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 {
 	auto result = Results::Success;
 
-	if (s_renderTargetView)
+	if (eae6320::Graphics::Env::s_renderTargetView)
 	{
-		s_renderTargetView->Release();
-		s_renderTargetView = nullptr;
+		eae6320::Graphics::Env::s_renderTargetView->Release();
+		eae6320::Graphics::Env::s_renderTargetView = nullptr;
 	}
-	if (s_depthStencilView)
+	if (eae6320::Graphics::Env::s_depthStencilView)
 	{
-		s_depthStencilView->Release();
-		s_depthStencilView = nullptr;
+		eae6320::Graphics::Env::s_depthStencilView->Release();
+		eae6320::Graphics::Env::s_depthStencilView = nullptr;
 	}
-	if (s_vertexBuffer)
+	if (eae6320::Graphics::Env::s_vertexBuffer)
 	{
-		s_vertexBuffer->Release();
-		s_vertexBuffer = nullptr;
+		eae6320::Graphics::Env::s_vertexBuffer->Release();
+		eae6320::Graphics::Env::s_vertexBuffer = nullptr;
 	}
-	if (s_vertexFormat)
+	if (eae6320::Graphics::Env::s_vertexFormat)
 	{
-		const auto result_vertexFormat = cVertexFormat::s_manager.Release(s_vertexFormat);
+		const auto result_vertexFormat = cVertexFormat::s_manager.Release(eae6320::Graphics::Env::s_vertexFormat);
 		if (!result_vertexFormat)
 		{
 			EAE6320_ASSERT(false);
@@ -389,9 +274,9 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 			}
 		}
 	}
-	if (s_vertexShader)
+	if (eae6320::Graphics::Env::s_vertexShader)
 	{
-		const auto result_vertexShader = cShader::s_manager.Release(s_vertexShader);
+		const auto result_vertexShader = cShader::s_manager.Release(eae6320::Graphics::Env::s_vertexShader);
 		if (!result_vertexShader)
 		{
 			EAE6320_ASSERT(false);
@@ -401,9 +286,9 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 			}
 		}
 	}
-	if (s_fragmentShader)
+	if (eae6320::Graphics::Env::s_fragmentShader)
 	{
-		const auto result_fragmentShader = cShader::s_manager.Release(s_fragmentShader);
+		const auto result_fragmentShader = cShader::s_manager.Release(eae6320::Graphics::Env::s_fragmentShader);
 		if (!result_fragmentShader)
 		{
 			EAE6320_ASSERT(false);
@@ -413,9 +298,9 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 			}
 		}
 	}
-	if (s_renderState)
+	if (eae6320::Graphics::Env::s_renderState)
 	{
-		const auto result_renderState = cRenderState::s_manager.Release(s_renderState);
+		const auto result_renderState = cRenderState::s_manager.Release(eae6320::Graphics::Env::s_renderState);
 		if (!result_renderState)
 		{
 			EAE6320_ASSERT(false);
@@ -427,7 +312,7 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 	}
 
 	{
-		const auto result_constantBuffer_frame = s_constantBuffer_frame.CleanUp();
+		const auto result_constantBuffer_frame = eae6320::Graphics::Env::s_constantBuffer_frame.CleanUp();
 		if (!result_constantBuffer_frame)
 		{
 			EAE6320_ASSERT(false);
@@ -501,7 +386,7 @@ namespace
 
 		// Vertex Format
 		{
-			if (!(result = eae6320::Graphics::cVertexFormat::s_manager.Load(eae6320::Graphics::VertexTypes::_3dObject, s_vertexFormat,
+			if (!(result = eae6320::Graphics::cVertexFormat::s_manager.Load(eae6320::Graphics::VertexTypes::_3dObject, eae6320::Graphics::Env::s_vertexFormat,
 				"data/shaders/vertex/vertexinputlayout_3dobject.shader")))
 			{
 				EAE6320_ASSERTF(false, "Can't initialize geometry without vertex format");
@@ -510,26 +395,11 @@ namespace
 		}
 		// Vertex Buffer
 		{
-			constexpr unsigned int triangleCount = 2;
-			constexpr unsigned int vertexCountPerTriangle = 3;
-			constexpr auto vertexCount = triangleCount * vertexCountPerTriangle;
-			eae6320::Graphics::Geometry::cGeometryVertex vertices[4] =
-			{
-				eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 0.0f, 0.0f),
-				eae6320::Graphics::Geometry::cGeometryVertex(1.0f, 0.0f, 0.0f),
-				eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 1.0f, 0.0f),
-				eae6320::Graphics::Geometry::cGeometryVertex(1.0f, 1.0f, 0.0f),
-			};
-			eae6320::Graphics::Geometry::cGeometryFace faces[2] = {
-				eae6320::Graphics::Geometry::cGeometryFace(vertices[0], vertices[1], vertices[2]),
-				eae6320::Graphics::Geometry::cGeometryFace(vertices[1], vertices[3], vertices[2]),
-			};
-			eae6320::Graphics::Geometry::cGeometryRenderTarget geometryData;
-			geometryData.AddFace(faces[0]);
-			geometryData.AddFace(faces[1]);
+			eae6320::Graphics::Env::s_geometry.LoadData();
+
 			D3D11_BUFFER_DESC bufferDescription{};
 			{
-				const auto bufferSize = geometryData.BufferSize();
+				const auto bufferSize = eae6320::Graphics::Env::s_geometry.BufferSize();
 				EAE6320_ASSERT(bufferSize < (uint64_t(1u) << (sizeof(bufferDescription.ByteWidth) * 8)));
 				bufferDescription.ByteWidth = static_cast<unsigned int>(bufferSize);
 				bufferDescription.Usage = D3D11_USAGE_IMMUTABLE;	// In our class the buffer will never change after it's been created
@@ -540,11 +410,11 @@ namespace
 			}
 			D3D11_SUBRESOURCE_DATA initialData{};
 			{
-				initialData.pSysMem = geometryData.GetVertexData();
+				initialData.pSysMem = eae6320::Graphics::Env::s_geometry.GetVertexData();
 				// (The other data members are ignored for non-texture buffers)
 			}
 
-			const auto d3dResult = direct3dDevice->CreateBuffer(&bufferDescription, &initialData, &s_vertexBuffer);
+			const auto d3dResult = direct3dDevice->CreateBuffer(&bufferDescription, &initialData, &eae6320::Graphics::Env::s_vertexBuffer);
 			if (FAILED(d3dResult))
 			{
 				result = eae6320::Results::Failure;
@@ -560,17 +430,16 @@ namespace
 	eae6320::cResult InitializeShadingData()
 	{
 		auto result = eae6320::Results::Success;
-		eae6320::Graphics::Effect effects;
-		effects.AddShader(eae6320::Graphics::ShaderEffect("data/shaders/vertex/standard.shader", eae6320::Graphics::ShaderTypes::Vertex));
-		effects.AddShader(eae6320::Graphics::ShaderEffect("data/shaders/fragment/change_color.shader", eae6320::Graphics::ShaderTypes::Fragment));
-		if (!(result = effects.Load(eae6320::Graphics::cShader::s_manager, s_vertexShader, s_fragmentShader))) 
+		eae6320::Graphics::Env::s_effect.SetVertexShaderPath("data/shaders/vertex/standard.shader");
+		eae6320::Graphics::Env::s_effect.SetFragmentShaderPath("data/shaders/fragment/change_color.shader");
+		if (!(result = eae6320::Graphics::Env::s_effect.Load(eae6320::Graphics::cShader::s_manager, eae6320::Graphics::Env::s_vertexShader, eae6320::Graphics::Env::s_fragmentShader)))
 		{
 			EAE6320_ASSERTF(false, "Can't initialize effects");
 			return result;
 		}
 		{
 			constexpr uint8_t defaultRenderState = 0;
-			if (!(result = eae6320::Graphics::cRenderState::s_manager.Load(defaultRenderState, s_renderState)))
+			if (!(result = eae6320::Graphics::cRenderState::s_manager.Load(defaultRenderState, eae6320::Graphics::Env::s_renderState)))
 			{
 				EAE6320_ASSERTF(false, "Can't initialize shading data without render state");
 				return result;
@@ -628,7 +497,7 @@ namespace
 			// Create the view
 			{
 				constexpr D3D11_RENDER_TARGET_VIEW_DESC* const accessAllSubResources = nullptr;
-				const auto d3dResult = direct3dDevice->CreateRenderTargetView(backBuffer, accessAllSubResources, &s_renderTargetView);
+				const auto d3dResult = direct3dDevice->CreateRenderTargetView(backBuffer, accessAllSubResources, &eae6320::Graphics::Env::s_renderTargetView);
 				if (FAILED(d3dResult))
 				{
 					result = eae6320::Results::Failure;
@@ -675,7 +544,7 @@ namespace
 			// Create the view
 			{
 				constexpr D3D11_DEPTH_STENCIL_VIEW_DESC* const noSubResources = nullptr;
-				const auto d3dResult = direct3dDevice->CreateDepthStencilView(depthBuffer, noSubResources, &s_depthStencilView);
+				const auto d3dResult = direct3dDevice->CreateDepthStencilView(depthBuffer, noSubResources, &eae6320::Graphics::Env::s_depthStencilView);
 				if (FAILED(d3dResult))
 				{
 					result = eae6320::Results::Failure;
@@ -689,7 +558,7 @@ namespace
 		// Bind the views
 		{
 			constexpr unsigned int renderTargetCount = 1;
-			direct3dImmediateContext->OMSetRenderTargets(renderTargetCount, &s_renderTargetView, s_depthStencilView);
+			direct3dImmediateContext->OMSetRenderTargets(renderTargetCount, &eae6320::Graphics::Env::s_renderTargetView, eae6320::Graphics::Env::s_depthStencilView);
 		}
 		// Specify that the entire render target should be visible
 		{
@@ -708,3 +577,4 @@ namespace
 		return result;
 	}
 }
+

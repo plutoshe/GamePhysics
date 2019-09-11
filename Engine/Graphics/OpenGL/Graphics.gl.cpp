@@ -398,72 +398,92 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 
 namespace
 {
+	eae6320::cResult CreateOpenGLVertexArray(GLuint &vertexArrayId)
+	{
+		auto result = eae6320::Results::Success;
+
+		constexpr GLsizei arrayCount = 1;
+		glGenVertexArrays(arrayCount, &vertexArrayId);
+		const auto errorCode = glGetError();
+		if (errorCode == GL_NO_ERROR)
+		{
+			glBindVertexArray(vertexArrayId);
+			const auto errorCode = glGetError();
+			if (errorCode != GL_NO_ERROR)
+			{
+				result = eae6320::Results::Failure;
+				EAE6320_ASSERTF(false, reinterpret_cast<const char*>(gluErrorString(errorCode)));
+				eae6320::Logging::OutputError("OpenGL failed to bind a new vertex array: %s",
+					reinterpret_cast<const char*>(gluErrorString(errorCode)));
+				return result;
+			}
+		}
+		else
+		{
+			result = eae6320::Results::Failure;
+			EAE6320_ASSERTF(false, reinterpret_cast<const char*>(gluErrorString(errorCode)));
+			eae6320::Logging::OutputError("OpenGL failed to get an unused vertex array ID: %s",
+				reinterpret_cast<const char*>(gluErrorString(errorCode)));
+			return result;
+		}
+		return result;
+	}
+
 	eae6320::cResult InitializeGeometry()
 	{
 		auto result = eae6320::Results::Success;
 
 		// Create a vertex array object and make it active
+		result = CreateOpenGLVertexArray(eae6320::Graphics::Env::s_vertexArrayId);
+		if (result != eae6320::Results::Success)
 		{
-			constexpr GLsizei arrayCount = 1;
-			glGenVertexArrays( arrayCount, &eae6320::Graphics::Env::s_vertexArrayId );
-			const auto errorCode = glGetError();
-			if ( errorCode == GL_NO_ERROR )
-			{
-				glBindVertexArray(eae6320::Graphics::Env::s_vertexArrayId );
-				const auto errorCode = glGetError();
-				if ( errorCode != GL_NO_ERROR )
-				{
-					result = eae6320::Results::Failure;
-					EAE6320_ASSERTF( false, reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-					eae6320::Logging::OutputError( "OpenGL failed to bind a new vertex array: %s",
-						reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-					return result;
-				}
-			}
-			else
-			{
-				result = eae6320::Results::Failure;
-				EAE6320_ASSERTF( false, reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-				eae6320::Logging::OutputError( "OpenGL failed to get an unused vertex array ID: %s",
-					reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-				return result;
-			}
+			return result;
 		}
 		// Create a vertex buffer object and make it active
 		{
+			auto result = eae6320::Results::Success;
 			constexpr GLsizei bufferCount = 1;
-			glGenBuffers( bufferCount, &eae6320::Graphics::Env::s_vertexBufferId );
+			glGenBuffers(bufferCount, &eae6320::Graphics::Env::s_vertexBufferId);
 			const auto errorCode = glGetError();
-			if ( errorCode == GL_NO_ERROR )
+			if (errorCode == GL_NO_ERROR)
 			{
-				glBindBuffer( GL_ARRAY_BUFFER, eae6320::Graphics::Env::s_vertexBufferId );
+				glBindBuffer(GL_ARRAY_BUFFER, eae6320::Graphics::Env::s_vertexBufferId);
 				const auto errorCode = glGetError();
-				if ( errorCode != GL_NO_ERROR )
+				if (errorCode != GL_NO_ERROR)
 				{
 					result = eae6320::Results::Failure;
-					EAE6320_ASSERTF( false, reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-					eae6320::Logging::OutputError( "OpenGL failed to bind a new vertex buffer: %s",
-						reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
+					EAE6320_ASSERTF(false, reinterpret_cast<const char*>(gluErrorString(errorCode)));
+					eae6320::Logging::OutputError("OpenGL failed to bind a new vertex buffer: %s",
+						reinterpret_cast<const char*>(gluErrorString(errorCode)));
 					return result;
 				}
 			}
 			else
 			{
 				result = eae6320::Results::Failure;
-				EAE6320_ASSERTF( false, reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-				eae6320::Logging::OutputError( "OpenGL failed to get an unused vertex buffer ID: %s",
-					reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
+				EAE6320_ASSERTF(false, reinterpret_cast<const char*>(gluErrorString(errorCode)));
+				eae6320::Logging::OutputError("OpenGL failed to get an unused vertex buffer ID: %s",
+					reinterpret_cast<const char*>(gluErrorString(errorCode)));
 				return result;
 			}
 		}
-		// Assign the data to the buffer
+
+		eae6320::Graphics::Geometry::cGeometryVertex vertices[4] =
+		{
+			eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 0.0f, 0.0f),
+			eae6320::Graphics::Geometry::cGeometryVertex(1.0f, 0.0f, 0.0f),
+			eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 1.0f, 0.0f),
+			eae6320::Graphics::Geometry::cGeometryVertex(1.0f, 1.0f, 0.0f),
+		};
+
+		// Assign the data to the vertex position buffer
 		{
 
 			eae6320::Graphics::Env::s_geometry.LoadData();
 
-			const auto bufferSize = eae6320::Graphics::Env::s_geometry.BufferSize();
+			const auto bufferSize = 4;
 			EAE6320_ASSERT( bufferSize < ( uint64_t( 1u ) << ( sizeof( GLsizeiptr ) * 8 ) ) );
-			glBufferData( GL_ARRAY_BUFFER, static_cast<GLsizeiptr>( bufferSize ), reinterpret_cast<GLvoid*>(eae6320::Graphics::Env::s_geometry.GetVertexData()),
+			glBufferData( GL_ARRAY_BUFFER, sizeof(vertices), reinterpret_cast<GLvoid*>(vertices),
 				// In our class we won't ever read from the buffer
 				GL_STATIC_DRAW );
 			const auto errorCode = glGetError();
@@ -476,6 +496,60 @@ namespace
 				return result;
 			}
 		}
+
+		// create index buffer and make it active
+		{
+			auto result = eae6320::Results::Success;
+			constexpr GLsizei bufferCount = 1;
+			glGenBuffers(bufferCount, &eae6320::Graphics::Env::s_indexBufferId);
+			const auto errorCode = glGetError();
+			if (errorCode == GL_NO_ERROR)
+			{
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eae6320::Graphics::Env::s_indexBufferId);
+				const auto errorCode = glGetError();
+				if (errorCode != GL_NO_ERROR)
+				{
+					result = eae6320::Results::Failure;
+					EAE6320_ASSERTF(false, reinterpret_cast<const char*>(gluErrorString(errorCode)));
+					eae6320::Logging::OutputError("OpenGL failed to bind a new vertex buffer: %s",
+						reinterpret_cast<const char*>(gluErrorString(errorCode)));
+					return result;
+				}
+			}
+			else
+			{
+				result = eae6320::Results::Failure;
+				EAE6320_ASSERTF(false, reinterpret_cast<const char*>(gluErrorString(errorCode)));
+				eae6320::Logging::OutputError("OpenGL failed to get an unused vertex buffer ID: %s",
+					reinterpret_cast<const char*>(gluErrorString(errorCode)));
+				return result;
+			}
+		}
+		unsigned int indices[] = {  // note that we start from 0!
+			0, 1, 2,   // first triangle
+			1, 3, 2,   // second triangle
+		};
+
+		// Assign the data to the vertex index buffer
+		{
+			const auto bufferSize = 6;
+			EAE6320_ASSERT(bufferSize < (uint64_t(1u) << (sizeof(GLsizeiptr) * 8)));
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), reinterpret_cast<GLvoid*>(indices),
+				// In our class we won't ever read from the buffer
+				GL_STATIC_DRAW);
+			const auto errorCode = glGetError();
+			if (errorCode != GL_NO_ERROR)
+			{
+				result = eae6320::Results::Failure;
+				EAE6320_ASSERTF(false, reinterpret_cast<const char*>(gluErrorString(errorCode)));
+				eae6320::Logging::OutputError("OpenGL failed to allocate the vertex buffer: %s",
+					reinterpret_cast<const char*>(gluErrorString(errorCode)));
+				return result;
+			}
+		}
+
+
+
 		// Initialize vertex format
 		{
 			// The "stride" defines how large a single vertex is in the stream of data
@@ -513,6 +587,10 @@ namespace
 					return result;
 				}
 			}
+		}
+		// unbind current vertex array
+		{
+			glBindVertexArray(0);
 		}
 
 		return result;

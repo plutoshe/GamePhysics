@@ -40,6 +40,7 @@ namespace eae6320
 				void AddFace(cGeometryFace face);
 				cGeometryVertex* GetVertexData();
 				std::vector<cGeometryVertex> vertices;
+				std::vector<int> index;
 				void LoadData() {
 					eae6320::Graphics::Geometry::cGeometryVertex vertices[4] =
 					{

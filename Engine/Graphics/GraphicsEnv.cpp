@@ -36,6 +36,7 @@ namespace eae6320
 			GLuint s_programId = 0;
 			eae6320::Graphics::cRenderState::Handle s_renderState;
 			GLuint s_vertexBufferId = 0;
+			GLuint s_indexBufferId = 0;
 			GLuint s_vertexArrayId = 0;
 			eae6320::Graphics::Effect s_effect;
 			eae6320::Graphics::Geometry::cGeometryRenderTarget s_geometry;

@@ -99,8 +99,13 @@ namespace eae6320
 
 					// It's possible to start rendering primitives in the middle of the stream
 					constexpr unsigned int indexOfFirstVertexToRender = 0;
-					glDrawArrays(mode, indexOfFirstVertexToRender, vertexCountToRender());
+					glDrawElements(mode, vertexCountToRender(), GL_UNSIGNED_INT, indexOfFirstVertexToRender);
 					EAE6320_ASSERT(glGetError() == GL_NO_ERROR);
+				}
+
+				// unbind vertex array
+				{
+					glBindVertexArray(0);
 				}
 #endif
 			}

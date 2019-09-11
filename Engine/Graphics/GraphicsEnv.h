@@ -123,7 +123,7 @@ namespace eae6320
 			extern GLuint s_vertexBufferId;
 			// A vertex array encapsulates the vertex data as well as the vertex input layout
 			extern GLuint s_vertexArrayId;
-
+			extern GLuint s_indexBufferId;
 			extern eae6320::Graphics::Effect s_effect;
 			extern eae6320::Graphics::Geometry::cGeometryRenderTarget s_geometry;
 

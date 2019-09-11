@@ -21,8 +21,8 @@ namespace eae6320
 			std::map<std::string, eae6320::Graphics::cShader::Handle> s_vertexShaders;
 			std::map<std::string, eae6320::Graphics::cShader::Handle> s_fragmentShaders;
 
-			eae6320::Graphics::cRenderState::Handle s_renderState;
-
+			eae6320::Graphics::cRenderState::Handle s_renderState; 
+			std::vector<float> s_BackgroundColor{ 0.0f, 0.0f, 1.0f, 1.0f };
 			std::vector<eae6320::Graphics::Effect> s_effects;
 			std::vector<eae6320::Graphics::Geometry::cGeometryRenderTarget> s_geometries;
 		}

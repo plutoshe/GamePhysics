@@ -67,7 +67,7 @@ namespace eae6320
 
 			extern std::vector<eae6320::Graphics::Effect> s_effects;
 			extern std::vector<eae6320::Graphics::Geometry::cGeometryRenderTarget> s_geometries;
-
+			extern std::vector<float> s_BackgroundColor;
 
 		}
 	}

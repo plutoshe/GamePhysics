@@ -96,7 +96,14 @@ void eae6320::Graphics::RenderFrame()
 	{
 		// Black is usually used
 		{
-			glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
+			if (eae6320::Graphics::Env::s_BackgroundColor.size() >= 4)
+			{
+				glClearColor(
+					eae6320::Graphics::Env::s_BackgroundColor[0],
+					eae6320::Graphics::Env::s_BackgroundColor[1],
+					eae6320::Graphics::Env::s_BackgroundColor[2],
+					eae6320::Graphics::Env::s_BackgroundColor[3]);
+			}
 			EAE6320_ASSERT( glGetError() == GL_NO_ERROR );
 		}
 		{
@@ -380,7 +387,7 @@ namespace
 			eae6320::Graphics::Geometry::cGeometryVertex(-1.0f, -1.0f, 0.0f),
 			eae6320::Graphics::Geometry::cGeometryVertex(0.0f, -1.0f, 0.0f),
 			eae6320::Graphics::Geometry::cGeometryVertex(-1.0f, 0.0f, 0.0f),
-			eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 0.0f, 0.0f),
+			eae6320::Graphics::Geometry::cGeometryVertex(-0.3f, -0.3f, 0.0f),
 		};
 
 		eae6320::Graphics::Geometry::cGeometryRenderTarget geometryA, geometryB;

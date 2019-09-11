@@ -44,7 +44,7 @@ namespace eae6320
 			class cGeometryRenderTarget
 			{
 			public:
-				cGeometryRenderTarget() { m_vertexBuffer = m_indexBuffer = nullptr; }
+				
 				unsigned int VertexBufferSize();
 				unsigned int GetIndexCount();
 				unsigned int IndexBufferSize();
@@ -62,10 +62,15 @@ namespace eae6320
 				eae6320::cResult InitDevicePipeline();
 
 #if defined( EAE6320_PLATFORM_D3D )
+				cGeometryRenderTarget() { m_vertexBuffer = m_indexBuffer = nullptr; }
 				eae6320::Graphics::cVertexFormat::Handle m_vertexFormat;
 				ID3D11Buffer* m_vertexBuffer;
 				ID3D11Buffer* m_indexBuffer;
 #elif defined( EAE6320_PLATFORM_GL )
+				cGeometryRenderTarget() { s_vertexBufferId = s_indexBufferId = s_vertexArrayId = 0; }
+				GLuint s_vertexBufferId;
+				GLuint s_indexBufferId;
+				GLuint s_vertexArrayId;
 #endif
 				std::vector<cGeometryVertex> m_vertices;
 				std::vector<unsigned int> m_indices;

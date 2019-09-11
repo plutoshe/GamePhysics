@@ -56,7 +56,7 @@ namespace eae6320
 		void RenderFrame();
 
 		void ChangeBackgroundColor(std::vector<float> updateColor);
-
+		void ClearBackgroundColor();
 		// Initialization / Clean Up
 		//--------------------------
 

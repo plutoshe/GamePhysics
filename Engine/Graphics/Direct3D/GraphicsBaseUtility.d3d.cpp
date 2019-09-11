@@ -32,6 +32,20 @@ namespace
 	eae6320::cResult InitializeViews(const unsigned int i_resolutionWidth, const unsigned int i_resolutionHeight);
 }
 
+void eae6320::Graphics::ClearBackgroundColor()
+{
+	if (eae6320::Graphics::Env::s_BackgroundColor.size() >= 4)
+	{
+		auto* const direct3dImmediateContext = sContext::g_context.direct3dImmediateContext;
+		float clearColor[4] = { eae6320::Graphics::Env::s_BackgroundColor[0],
+								eae6320::Graphics::Env::s_BackgroundColor[1],
+								eae6320::Graphics::Env::s_BackgroundColor[2],
+								eae6320::Graphics::Env::s_BackgroundColor[3] };
+
+		direct3dImmediateContext->ClearRenderTargetView(eae6320::Graphics::Env::s_renderTargetView, clearColor);
+	}
+}
+
 void eae6320::Graphics::RenderFrame()
 {
 	// Wait for the application loop to submit data to be rendered
@@ -72,16 +86,7 @@ void eae6320::Graphics::RenderFrame()
 	{
 		EAE6320_ASSERT(eae6320::Graphics::Env::s_renderTargetView);
 
-		// Black is usually used
-		if (eae6320::Graphics::Env::s_BackgroundColor.size() >= 4)
-		{
-			float clearColor[4] = { eae6320::Graphics::Env::s_BackgroundColor[0],
-						eae6320::Graphics::Env::s_BackgroundColor[1],
-						eae6320::Graphics::Env::s_BackgroundColor[2],
-						eae6320::Graphics::Env::s_BackgroundColor[3] };
-
-			direct3dImmediateContext->ClearRenderTargetView(eae6320::Graphics::Env::s_renderTargetView, clearColor);
-		}
+		eae6320::Graphics::ClearBackgroundColor();
 	}
 	// In addition to the color buffer there is also a hidden image called the "depth buffer"
 	// which is used to make it less important which order draw calls are made.

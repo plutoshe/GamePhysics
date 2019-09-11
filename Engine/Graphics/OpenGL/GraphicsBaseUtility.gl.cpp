@@ -24,6 +24,19 @@
 #include <utility>
 
 
+void eae6320::Graphics::ClearBackgroundColor()
+{
+	if (eae6320::Graphics::Env::s_BackgroundColor.size() >= 4)
+	{
+		glClearColor(
+			eae6320::Graphics::Env::s_BackgroundColor[0],
+			eae6320::Graphics::Env::s_BackgroundColor[1],
+			eae6320::Graphics::Env::s_BackgroundColor[2],
+			eae6320::Graphics::Env::s_BackgroundColor[3]);
+	}
+	EAE6320_ASSERT(glGetError() == GL_NO_ERROR);
+}
+
 void eae6320::Graphics::RenderFrame()
 {
 	// Wait for the application loop to submit data to be rendered
@@ -59,17 +72,8 @@ void eae6320::Graphics::RenderFrame()
 	// Before drawing anything, then, the previous image will be erased
 	// by "clearing" the image buffer (filling it with a solid color)
 	{
-		// Black is usually used
 		{
-			if (eae6320::Graphics::Env::s_BackgroundColor.size() >= 4)
-			{
-				glClearColor(
-					eae6320::Graphics::Env::s_BackgroundColor[0],
-					eae6320::Graphics::Env::s_BackgroundColor[1],
-					eae6320::Graphics::Env::s_BackgroundColor[2],
-					eae6320::Graphics::Env::s_BackgroundColor[3]);
-			}
-			EAE6320_ASSERT( glGetError() == GL_NO_ERROR );
+			eae6320::Graphics::ClearBackgroundColor();
 		}
 		{
 			constexpr GLbitfield clearColor = GL_COLOR_BUFFER_BIT;

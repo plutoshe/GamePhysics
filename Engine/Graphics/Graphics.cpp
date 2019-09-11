@@ -16,8 +16,6 @@ namespace eae6320
 		{
 			auto result = eae6320::Results::Success;
 
-			// Vertex Buffer
-
 			std::vector<eae6320::Graphics::Geometry::cGeometryVertex> verticesA{
 				eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 0.0f, 0.0f),
 				eae6320::Graphics::Geometry::cGeometryVertex(1.0f, 0.0f, 0.0f),
@@ -95,7 +93,8 @@ namespace eae6320
 			effectA.SetFragmentShaderPath("data/shaders/fragment/change_color.shader");
 			effectB.SetVertexShaderPath("data/shaders/vertex/standard.shader");
 			effectB.SetFragmentShaderPath("data/shaders/fragment/standard.shader");
-
+			
+				
 			eae6320::Graphics::Env::s_effects.push_back(effectA);
 			eae6320::Graphics::Env::s_effects.push_back(effectB);
 
@@ -110,7 +109,7 @@ namespace eae6320
 						eae6320::Graphics::Env::s_fragmentShaders,
 						eae6320::Graphics::ShaderTypes::Fragment)))
 				{
-					EAE6320_ASSERTF(false, "Can't initialize effects");
+					EAE6320_ASSERTF(false, "Can't initialize shader for effect");
 					return result;
 				}
 				if (!(result = eae6320::Graphics::Env::s_effects[i].Load(
@@ -123,7 +122,6 @@ namespace eae6320
 				}
 
 			}
-
 			{
 				constexpr uint8_t defaultRenderState = 0;
 				if (!(result = eae6320::Graphics::cRenderState::s_manager.Load(defaultRenderState, eae6320::Graphics::Env::s_renderState)))

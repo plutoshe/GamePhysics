@@ -21,7 +21,6 @@ namespace eae6320
 			extern ID3D11RenderTargetView* s_renderTargetView;
 			// A depth/stencil view allows a texture to have depth rendered to it
 			extern ID3D11DepthStencilView* s_depthStencilView;
-
 #elif defined( EAE6320_PLATFORM_GL )	
 
 #endif

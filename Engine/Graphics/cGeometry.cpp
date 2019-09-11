@@ -53,6 +53,7 @@ namespace eae6320
 				// Bind a specific vertex buffer to the device as a data source
 				{
 					EAE6320_ASSERT(eae6320::Graphics::Env::s_vertexBuffer);
+					EAE6320_ASSERT(eae6320::Graphics::Env::s_indexBuffer);
 					constexpr unsigned int startingSlot = 0;
 					constexpr unsigned int vertexBufferCount = 1;
 					// The "stride" defines how large a single vertex is in the stream of data
@@ -60,6 +61,8 @@ namespace eae6320
 					// It's possible to start streaming data in the middle of a vertex buffer
 					constexpr unsigned int bufferOffset = 0;
 					direct3dImmediateContext->IASetVertexBuffers(startingSlot, vertexBufferCount, &eae6320::Graphics::Env::s_vertexBuffer, &bufferStride, &bufferOffset);
+
+					direct3dImmediateContext->IASetIndexBuffer(eae6320::Graphics::Env::s_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 				}
 				// Specify what kind of data the vertex buffer holds
 				{
@@ -79,7 +82,12 @@ namespace eae6320
 				{
 					// It's possible to start rendering primitives in the middle of the stream
 					constexpr unsigned int indexOfFirstVertexToRender = 0;
-					direct3dImmediateContext->Draw(vertexCountToRender(), indexOfFirstVertexToRender);
+					//direct3dImmediateContext->Draw(vertexCountToRender(), indexOfFirstVertexToRender);
+					direct3dImmediateContext->DrawIndexed(
+						6,
+						0,
+						0
+					);
 				}
 #elif defined( EAE6320_PLATFORM_GL )
 				// Bind a specific vertex buffer to the device as a data source

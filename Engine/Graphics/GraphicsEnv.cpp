@@ -23,6 +23,7 @@ namespace eae6320
 			eae6320::Graphics::Effect s_effect;
 			eae6320::Graphics::Geometry::cGeometryRenderTarget s_geometry;
 			ID3D11Buffer* s_vertexBuffer;
+			ID3D11Buffer* s_indexBuffer;
 #elif defined( EAE6320_PLATFORM_GL )
 
 			eae6320::Graphics::cConstantBuffer s_constantBuffer_frame(eae6320::Graphics::ConstantBufferTypes::Frame);

@@ -12,6 +12,7 @@
 #include "../cGeometry.h"
 #include "../cEffect.h"
 #include "../GraphicsEnv.h"
+#include "../cShader.h"
 
 #include <Engine/Asserts/Asserts.h>
 #include <Engine/Concurrency/cEvent.h>
@@ -133,12 +134,13 @@ void eae6320::Graphics::RenderFrame()
 
 	// Bind the shading data
 	{
-		eae6320::Graphics::Env::s_effect.Bind(cShader::s_manager, eae6320::Graphics::Env::s_vertexShader, eae6320::Graphics::Env::s_fragmentShader);
+		
 	}
 	// Draw the geometry
 	{
 		for (size_t i = 0; i < eae6320::Graphics::Env::s_geometries.size(); i++)
 		{
+			eae6320::Graphics::Env::s_effects[i].Bind();
 			eae6320::Graphics::Env::s_geometries[i].Draw();
 		}
 	}
@@ -253,46 +255,45 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 		}
 	}
 
-	if (eae6320::Graphics::Env::s_programId != 0 )
+	for (size_t i = 0; i < eae6320::Graphics::Env::s_effects.size(); i++)
 	{
-		glDeleteProgram(eae6320::Graphics::Env::s_programId );
-		const auto errorCode = glGetError();
-		if ( errorCode != GL_NO_ERROR )
+		const auto result_effect = eae6320::Graphics::Env::s_effects[i].Release();
+		if (!result_effect)
 		{
-			if ( result )
+			EAE6320_ASSERT(false);
+			if (result)
 			{
-				result = eae6320::Results::Failure;
+				result = result_effect;
 			}
-			EAE6320_ASSERTF( false, reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-			eae6320::Logging::OutputError( "OpenGL failed to delete the program: %s",
-				reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
 		}
-		eae6320::Graphics::Env::s_programId = 0;
 	}
-	if (eae6320::Graphics::Env::s_vertexShader )
+
+	
+	for (auto it = eae6320::Graphics::Env::s_vertexShaders.begin(); it != eae6320::Graphics::Env::s_vertexShaders.end(); ++it)
 	{
-		const auto result_vertexShader = cShader::s_manager.Release(eae6320::Graphics::Env::s_vertexShader );
-		if ( !result_vertexShader )
+		const auto result_vertexShader = cShader::s_manager.Release(it->second);
+		if (!result_vertexShader)
 		{
-			EAE6320_ASSERT( false );
-			if ( result )
+			EAE6320_ASSERT(false);
+			if (result)
 			{
 				result = result_vertexShader;
 			}
 		}
 	}
-	if (eae6320::Graphics::Env::s_fragmentShader )
+	for (auto it = eae6320::Graphics::Env::s_fragmentShaders.begin(); it != eae6320::Graphics::Env::s_fragmentShaders.end(); ++it)
 	{
-		const auto result_fragmentShader = cShader::s_manager.Release(eae6320::Graphics::Env::s_fragmentShader );
-		if ( !result_fragmentShader )
+		const auto result_fragmentShader = cShader::s_manager.Release(it->second);
+		if (!result_fragmentShader)
 		{
-			EAE6320_ASSERT( false );
-			if ( result )
+			EAE6320_ASSERT(false);
+			if (result)
 			{
 				result = result_fragmentShader;
 			}
 		}
 	}
+	
 	if (eae6320::Graphics::Env::s_renderState )
 	{
 		const auto result_renderState = cRenderState::s_manager.Release(eae6320::Graphics::Env::s_renderState );
@@ -409,17 +410,68 @@ namespace
 		return result;
 
 	}
-
+	eae6320::cResult LoadShaderData(
+		std::string path, 
+		std::map<std::string, eae6320::Graphics::cShader::Handle> &shaderMap,
+		eae6320::Graphics::ShaderTypes::eType shaderType)
+	{
+		auto result = eae6320::Results::Success;
+		if (path == "")
+		{
+			EAE6320_ASSERTF(false, "Load Shader failed");
+			return  eae6320::Results::Failure;
+		}
+		if (shaderMap.find(path) == shaderMap.end())
+		{
+			shaderMap.insert(std::pair<std::string, eae6320::Graphics::cShader::Handle>(path, eae6320::Graphics::cShader::Handle()));
+			if (!(result = eae6320::Graphics::cShader::s_manager.Load(
+				path,
+				shaderMap[path],
+				shaderType)))
+			{
+				EAE6320_ASSERTF(false, "Load Shader failed");
+				return result;
+			}
+		}
+		return result;
+	}
 	eae6320::cResult InitializeShadingData()
 	{
 		auto result = eae6320::Results::Success;
-		eae6320::Graphics::Env::s_effect.SetVertexShaderPath("data/shaders/vertex/standard.shader");
-		eae6320::Graphics::Env::s_effect.SetFragmentShaderPath("data/shaders/fragment/change_color.shader");
-		if (!(result = eae6320::Graphics::Env::s_effect.Load(eae6320::Graphics::cShader::s_manager, eae6320::Graphics::Env::s_vertexShader, eae6320::Graphics::Env::s_fragmentShader)))
+		eae6320::Graphics::Effect effectA, effectB;
+		effectA.SetVertexShaderPath("data/shaders/vertex/standard.shader");
+		effectA.SetFragmentShaderPath("data/shaders/fragment/change_color.shader");
+		effectB.SetVertexShaderPath("data/shaders/vertex/standard.shader");
+		effectB.SetFragmentShaderPath("data/shaders/fragment/standard.shader");
+
+		eae6320::Graphics::Env::s_effects.push_back(effectA);
+		eae6320::Graphics::Env::s_effects.push_back(effectB);
+
+		for (size_t i = 0; i < eae6320::Graphics::Env::s_effects.size(); i++)
 		{
-			EAE6320_ASSERTF(false, "Can't initialize effects");
-			return result;
+			if (!(result = LoadShaderData(
+				eae6320::Graphics::Env::s_effects[i].m_vertexShaderPath,
+				eae6320::Graphics::Env::s_vertexShaders,
+				eae6320::Graphics::ShaderTypes::Vertex)) || 
+				!(result = LoadShaderData(
+					eae6320::Graphics::Env::s_effects[i].m_fragmentShaderPath,
+					eae6320::Graphics::Env::s_fragmentShaders,
+					eae6320::Graphics::ShaderTypes::Fragment)))
+			{
+				EAE6320_ASSERTF(false, "Can't initialize effects");
+					return result;
+			}
+			if (!(result = eae6320::Graphics::Env::s_effects[i].Load(
+				eae6320::Graphics::cShader::s_manager, 
+				eae6320::Graphics::Env::s_vertexShaders[eae6320::Graphics::Env::s_effects[i].m_vertexShaderPath], 
+				eae6320::Graphics::Env::s_fragmentShaders[eae6320::Graphics::Env::s_effects[i].m_fragmentShaderPath])))
+			{
+				EAE6320_ASSERTF(false, "Can't initialize effects");
+				return result;
+			}
+
 		}
+
 		{
 			constexpr uint8_t defaultRenderState = 0;
 			if (!(result = eae6320::Graphics::cRenderState::s_manager.Load(defaultRenderState, eae6320::Graphics::Env::s_renderState)))
@@ -428,157 +480,6 @@ namespace
 				return result;
 			}
 		}
-
-		// Create a program
-		eae6320::cScopeGuard scopeGuard_program( [&result]
-			{
-				if ( !result )
-				{
-					if (eae6320::Graphics::Env::s_programId != 0 )
-					{
-						glDeleteProgram(eae6320::Graphics::Env::s_programId );
-						const auto errorCode = glGetError();
-						if ( errorCode != GL_NO_ERROR )
-						{
-							EAE6320_ASSERTF( false, reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-							eae6320::Logging::OutputError( "OpenGL failed to delete the program: %s",
-								reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-						}
-						eae6320::Graphics::Env::s_programId = 0;
-					}
-				}
-			} );
-		{
-			eae6320::Graphics::Env::s_programId = glCreateProgram();
-			const auto errorCode = glGetError();
-			if ( errorCode != GL_NO_ERROR )
-			{
-				result = eae6320::Results::Failure;
-				EAE6320_ASSERTF( false, reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-				eae6320::Logging::OutputError( "OpenGL failed to create a program: %s",
-					reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-				return result;
-			}
-			else if (eae6320::Graphics::Env::s_programId == 0 )
-			{
-				result = eae6320::Results::Failure;
-				EAE6320_ASSERT( false );
-				eae6320::Logging::OutputError( "OpenGL failed to create a program" );
-				return result;
-			}
-		}
-		// Attach the shaders to the program
-		{
-			// Vertex
-			{
-				glAttachShader(eae6320::Graphics::Env::s_programId, eae6320::Graphics::cShader::s_manager.Get(eae6320::Graphics::Env::s_vertexShader )->m_shaderId );
-				const auto errorCode = glGetError();
-				if ( errorCode != GL_NO_ERROR )
-				{
-					result = eae6320::Results::Failure;
-					EAE6320_ASSERTF( false, reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-					eae6320::Logging::OutputError( "OpenGL failed to attach the vertex shader to the program: %s",
-						reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-					return result;
-				}
-			}
-			// Fragment
-			{
-				glAttachShader(eae6320::Graphics::Env::s_programId, eae6320::Graphics::cShader::s_manager.Get(eae6320::Graphics::Env::s_fragmentShader )->m_shaderId );
-				const auto errorCode = glGetError();
-				if ( errorCode != GL_NO_ERROR )
-				{
-					result = eae6320::Results::Failure;
-					EAE6320_ASSERTF( false, reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-					eae6320::Logging::OutputError( "OpenGL failed to attach the fragment shader to the program: %s",
-						reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-					return result;
-				}
-			}
-		}
-		// Link the program
-		{
-			glLinkProgram(eae6320::Graphics::Env::s_programId );
-			const auto errorCode = glGetError();
-			if ( errorCode == GL_NO_ERROR )
-			{
-				// Get link info
-				// (this won't be used unless linking fails
-				// but it can be useful to look at when debugging)
-				std::string linkInfo;
-				{
-					GLint infoSize;
-					glGetProgramiv(eae6320::Graphics::Env::s_programId, GL_INFO_LOG_LENGTH, &infoSize );
-					const auto errorCode = glGetError();
-					if ( errorCode == GL_NO_ERROR )
-					{
-						struct sLogInfo
-						{
-							GLchar* memory;
-							sLogInfo( const size_t i_size ) { memory = reinterpret_cast<GLchar*>( malloc( i_size ) ); }
-							~sLogInfo() { if ( memory ) free( memory ); }
-						} info( static_cast<size_t>( infoSize ) );
-						constexpr GLsizei* const dontReturnLength = nullptr;
-						glGetProgramInfoLog(eae6320::Graphics::Env::s_programId, static_cast<GLsizei>( infoSize ), dontReturnLength, info.memory );
-						const auto errorCode = glGetError();
-						if ( errorCode == GL_NO_ERROR )
-						{
-							linkInfo = info.memory;
-						}
-						else
-						{
-							result = eae6320::Results::Failure;
-							EAE6320_ASSERTF( false, reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-							eae6320::Logging::OutputError( "OpenGL failed to get link info of the program: %s",
-								reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-							return result;
-						}
-					}
-					else
-					{
-						result = eae6320::Results::Failure;
-						EAE6320_ASSERTF( false, reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-						eae6320::Logging::OutputError( "OpenGL failed to get the length of the program link info: %s",
-							reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-						return result;
-					}
-				}
-				// Check to see if there were link errors
-				GLint didLinkingSucceed;
-				{
-					glGetProgramiv(eae6320::Graphics::Env::s_programId, GL_LINK_STATUS, &didLinkingSucceed );
-					const auto errorCode = glGetError();
-					if ( errorCode == GL_NO_ERROR )
-					{
-						if ( didLinkingSucceed == GL_FALSE )
-						{
-							result = eae6320::Results::Failure;
-							EAE6320_ASSERTF( false, linkInfo.c_str() );
-							eae6320::Logging::OutputError( "The program failed to link: %s",
-								linkInfo.c_str() );
-							return result;
-						}
-					}
-					else
-					{
-						result = eae6320::Results::Failure;
-						EAE6320_ASSERTF( false, reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-						eae6320::Logging::OutputError( "OpenGL failed to find out if linking of the program succeeded: %s",
-							reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-						return result;
-					}
-				}
-			}
-			else
-			{
-				result = eae6320::Results::Failure;
-				EAE6320_ASSERTF( false, reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-				eae6320::Logging::OutputError( "OpenGL failed to link the program: %s",
-					reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-				return result;
-			}
-		}
-
 		return result;
 	}
 }

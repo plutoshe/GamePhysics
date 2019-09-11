@@ -23,8 +23,7 @@ namespace eae6320
 			extern ID3D11DepthStencilView* s_depthStencilView;
 
 #elif defined( EAE6320_PLATFORM_GL )	
-			
-			extern GLuint s_programId;
+
 #endif
 			// Constant buffer object
 			extern eae6320::Graphics::cConstantBuffer s_constantBuffer_frame;
@@ -58,16 +57,15 @@ namespace eae6320
 
 			// Shading Data
 			//-------------
-			extern eae6320::Graphics::cShader::Handle s_vertexShader;
-			extern eae6320::Graphics::cShader::Handle s_fragmentShader;
+			extern std::map<std::string, eae6320::Graphics::cShader::Handle> s_vertexShaders;
+			extern std::map<std::string, eae6320::Graphics::cShader::Handle> s_fragmentShaders;
 
 
 			extern eae6320::Graphics::cRenderState::Handle s_renderState;
 			// Geometry Data
 			//--------------
 
-			//extern std::vector<eae6320::Graphics::Effect> s_effects;
-			extern eae6320::Graphics::Effect s_effect;
+			extern std::vector<eae6320::Graphics::Effect> s_effects;
 			extern std::vector<eae6320::Graphics::Geometry::cGeometryRenderTarget> s_geometries;
 
 

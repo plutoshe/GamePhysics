@@ -140,9 +140,6 @@ void eae6320::Graphics::RenderFrame()
 	}
 
 	// Bind the shading data
-	{
-		
-	}
 	// Draw the geometry
 	{
 		for (size_t i = 0; i < eae6320::Graphics::Env::s_geometries.size(); i++)
@@ -417,6 +414,7 @@ namespace
 		return result;
 
 	}
+
 	eae6320::cResult LoadShaderData(
 		std::string path, 
 		std::map<std::string, eae6320::Graphics::cShader::Handle> &shaderMap,
@@ -442,6 +440,7 @@ namespace
 		}
 		return result;
 	}
+
 	eae6320::cResult InitializeShadingData()
 	{
 		auto result = eae6320::Results::Success;

@@ -11,11 +11,15 @@ namespace eae6320
 		class Effect
 		{
 		public:
-			static std::map<std::string, eae6320::Graphics::cShader::Handle> vertexHandles;
-			static std::map<std::string, eae6320::Graphics::cShader::Handle> fragmentHandles;
 			std::string m_vertexShaderPath;
 			std::string m_fragmentShaderPath;
 			Effect() { m_vertexShaderPath = ""; m_fragmentShaderPath = ""; }
+			Effect(const Effect& e) { 
+				m_vertexShaderPath = e.m_vertexShaderPath; m_fragmentShaderPath = e.m_fragmentShaderPath; 
+#if defined( EAE6320_PLATFORM_GL )	
+				m_programId = e.m_programId;
+#endif
+			}
 			~Effect() {}
 			void SetVertexShaderPath(std::string vertexShaderPath) { m_vertexShaderPath = vertexShaderPath; }
 			void SetFragmentShaderPath(std::string fragmentShaderPath) { m_fragmentShaderPath = fragmentShaderPath; }
@@ -23,9 +27,11 @@ namespace eae6320
 				eae6320::Assets::cManager<eae6320::Graphics::cShader>& manager, 
 				eae6320::Graphics::cShader::Handle& vertexShader, 
 				eae6320::Graphics::cShader::Handle& fragmentShader);
-			void Bind();
-			GLuint m_programId;
+			eae6320::cResult Bind();
 
+#if defined( EAE6320_PLATFORM_GL )	
+			GLuint m_programId;
+#endif
 			eae6320::cResult Release();
 		};
 	}

@@ -102,8 +102,15 @@ void eae6320::Graphics::RenderFrame()
 		EAE6320_ASSERT(eae6320::Graphics::Env::s_renderTargetView);
 
 		// Black is usually used
-		constexpr float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-		direct3dImmediateContext->ClearRenderTargetView(eae6320::Graphics::Env::s_renderTargetView, clearColor);
+		if (eae6320::Graphics::Env::s_BackgroundColor.size() >= 4)
+		{
+			float clearColor[4] = { eae6320::Graphics::Env::s_BackgroundColor[0],
+						eae6320::Graphics::Env::s_BackgroundColor[1],
+						eae6320::Graphics::Env::s_BackgroundColor[2],
+						eae6320::Graphics::Env::s_BackgroundColor[3] };
+
+			direct3dImmediateContext->ClearRenderTargetView(eae6320::Graphics::Env::s_renderTargetView, clearColor);
+		}
 	}
 	// In addition to the color buffer there is also a hidden image called the "depth buffer"
 	// which is used to make it less important which order draw calls are made.
@@ -126,14 +133,11 @@ void eae6320::Graphics::RenderFrame()
 	}
 
 	// Bind the shading data
-	{
-		eae6320::Graphics::Env::s_effect.Bind(cShader::s_manager, eae6320::Graphics::Env::s_vertexShader, eae6320::Graphics::Env::s_fragmentShader);
-
-	}
 	// Draw the geometry
 	{
 		for (size_t i = 0; i < eae6320::Graphics::Env::s_geometries.size(); i++)
 		{
+			eae6320::Graphics::Env::s_effects[i].Bind();
 			eae6320::Graphics::Env::s_geometries[i].Draw();
 		}
 	}
@@ -274,9 +278,23 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 		}
 	}
 
-	if (eae6320::Graphics::Env::s_vertexShader)
+	for (size_t i = 0; i < eae6320::Graphics::Env::s_effects.size(); i++)
 	{
-		const auto result_vertexShader = cShader::s_manager.Release(eae6320::Graphics::Env::s_vertexShader);
+		const auto result_effect = eae6320::Graphics::Env::s_effects[i].Release();
+		if (!result_effect)
+		{
+			EAE6320_ASSERT(false);
+			if (result)
+			{
+				result = result_effect;
+			}
+		}
+	}
+
+
+	for (auto it = eae6320::Graphics::Env::s_vertexShaders.begin(); it != eae6320::Graphics::Env::s_vertexShaders.end(); ++it)
+	{
+		const auto result_vertexShader = cShader::s_manager.Release(it->second);
 		if (!result_vertexShader)
 		{
 			EAE6320_ASSERT(false);
@@ -286,9 +304,9 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 			}
 		}
 	}
-	if (eae6320::Graphics::Env::s_fragmentShader)
+	for (auto it = eae6320::Graphics::Env::s_fragmentShaders.begin(); it != eae6320::Graphics::Env::s_fragmentShaders.end(); ++it)
 	{
-		const auto result_fragmentShader = cShader::s_manager.Release(eae6320::Graphics::Env::s_fragmentShader);
+		const auto result_fragmentShader = cShader::s_manager.Release(it->second);
 		if (!result_fragmentShader)
 		{
 			EAE6320_ASSERT(false);
@@ -380,7 +398,7 @@ namespace
 	eae6320::cResult InitializeGeometry()
 	{
 		auto result = eae6320::Results::Success;
-	
+
 		// Vertex Buffer
 
 		std::vector<eae6320::Graphics::Geometry::cGeometryVertex> verticesA{
@@ -391,36 +409,104 @@ namespace
 		};
 		std::vector<unsigned int> indicesA{ 0, 1, 2, 1, 3, 2 };
 
-		eae6320::Graphics::Geometry::cGeometryRenderTarget geometryA;
+		std::vector<eae6320::Graphics::Geometry::cGeometryVertex> verticesB{
+			eae6320::Graphics::Geometry::cGeometryVertex(-1.0f, -1.0f, 0.0f),
+			eae6320::Graphics::Geometry::cGeometryVertex(0.0f, -1.0f, 0.0f),
+			eae6320::Graphics::Geometry::cGeometryVertex(-1.0f, 0.0f, 0.0f),
+			eae6320::Graphics::Geometry::cGeometryVertex(-0.3f, -0.3f, 0.0f),
+		};
+
+		eae6320::Graphics::Geometry::cGeometryRenderTarget geometryA, geometryB;
 		geometryA.InitData(verticesA, indicesA);
-		auto result_initGeometry = geometryA.InitDevicePipeline();
-		if (!result_initGeometry)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
-			{
-				result = result_initGeometry;
-			}
-		}
+		geometryB.InitData(verticesB, indicesA);
 
 		eae6320::Graphics::Env::s_geometries.push_back(
 			geometryA
 		);
+		eae6320::Graphics::Env::s_geometries.push_back(
+			geometryB
+		);
+		for (size_t i = 0; i < eae6320::Graphics::Env::s_geometries.size(); i++)
+		{
+			auto result_initGeometry = eae6320::Graphics::Env::s_geometries[i].InitDevicePipeline();
+			if (!result_initGeometry)
+			{
+				EAE6320_ASSERT(false);
+				if (result)
+				{
+					result = result_initGeometry;
+				}
+			}
+
+		}
 
 		return result;
 		
 	}
 
+	eae6320::cResult LoadShaderData(
+		std::string path,
+		std::map<std::string, eae6320::Graphics::cShader::Handle>& shaderMap,
+		eae6320::Graphics::ShaderTypes::eType shaderType)
+	{
+		auto result = eae6320::Results::Success;
+		if (path == "")
+		{
+			EAE6320_ASSERTF(false, "Load Shader failed");
+			return  eae6320::Results::Failure;
+		}
+		if (shaderMap.find(path) == shaderMap.end())
+		{
+			shaderMap.insert(std::pair<std::string, eae6320::Graphics::cShader::Handle>(path, eae6320::Graphics::cShader::Handle()));
+			if (!(result = eae6320::Graphics::cShader::s_manager.Load(
+				path,
+				shaderMap[path],
+				shaderType)))
+			{
+				EAE6320_ASSERTF(false, "Load Shader failed");
+				return result;
+			}
+		}
+		return result;
+	}
+
 	eae6320::cResult InitializeShadingData()
 	{
 		auto result = eae6320::Results::Success;
-		eae6320::Graphics::Env::s_effect.SetVertexShaderPath("data/shaders/vertex/standard.shader");
-		eae6320::Graphics::Env::s_effect.SetFragmentShaderPath("data/shaders/fragment/change_color.shader");
-		if (!(result = eae6320::Graphics::Env::s_effect.Load(eae6320::Graphics::cShader::s_manager, eae6320::Graphics::Env::s_vertexShader, eae6320::Graphics::Env::s_fragmentShader)))
+		eae6320::Graphics::Effect effectA, effectB;
+		effectA.SetVertexShaderPath("data/shaders/vertex/standard.shader");
+		effectA.SetFragmentShaderPath("data/shaders/fragment/change_color.shader");
+		effectB.SetVertexShaderPath("data/shaders/vertex/standard.shader");
+		effectB.SetFragmentShaderPath("data/shaders/fragment/standard.shader");
+
+		eae6320::Graphics::Env::s_effects.push_back(effectA);
+		eae6320::Graphics::Env::s_effects.push_back(effectB);
+
+		for (size_t i = 0; i < eae6320::Graphics::Env::s_effects.size(); i++)
 		{
-			EAE6320_ASSERTF(false, "Can't initialize effects");
-			return result;
+			if (!(result = LoadShaderData(
+				eae6320::Graphics::Env::s_effects[i].m_vertexShaderPath,
+				eae6320::Graphics::Env::s_vertexShaders,
+				eae6320::Graphics::ShaderTypes::Vertex)) ||
+				!(result = LoadShaderData(
+					eae6320::Graphics::Env::s_effects[i].m_fragmentShaderPath,
+					eae6320::Graphics::Env::s_fragmentShaders,
+					eae6320::Graphics::ShaderTypes::Fragment)))
+			{
+				EAE6320_ASSERTF(false, "Can't initialize effects");
+				return result;
+			}
+			if (!(result = eae6320::Graphics::Env::s_effects[i].Load(
+				eae6320::Graphics::cShader::s_manager,
+				eae6320::Graphics::Env::s_vertexShaders[eae6320::Graphics::Env::s_effects[i].m_vertexShaderPath],
+				eae6320::Graphics::Env::s_fragmentShaders[eae6320::Graphics::Env::s_effects[i].m_fragmentShaderPath])))
+			{
+				EAE6320_ASSERTF(false, "Can't initialize effects");
+				return result;
+			}
+
 		}
+
 		{
 			constexpr uint8_t defaultRenderState = 0;
 			if (!(result = eae6320::Graphics::cRenderState::s_manager.Load(defaultRenderState, eae6320::Graphics::Env::s_renderState)))
@@ -429,7 +515,6 @@ namespace
 				return result;
 			}
 		}
-
 		return result;
 	}
 

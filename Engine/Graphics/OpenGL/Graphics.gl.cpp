@@ -468,7 +468,7 @@ namespace
 			}
 		}
 
-		eae6320::Graphics::Geometry::cGeometryVertex vertices[4] =
+		eae6320::Graphics::Geometry::cGeometryVertex m_vertices[4] =
 		{
 			eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 0.0f, 0.0f),
 			eae6320::Graphics::Geometry::cGeometryVertex(1.0f, 0.0f, 0.0f),
@@ -483,7 +483,7 @@ namespace
 
 			const auto bufferSize = 4;
 			EAE6320_ASSERT( bufferSize < ( uint64_t( 1u ) << ( sizeof( GLsizeiptr ) * 8 ) ) );
-			glBufferData( GL_ARRAY_BUFFER, sizeof(vertices), reinterpret_cast<GLvoid*>(vertices),
+			glBufferData( GL_ARRAY_BUFFER, sizeof(m_vertices), reinterpret_cast<GLvoid*>(m_vertices),
 				// In our class we won't ever read from the buffer
 				GL_STATIC_DRAW );
 			const auto errorCode = glGetError();
@@ -525,7 +525,7 @@ namespace
 				return result;
 			}
 		}
-		unsigned int indices[] = {  // note that we start from 0!
+		unsigned int m_indices[] = {  // note that we start from 0!
 			0, 1, 2,   // first triangle
 			1, 3, 2,   // second triangle
 		};
@@ -534,7 +534,7 @@ namespace
 		{
 			const auto bufferSize = 6;
 			EAE6320_ASSERT(bufferSize < (uint64_t(1u) << (sizeof(GLsizeiptr) * 8)));
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), reinterpret_cast<GLvoid*>(indices),
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(m_indices), reinterpret_cast<GLvoid*>(m_indices),
 				// In our class we won't ever read from the buffer
 				GL_STATIC_DRAW);
 			const auto errorCode = glGetError();

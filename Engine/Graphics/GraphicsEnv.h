@@ -67,15 +67,15 @@ namespace eae6320
 			// Geometry Data
 			//--------------
 
-			extern eae6320::Graphics::cVertexFormat::Handle s_vertexFormat;
+	
 
+			//extern std::vector<eae6320::Graphics::Effect> s_effects;
 			extern eae6320::Graphics::Effect s_effect;
-			extern eae6320::Graphics::Geometry::cGeometryRenderTarget s_geometry;
+			extern std::vector<eae6320::Graphics::Geometry::cGeometryRenderTarget> s_geometries;
 
 
 			// A vertex buffer holds the data for each vertex
-			extern ID3D11Buffer* s_vertexBuffer;
-			extern ID3D11Buffer* s_indexBuffer;
+
 #elif defined( EAE6320_PLATFORM_GL )
 
 			// Constant buffer object

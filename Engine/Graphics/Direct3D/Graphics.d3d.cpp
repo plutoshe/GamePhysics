@@ -22,6 +22,7 @@
 #include <Engine/Time/Time.h>
 #include <Engine/UserOutput/UserOutput.h>
 #include <utility>
+#include <vector>
 
 // Helper Function Declarations
 //=============================
@@ -131,7 +132,10 @@ void eae6320::Graphics::RenderFrame()
 	}
 	// Draw the geometry
 	{
-		eae6320::Graphics::Env::s_geometry.Draw();
+		for (int i = 0; i < eae6320::Graphics::Env::s_geometries.size(); i++)
+		{
+			eae6320::Graphics::Env::s_geometries[i].Draw();
+		}
 	}
 
 	// Everything has been drawn to the "back buffer", which is just an image in memory.
@@ -257,29 +261,19 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 		eae6320::Graphics::Env::s_depthStencilView->Release();
 		eae6320::Graphics::Env::s_depthStencilView = nullptr;
 	}
-	if (eae6320::Graphics::Env::s_vertexBuffer)
+	for (auto i = 0; i < eae6320::Graphics::Env::s_geometries.size(); i++)
 	{
-		eae6320::Graphics::Env::s_vertexBuffer->Release();
-		eae6320::Graphics::Env::s_vertexBuffer = nullptr;
-	}
-	if (eae6320::Graphics::Env::s_indexBuffer)
-	{
-		eae6320::Graphics::Env::s_indexBuffer->Release();
-		eae6320::Graphics::Env::s_indexBuffer = nullptr;
-
-	}
-	if (eae6320::Graphics::Env::s_vertexFormat)
-	{
-		const auto result_vertexFormat = cVertexFormat::s_manager.Release(eae6320::Graphics::Env::s_vertexFormat);
-		if (!result_vertexFormat)
+		const auto result_geometry = eae6320::Graphics::Env::s_geometries[i].Release();
+		if (!result_geometry)
 		{
 			EAE6320_ASSERT(false);
 			if (result)
 			{
-				result = result_vertexFormat;
+				result = result_geometry;
 			}
 		}
 	}
+
 	if (eae6320::Graphics::Env::s_vertexShader)
 	{
 		const auto result_vertexShader = cShader::s_manager.Release(eae6320::Graphics::Env::s_vertexShader);
@@ -386,90 +380,35 @@ namespace
 	eae6320::cResult InitializeGeometry()
 	{
 		auto result = eae6320::Results::Success;
-
-		auto* const direct3dDevice = eae6320::Graphics::sContext::g_context.direct3dDevice;
-		EAE6320_ASSERT(direct3dDevice);
-
-		// Vertex Format
-		{
-			if (!(result = eae6320::Graphics::cVertexFormat::s_manager.Load(eae6320::Graphics::VertexTypes::_3dObject, eae6320::Graphics::Env::s_vertexFormat,
-				"data/shaders/vertex/vertexinputlayout_3dobject.shader")))
-			{
-				EAE6320_ASSERTF(false, "Can't initialize geometry without vertex format");
-				return result;
-			}
-		}
+	
 		// Vertex Buffer
 
-		eae6320::Graphics::Geometry::cGeometryVertex vertices[4] =
-		{
+		std::vector<eae6320::Graphics::Geometry::cGeometryVertex> verticesA{
 			eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 0.0f, 0.0f),
 			eae6320::Graphics::Geometry::cGeometryVertex(1.0f, 0.0f, 0.0f),
 			eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 1.0f, 0.0f),
 			eae6320::Graphics::Geometry::cGeometryVertex(1.0f, 1.0f, 0.0f),
 		};
+		std::vector<unsigned int> indicesA{ 0, 1, 2, 1, 3, 2 };
 
-
+		eae6320::Graphics::Geometry::cGeometryRenderTarget geometryA;
+		geometryA.InitData(verticesA, indicesA);
+		auto result_initGeometry = geometryA.InitDevicePipeline();
+		if (!result_initGeometry)
 		{
-			//eae6320::Graphics::Env::s_geometry.LoadData();
-
-			D3D11_BUFFER_DESC bufferDescription{};
+			EAE6320_ASSERT(false);
+			if (result)
 			{
-				const auto bufferSize = sizeof(vertices); //eae6320::Graphics::Env::s_geometry.BufferSize();
-				EAE6320_ASSERT(bufferSize < (uint64_t(1u) << (sizeof(bufferDescription.ByteWidth) * 8)));
-				bufferDescription.ByteWidth = static_cast<unsigned int>(bufferSize);
-				bufferDescription.Usage = D3D11_USAGE_IMMUTABLE;	// In our class the buffer will never change after it's been created
-				bufferDescription.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-				bufferDescription.CPUAccessFlags = 0;	// No CPU access is necessary
-				bufferDescription.MiscFlags = 0;
-				bufferDescription.StructureByteStride = 0;	// Not used
-			}
-			D3D11_SUBRESOURCE_DATA initialData{};
-			{
-				initialData.pSysMem = &vertices;
-				// (The other data members are ignored for non-texture buffers)
-			}
-
-			auto d3dResult = direct3dDevice->CreateBuffer(&bufferDescription, &initialData, &eae6320::Graphics::Env::s_vertexBuffer);
-
-			if (FAILED(d3dResult))
-			{
-				result = eae6320::Results::Failure;
-				EAE6320_ASSERTF(false, "3D object vertex buffer creation failed (HRESULT %#010x)", d3dResult);
-				eae6320::Logging::OutputError("Direct3D failed to create a 3D object vertex buffer (HRESULT %#010x)", d3dResult);
-				return result;
-			}
-
-			unsigned int indices[] =
-			{
-				0,2,1,
-				1,2,3,
-			};
-
-			int m_indexCount = ARRAYSIZE(indices);
-
-			CD3D11_BUFFER_DESC iDesc(
-				sizeof(indices),
-				D3D11_BIND_INDEX_BUFFER
-			);
-
-			D3D11_SUBRESOURCE_DATA iData;
-			ZeroMemory(&iData, sizeof(D3D11_SUBRESOURCE_DATA));
-			iData.pSysMem = indices;
-			iData.SysMemPitch = 0;
-			iData.SysMemSlicePitch = 0;
-
-			d3dResult = direct3dDevice->CreateBuffer(&iDesc, &iData, &eae6320::Graphics::Env::s_indexBuffer);
-			if (FAILED(d3dResult))
-			{
-				result = eae6320::Results::Failure;
-				EAE6320_ASSERTF(false, "3D object vertex buffer creation failed (HRESULT %#010x)", d3dResult);
-				eae6320::Logging::OutputError("Direct3D failed to create a 3D object vertex buffer (HRESULT %#010x)", d3dResult);
-				return result;
+				result = result_initGeometry;
 			}
 		}
 
+		eae6320::Graphics::Env::s_geometries.push_back(
+			geometryA
+		);
+
 		return result;
+		
 	}
 
 	eae6320::cResult InitializeShadingData()

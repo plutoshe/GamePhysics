@@ -19,11 +19,10 @@ namespace eae6320
 			eae6320::Graphics::cShader::Handle s_vertexShader;
 			eae6320::Graphics::cShader::Handle s_fragmentShader;
 			eae6320::Graphics::cRenderState::Handle s_renderState;
-			eae6320::Graphics::cVertexFormat::Handle s_vertexFormat;
+			
+			//std::vector<eae6320::Graphics::Effect> s_effects;
 			eae6320::Graphics::Effect s_effect;
-			eae6320::Graphics::Geometry::cGeometryRenderTarget s_geometry;
-			ID3D11Buffer* s_vertexBuffer;
-			ID3D11Buffer* s_indexBuffer;
+			std::vector<eae6320::Graphics::Geometry::cGeometryRenderTarget> s_geometries;
 #elif defined( EAE6320_PLATFORM_GL )
 
 			eae6320::Graphics::cConstantBuffer s_constantBuffer_frame(eae6320::Graphics::ConstantBufferTypes::Frame);

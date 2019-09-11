@@ -9,9 +9,11 @@
 //=========
 
 #include "Configuration.h"
+#include "cShader.h"
 
 #include <cstdint>
 #include <vector>
+#include <map>
 #include <Engine/Results/Results.h>
 
 #if defined( EAE6320_PLATFORM_WINDOWS )
@@ -69,6 +71,13 @@ namespace eae6320
 	#endif
 #endif
 		};
+
+		cResult InitializeGeometry();
+		cResult InitializeShadingData();
+		cResult LoadShaderData(
+			std::string path,
+			std::map<std::string, eae6320::Graphics::cShader::Handle>& shaderMap,
+			eae6320::Graphics::ShaderTypes::eType shaderType);
 
 		cResult Initialize( const sInitializationParameters& i_initializationParameters );
 		cResult CleanUp();

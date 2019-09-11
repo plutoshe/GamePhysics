@@ -29,37 +29,8 @@
 
 namespace
 {
-	eae6320::cResult InitializeGeometry();
-	eae6320::cResult InitializeShadingData();
 	eae6320::cResult InitializeViews(const unsigned int i_resolutionWidth, const unsigned int i_resolutionHeight);
 }
-
-// Interface
-//==========
-
-// Submission
-//-----------
-
-void eae6320::Graphics::SubmitElapsedTime(const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_simulationTime)
-{
-	EAE6320_ASSERT(eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread);
-	auto& constantData_frame = eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread->constantData_frame;
-	constantData_frame.g_elapsedSecondCount_systemTime = i_elapsedSecondCount_systemTime;
-	constantData_frame.g_elapsedSecondCount_simulationTime = i_elapsedSecondCount_simulationTime;
-}
-
-eae6320::cResult eae6320::Graphics::WaitUntilDataForANewFrameCanBeSubmitted(const unsigned int i_timeToWait_inMilliseconds)
-{
-	return Concurrency::WaitForEvent(eae6320::Graphics::Env::s_whenDataForANewFrameCanBeSubmittedFromApplicationThread, i_timeToWait_inMilliseconds);
-}
-
-eae6320::cResult eae6320::Graphics::SignalThatAllDataForAFrameHasBeenSubmitted()
-{
-	return eae6320::Graphics::Env::s_whenAllDataHasBeenSubmittedFromApplicationThread.Signal();
-}
-
-// Render
-//-------
 
 void eae6320::Graphics::RenderFrame()
 {
@@ -484,11 +455,11 @@ namespace
 
 		for (size_t i = 0; i < eae6320::Graphics::Env::s_effects.size(); i++)
 		{
-			if (!(result = LoadShaderData(
+			if (!(result = eae6320::Graphics::LoadShaderData(
 				eae6320::Graphics::Env::s_effects[i].m_vertexShaderPath,
 				eae6320::Graphics::Env::s_vertexShaders,
 				eae6320::Graphics::ShaderTypes::Vertex)) ||
-				!(result = LoadShaderData(
+				!(result = eae6320::Graphics::LoadShaderData(
 					eae6320::Graphics::Env::s_effects[i].m_fragmentShaderPath,
 					eae6320::Graphics::Env::s_fragmentShaders,
 					eae6320::Graphics::ShaderTypes::Fragment)))

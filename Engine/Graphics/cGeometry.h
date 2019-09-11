@@ -67,10 +67,10 @@ namespace eae6320
 				ID3D11Buffer* m_vertexBuffer;
 				ID3D11Buffer* m_indexBuffer;
 #elif defined( EAE6320_PLATFORM_GL )
-				cGeometryRenderTarget() { s_vertexBufferId = s_indexBufferId = s_vertexArrayId = 0; }
-				GLuint s_vertexBufferId;
-				GLuint s_indexBufferId;
-				GLuint s_vertexArrayId;
+				cGeometryRenderTarget() { m_vertexBufferId = m_indexBufferId = m_vertexArrayId = 0; }
+				GLuint m_vertexBufferId;
+				GLuint m_indexBufferId;
+				GLuint m_vertexArrayId;
 #endif
 				std::vector<cGeometryVertex> m_vertices;
 				std::vector<unsigned int> m_indices;

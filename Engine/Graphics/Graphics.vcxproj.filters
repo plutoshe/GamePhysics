@@ -42,6 +42,12 @@
     <ClCompile Include="cGeometry.cpp" />
     <ClCompile Include="cEffect.cpp" />
     <ClCompile Include="GraphicsEnv.cpp" />
+    <ClCompile Include="OpenGL\cGeometry.gl.cpp">
+      <Filter>OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3D\cGeometry.d3d.cpp">
+      <Filter>Direct3D</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Direct3D\Includes.h">

@@ -137,7 +137,10 @@ void eae6320::Graphics::RenderFrame()
 	}
 	// Draw the geometry
 	{
-		eae6320::Graphics::Env::s_geometry.Draw();
+		for (size_t i = 0; i < eae6320::Graphics::Env::s_geometries.size(); i++)
+		{
+			eae6320::Graphics::Env::s_geometries[i].Draw();
+		}
 	}
 
 	// Everything has been drawn to the "back buffer", which is just an image in memory.
@@ -237,59 +240,19 @@ eae6320::cResult eae6320::Graphics::Initialize( const sInitializationParameters&
 eae6320::cResult eae6320::Graphics::CleanUp()
 {
 	auto result = Results::Success;
-
+	for (size_t i = 0; i < eae6320::Graphics::Env::s_geometries.size(); i++)
 	{
-		if (eae6320::Graphics::Env::s_vertexArrayId != 0 )
+		const auto result_geometry = eae6320::Graphics::Env::s_geometries[i].Release();
+		if (!result_geometry)
 		{
-			// Make sure that the vertex array isn't bound
+			EAE6320_ASSERT(false);
+			if (result)
 			{
-				// Unbind the vertex array
-				glBindVertexArray( 0 );
-				const auto errorCode = glGetError();
-				if ( errorCode != GL_NO_ERROR )
-				{
-					if ( result )
-					{
-						result = Results::Failure;
-					}
-					EAE6320_ASSERTF( false, reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-					Logging::OutputError( "OpenGL failed to unbind all vertex arrays before cleaning up geometry: %s",
-						reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-				}
+				result = result_geometry;
 			}
-			constexpr GLsizei arrayCount = 1;
-			glDeleteVertexArrays( arrayCount, &eae6320::Graphics::Env::s_vertexArrayId );
-			const auto errorCode = glGetError();
-			if ( errorCode != GL_NO_ERROR )
-			{
-				if ( result )
-				{
-					result = Results::Failure;
-				}
-				EAE6320_ASSERTF( false, reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-				Logging::OutputError( "OpenGL failed to delete the vertex array: %s",
-					reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-			}
-			eae6320::Graphics::Env::s_vertexArrayId = 0;
-		}
-		if (eae6320::Graphics::Env::s_vertexBufferId != 0 )
-		{
-			constexpr GLsizei bufferCount = 1;
-			glDeleteBuffers( bufferCount, &eae6320::Graphics::Env::s_vertexBufferId );
-			const auto errorCode = glGetError();
-			if ( errorCode != GL_NO_ERROR )
-			{
-				if ( result )
-				{
-					result = Results::Failure;
-				}
-				EAE6320_ASSERTF( false, reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-				Logging::OutputError( "OpenGL failed to delete the vertex buffer: %s",
-					reinterpret_cast<const char*>( gluErrorString( errorCode ) ) );
-			}
-			eae6320::Graphics::Env::s_vertexBufferId = 0;
 		}
 	}
+
 	if (eae6320::Graphics::Env::s_programId != 0 )
 	{
 		glDeleteProgram(eae6320::Graphics::Env::s_programId );
@@ -398,14 +361,53 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 
 namespace
 {
-
 	eae6320::cResult InitializeGeometry()
 	{
 		auto result = eae6320::Results::Success;
 
+		// Vertex Buffer
+
+		std::vector<eae6320::Graphics::Geometry::cGeometryVertex> verticesA{
+			eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 0.0f, 0.0f),
+			eae6320::Graphics::Geometry::cGeometryVertex(1.0f, 0.0f, 0.0f),
+			eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 1.0f, 0.0f),
+			eae6320::Graphics::Geometry::cGeometryVertex(1.0f, 1.0f, 0.0f),
+		};
+		std::vector<unsigned int> indicesA{ 0, 1, 2, 1, 3, 2 };
+
+		std::vector<eae6320::Graphics::Geometry::cGeometryVertex> verticesB{
+			eae6320::Graphics::Geometry::cGeometryVertex(-1.0f, -1.0f, 0.0f),
+			eae6320::Graphics::Geometry::cGeometryVertex(0.0f, -1.0f, 0.0f),
+			eae6320::Graphics::Geometry::cGeometryVertex(-1.0f, 0.0f, 0.0f),
+			eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 0.0f, 0.0f),
+		};
+
+		eae6320::Graphics::Geometry::cGeometryRenderTarget geometryA, geometryB;
+		geometryA.InitData(verticesA, indicesA);
+		geometryB.InitData(verticesB, indicesA);
 		
+		eae6320::Graphics::Env::s_geometries.push_back(
+			geometryA
+		);
+		eae6320::Graphics::Env::s_geometries.push_back(
+			geometryB
+		);
+		for (size_t i = 0; i < eae6320::Graphics::Env::s_geometries.size(); i++)
+		{
+			auto result_initGeometry = eae6320::Graphics::Env::s_geometries[i].InitDevicePipeline();
+			if (!result_initGeometry)
+			{
+				EAE6320_ASSERT(false);
+				if (result)
+				{
+					result = result_initGeometry;
+				}
+			}
+
+		}
 
 		return result;
+
 	}
 
 	eae6320::cResult InitializeShadingData()

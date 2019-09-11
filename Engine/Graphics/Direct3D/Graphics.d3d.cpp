@@ -132,7 +132,7 @@ void eae6320::Graphics::RenderFrame()
 	}
 	// Draw the geometry
 	{
-		for (int i = 0; i < eae6320::Graphics::Env::s_geometries.size(); i++)
+		for (size_t i = 0; i < eae6320::Graphics::Env::s_geometries.size(); i++)
 		{
 			eae6320::Graphics::Env::s_geometries[i].Draw();
 		}
@@ -261,7 +261,7 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 		eae6320::Graphics::Env::s_depthStencilView->Release();
 		eae6320::Graphics::Env::s_depthStencilView = nullptr;
 	}
-	for (auto i = 0; i < eae6320::Graphics::Env::s_geometries.size(); i++)
+	for (int i = 0; i < eae6320::Graphics::Env::s_geometries.size(); i++)
 	{
 		const auto result_geometry = eae6320::Graphics::Env::s_geometries[i].Release();
 		if (!result_geometry)

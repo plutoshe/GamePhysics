@@ -1,6 +1,7 @@
 #include "cGeometry.h"
 #include "PlatformIncludes.h"
 #include "GraphicsEnv.h"
+#include "sContext.h"
 #include <Engine/Asserts/Asserts.h>
 
 namespace eae6320
@@ -10,100 +11,73 @@ namespace eae6320
 		namespace Geometry
 		{
 			#if defined( EAE6320_PLATFORM_GL )
-
-				cGeometryVertex* cGeometryFace::GetGeometryVertices()
+				std::vector<unsigned int>  cGeometryIndexFace::GetGeometryIndices() const
 				{
-					return new cGeometryVertex[3]{ m_v0, m_v1, m_v2 };
+					return std::vector<unsigned int>{ m_i0, m_i1, m_i2 };
 				}
 			#elif defined( EAE6320_PLATFORM_D3D )
-				cGeometryVertex* cGeometryFace::GetGeometryVertices()
+				std::vector<unsigned int> cGeometryIndexFace::GetGeometryIndices() const
 				{
-					return new cGeometryVertex[3]{ m_v0, m_v2, m_v1 };
+					return std::vector<unsigned int>{ m_i0, m_i2, m_i1 };
 				}
 			#endif
 
-			void cGeometryRenderTarget::AddFace(cGeometryFace face)
+			void cGeometryRenderTarget::AddFace(const cGeometryIndexFace &face)
 			{
-				cGeometryVertex* result = face.GetGeometryVertices();
+				std::vector<unsigned int> result = face.GetGeometryIndices();
 				for (int i = 0; i < 3; i++) 
 				{
-					vertices.push_back(result[i]);
+					m_indices.push_back(result[i]);
+				}
+			}
+			void cGeometryRenderTarget::AddIndices(int FaceNum, const std::vector<unsigned int> &triangleIndices)
+			{
+				for (int i = 0; i < FaceNum; i++)
+				{
+					AddFace(cGeometryIndexFace(triangleIndices[i * 3], triangleIndices[i * 3 + 1], triangleIndices[i * 3 + 2]));
 				}
 			}
 
-			unsigned int cGeometryRenderTarget::BufferSize()
+			void cGeometryRenderTarget::AddVetices(int vertexNum, const std::vector<cGeometryVertex> &vertices)
 			{
-				return static_cast<unsigned int>(vertices.size() * sizeof(cGeometryVertex));
+				m_vertices.insert(m_vertices.end(), vertices.begin(), vertices.begin() + vertexNum);
+			}
+
+			unsigned int cGeometryRenderTarget::VertexBufferSize()
+			{
+				return static_cast<unsigned int>(m_vertices.size() * sizeof(cGeometryVertex));
+			}
+
+			unsigned int cGeometryRenderTarget::IndexBufferSize()
+			{
+				return static_cast<unsigned int>(m_indices.size() * sizeof(unsigned int));
 			}
 
 			cGeometryVertex* cGeometryRenderTarget::GetVertexData()
 			{
-				return &vertices[0];
+				return &m_vertices[0];
+			}
+
+			unsigned int* cGeometryRenderTarget::GetIndexData()
+			{
+				return &m_indices[0];
 			}
 
 			unsigned int cGeometryRenderTarget::vertexCountToRender()
 			{
-				return static_cast<unsigned int>(vertices.size());
+				return static_cast<unsigned int>(m_vertices.size());
 			}
 
-			void cGeometryRenderTarget::Draw()
-			{		
-#if defined( EAE6320_PLATFORM_D3D )
-				auto* const direct3dImmediateContext = sContext::g_context.direct3dImmediateContext;
-				// Bind a specific vertex buffer to the device as a data source
-				{
-					EAE6320_ASSERT(eae6320::Graphics::Env::s_vertexBuffer);
-					constexpr unsigned int startingSlot = 0;
-					constexpr unsigned int vertexBufferCount = 1;
-					// The "stride" defines how large a single vertex is in the stream of data
-					constexpr unsigned int bufferStride = sizeof(Graphics::Geometry::cGeometryVertex);
-					// It's possible to start streaming data in the middle of a vertex buffer
-					constexpr unsigned int bufferOffset = 0;
-					direct3dImmediateContext->IASetVertexBuffers(startingSlot, vertexBufferCount, &eae6320::Graphics::Env::s_vertexBuffer, &bufferStride, &bufferOffset);
-				}
-				// Specify what kind of data the vertex buffer holds
-				{
-					// Bind the vertex format (which defines how to interpret a single vertex)
-					{
-						EAE6320_ASSERT(eae6320::Graphics::Env::s_vertexFormat);
-						auto* const vertexFormat = cVertexFormat::s_manager.Get(eae6320::Graphics::Env::s_vertexFormat);
-						EAE6320_ASSERT(vertexFormat);
-						vertexFormat->Bind();
-					}
-					// Set the topology (which defines how to interpret multiple vertices as a single "primitive";
-					// the vertex buffer was defined as a triangle list
-					// (meaning that every primitive is a triangle and will be defined by three vertices)
-					direct3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			void cGeometryRenderTarget::InitData(const std::vector<cGeometryVertex>& vertices, const std::vector<unsigned int>& triangleIndices)
+			{
+				AddVetices((int)vertices.size(), vertices);
+				AddIndices((int)triangleIndices.size() / 3, triangleIndices);
 			}
-				// Render triangles from the currently-bound vertex buffer
-				{
-					// It's possible to start rendering primitives in the middle of the stream
-					constexpr unsigned int indexOfFirstVertexToRender = 0;
-					direct3dImmediateContext->Draw(vertexCountToRender(), indexOfFirstVertexToRender);
-				}
-#elif defined( EAE6320_PLATFORM_GL )
-				// Bind a specific vertex buffer to the device as a data source
-				{
-					EAE6320_ASSERT(eae6320::Graphics::Env::s_vertexArrayId != 0);
-					glBindVertexArray(eae6320::Graphics::Env::s_vertexArrayId);
-					EAE6320_ASSERT(glGetError() == GL_NO_ERROR);
-				}
-				// Render triangles from the currently-bound vertex buffer
-				{
-					// The mode defines how to interpret multiple vertices as a single "primitive";
-					// a triangle list is defined
-					// (meaning that every primitive is a triangle and will be defined by three vertices)
-					constexpr GLenum mode = GL_TRIANGLES;
-					// As of this comment only a single triangle is drawn
-					// (you will have to update this code in future assignments!)
 
-					// It's possible to start rendering primitives in the middle of the stream
-					constexpr unsigned int indexOfFirstVertexToRender = 0;
-					glDrawArrays(mode, indexOfFirstVertexToRender, vertexCountToRender());
-					EAE6320_ASSERT(glGetError() == GL_NO_ERROR);
-				}
-#endif
-			}
+			unsigned int cGeometryRenderTarget::GetIndexCount()
+			{
+				return (unsigned int)m_indices.size();
+			}		
 		}
 	}
 }

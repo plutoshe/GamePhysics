@@ -100,7 +100,10 @@ namespace eae6320
 			void SetSimulationRate( const float i_simulationRate );
 			void SetBackgroundColor(std::vector<float> backgroundColor);
 			void SetRenderObjects(std::vector<eae6320::Graphics::RenderObject> i_renderObjects);
-			
+			void DeleteRenderObjectById(int id);
+			void AddRenderObject(eae6320::Graphics::RenderObject i_renderObject);
+			std::vector<eae6320::Graphics::Geometry::cGeometryRenderTarget> m_geometries;
+			std::vector<eae6320::Graphics::Effect> m_effects;
 			std::vector<eae6320::Graphics::RenderObject> m_renderObjects;
 			std::vector<float> m_backgroundColor;
 			//------

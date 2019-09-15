@@ -272,6 +272,15 @@ void eae6320::Application::cbApplication::SubmitDataToBeRendered(const float i_e
 	eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread->m_renderObjects = m_renderObjects;
 }
 
+void eae6320::Application::cbApplication::DeleteRenderObjectById(int id)
+{
+	m_renderObjects.erase(m_renderObjects.begin() + id);
+}
+void eae6320::Application::cbApplication::AddRenderObject(eae6320::Graphics::RenderObject i_renderObject)
+{
+	m_renderObjects.push_back(i_renderObject);
+}
+
 void eae6320::Application::cbApplication::SetRenderObjects(std::vector<eae6320::Graphics::RenderObject> i_renderObjects)
 {
 	m_renderObjects = i_renderObjects;

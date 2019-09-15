@@ -71,6 +71,7 @@ namespace eae6320
 
 				I = 0x49,
 				J = 0x4A,
+				K = 0x4B,
 			};
 		}
 	}

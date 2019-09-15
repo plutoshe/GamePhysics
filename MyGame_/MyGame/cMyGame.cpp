@@ -21,6 +21,10 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 		const auto result = Exit( EXIT_SUCCESS );
 		EAE6320_ASSERT( result );
 	}
+	if (UserInput::IsKeyPressed(UserInput::KeyCodes::I))
+	{
+		printf("test");
+	}
 }
 
 // Initialization / Clean Up

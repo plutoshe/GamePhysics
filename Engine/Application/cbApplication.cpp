@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <Engine/Asserts/Asserts.h>
 #include <Engine/Graphics/Graphics.h>
+#include <Engine/Graphics/GraphicsEnv.h>
 #include <Engine/Logging/Logging.h>
 #include <Engine/ScopeGuard/cScopeGuard.h>
 #include <Engine/Time/Time.h>
@@ -263,6 +264,16 @@ void eae6320::Application::cbApplication::UpdateUntilExit()
 			}
 		}
 	}
+}
+
+void eae6320::Application::cbApplication::SubmitDataToBeRendered(const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
+{
+	eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread->m_backgroundColor = m_backgroundColor;
+}
+
+void eae6320::Application::cbApplication::SetBackgroundColor(std::vector<float> backgroundColor)
+{
+	m_backgroundColor = backgroundColor;
 }
 
 void eae6320::Application::cbApplication::EntryPoint_applicationLoopThread( void* const io_application )

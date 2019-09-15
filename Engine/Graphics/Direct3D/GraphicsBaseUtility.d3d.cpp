@@ -46,37 +46,8 @@ void eae6320::Graphics::ClearBackgroundColor()
 	}
 }
 
-void eae6320::Graphics::RenderFrame()
+void eae6320::Graphics::PrepocessBeforeRender()
 {
-	// Wait for the application loop to submit data to be rendered
-	{
-		const auto result = Concurrency::WaitForEvent(eae6320::Graphics::Env::s_whenAllDataHasBeenSubmittedFromApplicationThread);
-		if (result)
-		{
-			// Switch the render data pointers so that
-			// the data that the application just submitted becomes the data that will now be rendered
-			std::swap(eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread, eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread);
-			// Once the pointers have been swapped the application loop can submit new data
-			const auto result = eae6320::Graphics::Env::s_whenDataForANewFrameCanBeSubmittedFromApplicationThread.Signal();
-			if (!result)
-			{
-				EAE6320_ASSERTF(false, "Couldn't signal that new graphics data can be submitted");
-				Logging::OutputError("Failed to signal that new render data can be submitted");
-				UserOutput::Print("The renderer failed to signal to the application that new graphics data can be submitted."
-					" The application is probably in a bad state and should be exited");
-				return;
-			}
-		}
-		else
-		{
-			EAE6320_ASSERTF(false, "Waiting for the graphics data to be submitted failed");
-			Logging::OutputError("Waiting for the application loop to submit data to be rendered failed");
-			UserOutput::Print("The renderer failed to wait for the application to submit data to be rendered."
-				" The application is probably in a bad state and should be exited");
-			return;
-		}
-	}
-
 	auto* const direct3dImmediateContext = sContext::g_context.direct3dImmediateContext;
 	EAE6320_ASSERT(direct3dImmediateContext);
 
@@ -98,29 +69,13 @@ void eae6320::Graphics::RenderFrame()
 		constexpr uint8_t stencilValue = 0;	// Arbitrary if stencil isn't used
 		direct3dImmediateContext->ClearDepthStencilView(eae6320::Graphics::Env::s_depthStencilView, D3D11_CLEAR_DEPTH, clearToFarDepth, stencilValue);
 	}
+}
 
-	EAE6320_ASSERT(eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread);
-
-	// Update the frame constant buffer
-	{
-		// Copy the data from the system memory that the application owns to GPU memory
-		auto& constantData_frame = eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->constantData_frame;
-		eae6320::Graphics::Env::s_constantBuffer_frame.Update(&constantData_frame);
-	}
-
-	// Bind the shading data
-	// Draw the geometry
-	{
-		for (size_t i = 0; i < eae6320::Graphics::Env::s_geometries.size(); i++)
-		{
-			eae6320::Graphics::Env::s_effects[i].Bind();
-			eae6320::Graphics::Env::s_geometries[i].Draw();
-		}
-	}
-
+void eae6320::Graphics::PostpocessAfterRender()
+{
 	// Everything has been drawn to the "back buffer", which is just an image in memory.
-	// In order to display it the contents of the back buffer must be "presented"
-	// (or "swapped" with the "front buffer", which is the image that is actually being displayed)
+			// In order to display it the contents of the back buffer must be "presented"
+			// (or "swapped" with the "front buffer", which is the image that is actually being displayed)
 	{
 		auto* const swapChain = sContext::g_context.swapChain;
 		EAE6320_ASSERT(swapChain);

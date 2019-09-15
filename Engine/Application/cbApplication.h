@@ -95,8 +95,8 @@ namespace eae6320
 			double GetElapsedSecondCount_systemTime() const;
 			double GetElapsedSecondCount_simulation() const;
 			void SetSimulationRate( const float i_simulationRate );
-
-			// Run
+			void SetBackgroundColor(std::vector<float> backgroundColor);
+			std::vector<float> m_backgroundColor;
 			//------
 
 			// This is called from the templated Run<> function above
@@ -181,8 +181,8 @@ namespace eae6320
 
 			// Your application should override the following function
 			// to instuct the Graphics system what to render for the next frame
-			virtual void SubmitDataToBeRendered( const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate ) {}
-
+			virtual void SubmitDataToBeRendered(const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate);
+			
 			// Initialization / Clean Up
 			//--------------------------
 

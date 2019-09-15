@@ -5,6 +5,7 @@
 
 #include <Engine/Asserts/Asserts.h>
 #include <Engine/UserInput/UserInput.h>
+#include <vector>
 
 // Inherited Implementation
 //=========================
@@ -23,7 +24,11 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 	}
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::I))
 	{
-		printf("test");
+		SetBackgroundColor(std::vector<float>{1.0f, 0.f, 0.f, 1.f});
+	}
+	else
+	{
+		SetBackgroundColor(std::vector<float>{1.0f, 1.f, 0.f, 1.f});
 	}
 }
 

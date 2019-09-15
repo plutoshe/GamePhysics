@@ -54,7 +54,8 @@ namespace eae6320
 		// It will render a submitted frame as soon as it is ready
 		// (i.e. as soon as SignalThatAllDataForAFrameHasBeenSubmitted() has been called)
 		void RenderFrame();
-
+		void PrepocessBeforeRender();
+		void PostpocessAfterRender();
 		void ChangeBackgroundColor(std::vector<float> updateColor);
 		void ClearBackgroundColor();
 		// Initialization / Clean Up

@@ -66,9 +66,10 @@ namespace eae6320
 			extern eae6320::Graphics::cRenderState::Handle s_renderState;
 			// Geometry Data
 			//--------------
-
+/*
 			extern std::vector<eae6320::Graphics::Effect> s_effects;
-			extern std::vector<eae6320::Graphics::Geometry::cGeometryRenderTarget> s_geometries;
+			extern std::vector<eae6320::Graphics::Geometry::cGeometryRenderTarget> s_geometries;*/
+			extern eae6320::Graphics::cVertexFormat::Handle s_vertexFormat;
 			extern std::vector<float> s_BackgroundColor;
 
 		}

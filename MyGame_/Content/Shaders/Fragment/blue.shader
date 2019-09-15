@@ -42,7 +42,7 @@ void main(
 )
 {
 	// Output solid white
-	o_color = vec4(0.0, 0.0, 0.7, 1.0);
+	o_color = float4(0.0, 0.0, 0.7, 1.0);
 }
 
 #elif defined( EAE6320_PLATFORM_GL )

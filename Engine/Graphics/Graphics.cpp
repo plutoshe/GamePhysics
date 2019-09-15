@@ -46,21 +46,6 @@ namespace eae6320
 			return result;
 		}
 
-		eae6320::cResult InitializeShadingData()
-		{
-			auto result = eae6320::Results::Success;
-			{
-				constexpr uint8_t defaultRenderState = 0;
-				if (!(result = eae6320::Graphics::cRenderState::s_manager.Load(defaultRenderState, eae6320::Graphics::Env::s_renderState)))
-				{
-					EAE6320_ASSERTF(false, "Can't initialize shading data without render state");
-					return result;
-				}
-			}
-			return result;
-		}
-
-
 		void SubmitElapsedTime(const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_simulationTime)
 		{
 			EAE6320_ASSERT(eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread);

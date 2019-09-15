@@ -38,7 +38,7 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 	{
 		if (!m_isJPressed)
 		{
-			DeleteRenderObjectById(m_renderObjects.size() - 1);
+			DeleteRenderObjectById((int)m_renderObjects.size() - 1);
 			m_isJPressed = true;
 		}
 	}

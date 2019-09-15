@@ -23,6 +23,9 @@
 #include <Engine/UserOutput/UserOutput.h>
 #include <utility>
 
+namespace {
+	eae6320::cResult InitializeShadingData();
+}
 
 void eae6320::Graphics::ClearBackgroundColor()
 {
@@ -169,35 +172,23 @@ eae6320::cResult eae6320::Graphics::Initialize( const sInitializationParameters&
 	return result;
 }
 
+eae6320::cResult eae6320::Graphics::InitializeShadingData()
+{
+	auto result = eae6320::Results::Success;
+	{
+		constexpr uint8_t defaultRenderState = 0;
+		if (!(result = eae6320::Graphics::cRenderState::s_manager.Load(defaultRenderState, eae6320::Graphics::Env::s_renderState)))
+		{
+			EAE6320_ASSERTF(false, "Can't initialize shading data without render state");
+			return result;
+		}
+	}
+	return result;
+}
+
 eae6320::cResult eae6320::Graphics::CleanUp()
 {
 	auto result = Results::Success;
-	/*for (size_t i = 0; i < eae6320::Graphics::Env::s_geometries.size(); i++)
-	{
-		const auto result_geometry = eae6320::Graphics::Env::s_geometries[i].Release();
-		if (!result_geometry)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
-			{
-				result = result_geometry;
-			}
-		}
-	}
-
-	for (size_t i = 0; i < eae6320::Graphics::Env::s_effects.size(); i++)
-	{
-		const auto result_effect = eae6320::Graphics::Env::s_effects[i].Release();
-		if (!result_effect)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
-			{
-				result = result_effect;
-			}
-		}
-	}*/
-
 	
 	for (auto it = eae6320::Graphics::Env::s_vertexShaders.begin(); it != eae6320::Graphics::Env::s_vertexShaders.end(); ++it)
 	{

@@ -1,5 +1,6 @@
 #include "../cGeometry.h"
 #include "../sContext.h"
+#include "../GraphicsEnv.h"
 namespace eae6320
 {
 	namespace Graphics
@@ -13,15 +14,7 @@ namespace eae6320
 				auto* const direct3dDevice = eae6320::Graphics::sContext::g_context.direct3dDevice;
 				EAE6320_ASSERT(direct3dDevice);
 
-				// Vertex Format
-				{
-					if (!(result = eae6320::Graphics::cVertexFormat::s_manager.Load(eae6320::Graphics::VertexTypes::_3dObject, m_vertexFormat,
-						"data/shaders/vertex/vertexinputlayout_3dobject.shader")))
-					{
-						EAE6320_ASSERTF(false, "Can't initialize geometry without vertex format");
-						return result;
-					}
-				}
+
 				{
 					D3D11_BUFFER_DESC bufferDescription{};
 					{
@@ -86,18 +79,6 @@ namespace eae6320
 					m_indexBuffer = nullptr;
 
 				}
-				if (m_vertexFormat)
-				{
-					const auto result_vertexFormat = cVertexFormat::s_manager.Release(m_vertexFormat);
-					if (!result_vertexFormat)
-					{
-						EAE6320_ASSERT(false);
-						if (result)
-						{
-							result = result_vertexFormat;
-						}
-					}
-				}
 				return result;
 			}
 			void cGeometryRenderTarget::Draw()
@@ -120,8 +101,8 @@ namespace eae6320
 				{
 					// Bind the vertex format (which defines how to interpret a single vertex)
 					{
-						EAE6320_ASSERT(m_vertexFormat);
-						auto* const vertexFormat = cVertexFormat::s_manager.Get(m_vertexFormat);
+						EAE6320_ASSERT(eae6320::Graphics::Env::s_vertexFormat);
+						auto* const vertexFormat = cVertexFormat::s_manager.Get(eae6320::Graphics::Env::s_vertexFormat);
 						EAE6320_ASSERT(vertexFormat);
 						vertexFormat->Bind();
 					}

@@ -20,7 +20,7 @@ namespace eae6320
 			eae6320::Concurrency::cEvent s_whenDataForANewFrameCanBeSubmittedFromApplicationThread;
 			std::map<std::string, eae6320::Graphics::cShader::Handle> s_vertexShaders;
 			std::map<std::string, eae6320::Graphics::cShader::Handle> s_fragmentShaders;
-
+			eae6320::Graphics::cVertexFormat::Handle s_vertexFormat;
 			eae6320::Graphics::cRenderState::Handle s_renderState; 
 			std::vector<float> s_BackgroundColor{ 1.0f, 0.0f, 1.0f, 1.0f };
 			/*std::vector<eae6320::Graphics::Effect> s_effects;

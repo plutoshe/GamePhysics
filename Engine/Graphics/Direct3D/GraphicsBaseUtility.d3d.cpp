@@ -196,32 +196,6 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 		eae6320::Graphics::Env::s_depthStencilView->Release();
 		eae6320::Graphics::Env::s_depthStencilView = nullptr;
 	}
-	/*for (int i = 0; i < eae6320::Graphics::Env::s_geometries.size(); i++)
-	{
-		const auto result_geometry = eae6320::Graphics::Env::s_geometries[i].Release();
-		if (!result_geometry)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
-			{
-				result = result_geometry;
-			}
-		}
-	}
-
-	for (size_t i = 0; i < eae6320::Graphics::Env::s_effects.size(); i++)
-	{
-		const auto result_effect = eae6320::Graphics::Env::s_effects[i].Release();
-		if (!result_effect)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
-			{
-				result = result_effect;
-			}
-		}
-	}*/
-
 
 	for (auto it = eae6320::Graphics::Env::s_vertexShaders.begin(); it != eae6320::Graphics::Env::s_vertexShaders.end(); ++it)
 	{
@@ -235,6 +209,19 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 			}
 		}
 	}
+	if (eae6320::Graphics::Env::s_vertexFormat)
+	{
+		const auto result_vertexFormat = cVertexFormat::s_manager.Release(eae6320::Graphics::Env::s_vertexFormat);
+		if (!result_vertexFormat)
+		{
+			EAE6320_ASSERT(false);
+			if (result)
+			{
+				result = result_vertexFormat;
+			}
+		}
+	}
+
 	for (auto it = eae6320::Graphics::Env::s_fragmentShaders.begin(); it != eae6320::Graphics::Env::s_fragmentShaders.end(); ++it)
 	{
 		const auto result_fragmentShader = cShader::s_manager.Release(it->second);
@@ -324,56 +311,33 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 // Helper Function Definitions
 //============================
 
+eae6320::cResult eae6320::Graphics::InitializeShadingData()
+{
+	auto result = eae6320::Results::Success;
+	// Vertex Format
+	{
+		if (!(result = eae6320::Graphics::cVertexFormat::s_manager.Load(eae6320::Graphics::VertexTypes::_3dObject, eae6320::Graphics::Env::s_vertexFormat,
+			"data/shaders/vertex/vertexinputlayout_3dobject.shader")))
+		{
+			EAE6320_ASSERTF(false, "Can't initialize geometry without vertex format");
+			return result;
+		}
+	}
+	{
+		constexpr uint8_t defaultRenderState = 0;
+		if (!(result = eae6320::Graphics::cRenderState::s_manager.Load(defaultRenderState, eae6320::Graphics::Env::s_renderState)))
+		{
+			EAE6320_ASSERTF(false, "Can't initialize shading data without render state");
+			return result;
+		}
+	}
+	return result;
+}
+
+
 namespace
 {
-	eae6320::cResult InitializeGeometry()
-	{
-		auto result = eae6320::Results::Success;
 
-		// Vertex Buffer
-
-		std::vector<eae6320::Graphics::Geometry::cGeometryVertex> verticesA{
-			eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 0.0f, 0.0f),
-			eae6320::Graphics::Geometry::cGeometryVertex(1.0f, 0.0f, 0.0f),
-			eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 1.0f, 0.0f),
-			eae6320::Graphics::Geometry::cGeometryVertex(1.0f, 1.0f, 0.0f),
-		};
-		std::vector<unsigned int> indicesA{ 0, 1, 2, 1, 3, 2 };
-
-		std::vector<eae6320::Graphics::Geometry::cGeometryVertex> verticesB{
-			eae6320::Graphics::Geometry::cGeometryVertex(-1.0f, -1.0f, 0.0f),
-			eae6320::Graphics::Geometry::cGeometryVertex(0.0f, -1.0f, 0.0f),
-			eae6320::Graphics::Geometry::cGeometryVertex(-1.0f, 0.0f, 0.0f),
-			eae6320::Graphics::Geometry::cGeometryVertex(-0.3f, -0.3f, 0.0f),
-		};
-
-		eae6320::Graphics::Geometry::cGeometryRenderTarget geometryA, geometryB;
-		geometryA.InitData(verticesA, indicesA);
-		geometryB.InitData(verticesB, indicesA);
-
-		eae6320::Graphics::Env::s_geometries.push_back(
-			geometryA
-		);
-		eae6320::Graphics::Env::s_geometries.push_back(
-			geometryB
-		);
-		for (size_t i = 0; i < eae6320::Graphics::Env::s_geometries.size(); i++)
-		{
-			auto result_initGeometry = eae6320::Graphics::Env::s_geometries[i].InitDevicePipeline();
-			if (!result_initGeometry)
-			{
-				EAE6320_ASSERT(false);
-				if (result)
-				{
-					result = result_initGeometry;
-				}
-			}
-
-		}
-
-		return result;
-		
-	}
 
 	eae6320::cResult LoadShaderData(
 		std::string path,
@@ -395,54 +359,6 @@ namespace
 				shaderType)))
 			{
 				EAE6320_ASSERTF(false, "Load Shader failed");
-				return result;
-			}
-		}
-		return result;
-	}
-
-	eae6320::cResult InitializeShadingData()
-	{
-		auto result = eae6320::Results::Success;
-		eae6320::Graphics::Effect effectA, effectB;
-		effectA.SetVertexShaderPath("data/shaders/vertex/standard.shader");
-		effectA.SetFragmentShaderPath("data/shaders/fragment/change_color.shader");
-		effectB.SetVertexShaderPath("data/shaders/vertex/standard.shader");
-		effectB.SetFragmentShaderPath("data/shaders/fragment/standard.shader");
-
-		eae6320::Graphics::Env::s_effects.push_back(effectA);
-		eae6320::Graphics::Env::s_effects.push_back(effectB);
-
-		for (size_t i = 0; i < eae6320::Graphics::Env::s_effects.size(); i++)
-		{
-			if (!(result = eae6320::Graphics::LoadShaderData(
-				eae6320::Graphics::Env::s_effects[i].m_vertexShaderPath,
-				eae6320::Graphics::Env::s_vertexShaders,
-				eae6320::Graphics::ShaderTypes::Vertex)) ||
-				!(result = eae6320::Graphics::LoadShaderData(
-					eae6320::Graphics::Env::s_effects[i].m_fragmentShaderPath,
-					eae6320::Graphics::Env::s_fragmentShaders,
-					eae6320::Graphics::ShaderTypes::Fragment)))
-			{
-				EAE6320_ASSERTF(false, "Can't initialize effects");
-				return result;
-			}
-			if (!(result = eae6320::Graphics::Env::s_effects[i].Load(
-				eae6320::Graphics::cShader::s_manager,
-				eae6320::Graphics::Env::s_vertexShaders[eae6320::Graphics::Env::s_effects[i].m_vertexShaderPath],
-				eae6320::Graphics::Env::s_fragmentShaders[eae6320::Graphics::Env::s_effects[i].m_fragmentShaderPath])))
-			{
-				EAE6320_ASSERTF(false, "Can't initialize effects");
-				return result;
-			}
-
-		}
-
-		{
-			constexpr uint8_t defaultRenderState = 0;
-			if (!(result = eae6320::Graphics::cRenderState::s_manager.Load(defaultRenderState, eae6320::Graphics::Env::s_renderState)))
-			{
-				EAE6320_ASSERTF(false, "Can't initialize shading data without render state");
 				return result;
 			}
 		}

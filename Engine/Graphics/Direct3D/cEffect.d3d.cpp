@@ -2,8 +2,7 @@
 #include "../GraphicsEnv.h"
 
 eae6320::cResult eae6320::Graphics::Effect::Load(
-	eae6320::Assets::cManager<eae6320::Graphics::cShader>& manager,
-	eae6320::Graphics::cShader::Handle& vertexShader, eae6320::Graphics::cShader::Handle& fragmentShader)
+	eae6320::Assets::cManager<eae6320::Graphics::cShader>& manager)
 {
 	auto result = eae6320::Results::Success;
 	if (!(result = LoadShaderData()))

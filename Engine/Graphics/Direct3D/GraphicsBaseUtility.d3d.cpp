@@ -196,7 +196,7 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 		eae6320::Graphics::Env::s_depthStencilView->Release();
 		eae6320::Graphics::Env::s_depthStencilView = nullptr;
 	}
-	for (int i = 0; i < eae6320::Graphics::Env::s_geometries.size(); i++)
+	/*for (int i = 0; i < eae6320::Graphics::Env::s_geometries.size(); i++)
 	{
 		const auto result_geometry = eae6320::Graphics::Env::s_geometries[i].Release();
 		if (!result_geometry)
@@ -220,7 +220,7 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 				result = result_effect;
 			}
 		}
-	}
+	}*/
 
 
 	for (auto it = eae6320::Graphics::Env::s_vertexShaders.begin(); it != eae6320::Graphics::Env::s_vertexShaders.end(); ++it)

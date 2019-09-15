@@ -1,6 +1,7 @@
 #include "../cEffect.h"
 #include "../PlatformIncludes.h"
 #include "../Graphics.h"
+#include "../GraphicsEnv.h"
 
 #include <Engine/ScopeGuard/cScopeGuard.h>
 
@@ -28,11 +29,14 @@ eae6320::cResult eae6320::Graphics::Effect::Release()
 
 
 eae6320::cResult eae6320::Graphics::Effect::Load(
-	eae6320::Assets::cManager<eae6320::Graphics::cShader>& manager,
-	eae6320::Graphics::cShader::Handle& vertexShader, eae6320::Graphics::cShader::Handle& fragmentShader)
+	eae6320::Assets::cManager<eae6320::Graphics::cShader>& manager)
 {
 	auto result = eae6320::Results::Success;
-
+	if (!(result = LoadShaderData()))
+	{
+		EAE6320_ASSERTF(false, "Can't initialize shader for effect");
+		return result;
+	}
 	eae6320::cScopeGuard scopeGuard_program([this, &result]
 		{
 			if (!result)
@@ -77,7 +81,7 @@ eae6320::cResult eae6320::Graphics::Effect::Load(
 	{
 		// Vertex
 		{
-			glAttachShader(m_programId, manager.Get(vertexShader)->m_shaderId);
+			glAttachShader(m_programId, manager.Get(eae6320::Graphics::Env::s_vertexShaders[m_vertexShaderPath])->m_shaderId);
 			const auto errorCode = glGetError();
 			if (errorCode != GL_NO_ERROR)
 			{
@@ -90,7 +94,7 @@ eae6320::cResult eae6320::Graphics::Effect::Load(
 		}
 		// Fragment
 		{
-			glAttachShader(m_programId, manager.Get(fragmentShader)->m_shaderId);
+			glAttachShader(m_programId, manager.Get(eae6320::Graphics::Env::s_fragmentShaders[m_fragmentShaderPath])->m_shaderId);
 			const auto errorCode = glGetError();
 			if (errorCode != GL_NO_ERROR)
 			{

@@ -12,8 +12,11 @@
 //=========
 
 #include <cstdint>
+#include <vector>
 #include <Engine/Concurrency/cThread.h>
 #include <Engine/Results/Results.h>
+#include <Engine/Graphics/Graphics.h>
+#include <Engine/Graphics/cRenderObject.h>
 
 #if defined( EAE6320_PLATFORM_WINDOWS )
 	#include <Engine/Windows/Includes.h>
@@ -96,6 +99,9 @@ namespace eae6320
 			double GetElapsedSecondCount_simulation() const;
 			void SetSimulationRate( const float i_simulationRate );
 			void SetBackgroundColor(std::vector<float> backgroundColor);
+			void SetRenderObjects(std::vector<eae6320::Graphics::RenderObject> i_renderObjects);
+			
+			std::vector<eae6320::Graphics::RenderObject> m_renderObjects;
 			std::vector<float> m_backgroundColor;
 			//------
 

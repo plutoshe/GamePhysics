@@ -5,6 +5,7 @@
 #include "ConstantBufferFormats.h"
 #include "cEffect.h"
 #include "cGeometry.h"
+#include "cRenderObject.h"
 #include "cRenderState.h"
 #include "cVertexFormat.h"
 
@@ -36,6 +37,7 @@ namespace eae6320
 			{
 				eae6320::Graphics::ConstantBufferFormats::sFrame constantData_frame;
 				std::vector<float> m_backgroundColor;
+				std::vector<eae6320::Graphics::RenderObject> m_renderObjects;
 			};
 			// In our class there will be two copies of the data required to render a frame:
 			//	* One of them will be in the process of being populated by the data currently being submitted by the application loop thread

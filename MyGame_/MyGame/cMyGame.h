@@ -10,7 +10,8 @@
 
 #include <Engine/Application/cbApplication.h>
 #include <Engine/Results/Results.h>
-
+#include <Engine/Graphics/cEffect.h>
+#include <Engine/Graphics/cGeometry.h>
 #if defined( EAE6320_PLATFORM_WINDOWS )
 	#include "Resource Files/Resource.h"
 #endif
@@ -24,7 +25,6 @@ namespace eae6320
 	{
 		// Inherited Implementation
 		//=========================
-
 	private:
 
 		// Configuration
@@ -77,7 +77,6 @@ namespace eae6320
 
 		virtual cResult Initialize() override;
 		virtual cResult CleanUp() override;
-
 	};
 }
 

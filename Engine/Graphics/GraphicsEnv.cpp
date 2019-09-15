@@ -23,8 +23,10 @@ namespace eae6320
 
 			eae6320::Graphics::cRenderState::Handle s_renderState; 
 			std::vector<float> s_BackgroundColor{ 1.0f, 0.0f, 1.0f, 1.0f };
-			std::vector<eae6320::Graphics::Effect> s_effects;
-			std::vector<eae6320::Graphics::Geometry::cGeometryRenderTarget> s_geometries;
+			/*std::vector<eae6320::Graphics::Effect> s_effects;
+			std::vector<eae6320::Graphics::Geometry::cGeometryRenderTarget> s_geometries;*/
+			
+			
 		}
 	}
 }

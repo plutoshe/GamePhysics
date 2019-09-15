@@ -57,3 +57,19 @@ eae6320::cResult eae6320::Graphics::Effect::Bind()
 	return result;
 }
 
+eae6320::cResult eae6320::Graphics::Effect::LoadShaderData()
+{
+	auto result = eae6320::Results::Success;
+	if (!(result = eae6320::Graphics::LoadShaderData(
+		m_vertexShaderPath,
+		eae6320::Graphics::Env::s_vertexShaders,
+		eae6320::Graphics::ShaderTypes::Vertex)) ||
+		!(result = eae6320::Graphics::LoadShaderData(
+			m_fragmentShaderPath,
+			eae6320::Graphics::Env::s_fragmentShaders,
+			eae6320::Graphics::ShaderTypes::Fragment)))
+	{
+		EAE6320_ASSERTF(false, "Can't initialize shader for effect");
+	}
+	return result;
+}

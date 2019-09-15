@@ -269,6 +269,12 @@ void eae6320::Application::cbApplication::UpdateUntilExit()
 void eae6320::Application::cbApplication::SubmitDataToBeRendered(const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
 {
 	eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread->m_backgroundColor = m_backgroundColor;
+	eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread->m_renderObjects = m_renderObjects;
+}
+
+void eae6320::Application::cbApplication::SetRenderObjects(std::vector<eae6320::Graphics::RenderObject> i_renderObjects)
+{
+	m_renderObjects = i_renderObjects;
 }
 
 void eae6320::Application::cbApplication::SetBackgroundColor(std::vector<float> backgroundColor)

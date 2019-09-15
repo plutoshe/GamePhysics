@@ -74,6 +74,14 @@ namespace eae6320
 #endif
 				std::vector<cGeometryVertex> m_vertices;
 				std::vector<unsigned int> m_indices;
+				cGeometryRenderTarget(const cGeometryRenderTarget& i)
+				{
+					m_vertices = i.m_vertices;
+					m_indices = i.m_indices;
+					m_vertexArrayId = i.m_vertexArrayId;
+					m_vertexBufferId = i.m_vertexBufferId;
+					m_indexBufferId = i.m_indexBufferId;
+				}
 
 			};
 		}

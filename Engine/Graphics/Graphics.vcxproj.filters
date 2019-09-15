@@ -79,6 +79,7 @@
     <ClInclude Include="cEffect.h" />
     <ClInclude Include="GraphicsEnv.h" />
     <ClInclude Include="PlatformIncludes.h" />
+    <ClInclude Include="cRenderObject.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Direct3D">

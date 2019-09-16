@@ -16,6 +16,7 @@ namespace eae6320
 			sDataRequiredToRenderAFrame s_dataRequiredToRenderAFrame[2];
 			sDataRequiredToRenderAFrame* s_dataBeingSubmittedByApplicationThread = &s_dataRequiredToRenderAFrame[0];
 			sDataRequiredToRenderAFrame* s_dataBeingRenderedByRenderThread = &s_dataRequiredToRenderAFrame[1];
+			std::vector<eae6320::Graphics::RenderObject> s_waitingClearRenderObjects;
 			eae6320::Concurrency::cEvent s_whenAllDataHasBeenSubmittedFromApplicationThread;
 			eae6320::Concurrency::cEvent s_whenDataForANewFrameCanBeSubmittedFromApplicationThread;
 			std::map<std::string, eae6320::Graphics::cShader::Handle> s_vertexShaders;

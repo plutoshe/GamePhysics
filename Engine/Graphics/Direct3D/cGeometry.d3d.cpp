@@ -10,57 +10,60 @@ namespace eae6320
 			eae6320::cResult cGeometryRenderTarget::InitDevicePipeline()
 			{
 				eae6320::cResult result = eae6320::Results::Success;
-
-				auto* const direct3dDevice = eae6320::Graphics::sContext::g_context.direct3dDevice;
-				EAE6320_ASSERT(direct3dDevice);
-
-
+				if (!m_isInitialized)
 				{
-					D3D11_BUFFER_DESC bufferDescription{};
+					m_isInitialized = true;
+					auto* const direct3dDevice = eae6320::Graphics::sContext::g_context.direct3dDevice;
+					EAE6320_ASSERT(direct3dDevice);
+
+
 					{
-						const auto bufferSize = VertexBufferSize();
-						EAE6320_ASSERT(bufferSize < (uint64_t(1u) << (sizeof(bufferDescription.ByteWidth) * 8)));
-						bufferDescription.ByteWidth = static_cast<unsigned int>(bufferSize);
-						bufferDescription.Usage = D3D11_USAGE_IMMUTABLE;	// In our class the buffer will never change after it's been created
-						bufferDescription.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-						bufferDescription.CPUAccessFlags = 0;	// No CPU access is necessary
-						bufferDescription.MiscFlags = 0;
-						bufferDescription.StructureByteStride = 0;	// Not used
-					}
-					D3D11_SUBRESOURCE_DATA initialData{};
-					{
-						initialData.pSysMem = GetVertexData();
-						// (The other data members are ignored for non-texture buffers)
-					}
+						D3D11_BUFFER_DESC bufferDescription{};
+						{
+							const auto bufferSize = VertexBufferSize();
+							EAE6320_ASSERT(bufferSize < (uint64_t(1u) << (sizeof(bufferDescription.ByteWidth) * 8)));
+							bufferDescription.ByteWidth = static_cast<unsigned int>(bufferSize);
+							bufferDescription.Usage = D3D11_USAGE_IMMUTABLE;	// In our class the buffer will never change after it's been created
+							bufferDescription.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+							bufferDescription.CPUAccessFlags = 0;	// No CPU access is necessary
+							bufferDescription.MiscFlags = 0;
+							bufferDescription.StructureByteStride = 0;	// Not used
+						}
+						D3D11_SUBRESOURCE_DATA initialData{};
+						{
+							initialData.pSysMem = GetVertexData();
+							// (The other data members are ignored for non-texture buffers)
+						}
 
-					auto d3dResult = direct3dDevice->CreateBuffer(&bufferDescription, &initialData, &m_vertexBuffer);
+						auto d3dResult = direct3dDevice->CreateBuffer(&bufferDescription, &initialData, &m_vertexBuffer);
 
-					if (FAILED(d3dResult))
-					{
-						result = eae6320::Results::Failure;
-						EAE6320_ASSERTF(false, "3D object vertex buffer creation failed (HRESULT %#010x)", d3dResult);
-						eae6320::Logging::OutputError("Direct3D failed to create a 3D object vertex buffer (HRESULT %#010x)", d3dResult);
-						return result;
-					}
+						if (FAILED(d3dResult))
+						{
+							result = eae6320::Results::Failure;
+							EAE6320_ASSERTF(false, "3D object vertex buffer creation failed (HRESULT %#010x)", d3dResult);
+							eae6320::Logging::OutputError("Direct3D failed to create a 3D object vertex buffer (HRESULT %#010x)", d3dResult);
+							return result;
+						}
 
-					CD3D11_BUFFER_DESC iDesc(
-						(UINT)m_indices.size() * sizeof(unsigned int),
-						D3D11_BIND_INDEX_BUFFER
-					);
+						CD3D11_BUFFER_DESC iDesc(
+							(UINT)m_indices.size() * sizeof(unsigned int),
+							D3D11_BIND_INDEX_BUFFER
+						);
 
-					D3D11_SUBRESOURCE_DATA iData;
-					ZeroMemory(&iData, sizeof(D3D11_SUBRESOURCE_DATA));
-					iData.pSysMem = GetIndexData();
-					iData.SysMemPitch = 0;
-					iData.SysMemSlicePitch = 0;
+						D3D11_SUBRESOURCE_DATA iData;
+						ZeroMemory(&iData, sizeof(D3D11_SUBRESOURCE_DATA));
+						iData.pSysMem = GetIndexData();
+						iData.SysMemPitch = 0;
+						iData.SysMemSlicePitch = 0;
 
-					d3dResult = direct3dDevice->CreateBuffer(&iDesc, &iData, &m_indexBuffer);
-					if (FAILED(d3dResult))
-					{
-						result = eae6320::Results::Failure;
-						EAE6320_ASSERTF(false, "3D object vertex buffer creation failed (HRESULT %#010x)", d3dResult);
-						eae6320::Logging::OutputError("Direct3D failed to create a 3D object vertex buffer (HRESULT %#010x)", d3dResult);
-						return result;
+						d3dResult = direct3dDevice->CreateBuffer(&iDesc, &iData, &m_indexBuffer);
+						if (FAILED(d3dResult))
+						{
+							result = eae6320::Results::Failure;
+							EAE6320_ASSERTF(false, "3D object vertex buffer creation failed (HRESULT %#010x)", d3dResult);
+							eae6320::Logging::OutputError("Direct3D failed to create a 3D object vertex buffer (HRESULT %#010x)", d3dResult);
+							return result;
+						}
 					}
 				}
 				return result;

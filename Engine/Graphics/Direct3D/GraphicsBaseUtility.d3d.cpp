@@ -181,132 +181,69 @@ eae6320::cResult eae6320::Graphics::Initialize(const sInitializationParameters& 
 
 	return result;
 }
-
-eae6320::cResult eae6320::Graphics::CleanUp()
+namespace eae6320
 {
-	auto result = Results::Success;
+	namespace Graphics
+	{
+		eae6320::cResult PlatformCleanUp()
+		{
+			auto result = Results::Success;
 
-	if (eae6320::Graphics::Env::s_renderTargetView)
-	{
-		eae6320::Graphics::Env::s_renderTargetView->Release();
-		eae6320::Graphics::Env::s_renderTargetView = nullptr;
-	}
-	if (eae6320::Graphics::Env::s_depthStencilView)
-	{
-		eae6320::Graphics::Env::s_depthStencilView->Release();
-		eae6320::Graphics::Env::s_depthStencilView = nullptr;
-	}
+			if (eae6320::Graphics::Env::s_renderTargetView)
+			{
+				eae6320::Graphics::Env::s_renderTargetView->Release();
+				eae6320::Graphics::Env::s_renderTargetView = nullptr;
+			}
+			if (eae6320::Graphics::Env::s_depthStencilView)
+			{
+				eae6320::Graphics::Env::s_depthStencilView->Release();
+				eae6320::Graphics::Env::s_depthStencilView = nullptr;
+			}
 
-	for (auto it = eae6320::Graphics::Env::s_vertexShaders.begin(); it != eae6320::Graphics::Env::s_vertexShaders.end(); ++it)
-	{
-		const auto result_vertexShader = cShader::s_manager.Release(it->second);
-		if (!result_vertexShader)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
+			
+			if (eae6320::Graphics::Env::s_vertexFormat)
 			{
-				result = result_vertexShader;
+				const auto result_vertexFormat = cVertexFormat::s_manager.Release(eae6320::Graphics::Env::s_vertexFormat);
+				if (!result_vertexFormat)
+				{
+					EAE6320_ASSERT(false);
+					if (result)
+					{
+						result = result_vertexFormat;
+					}
+				}
 			}
-		}
-	}
-	if (eae6320::Graphics::Env::s_vertexFormat)
-	{
-		const auto result_vertexFormat = cVertexFormat::s_manager.Release(eae6320::Graphics::Env::s_vertexFormat);
-		if (!result_vertexFormat)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
-			{
-				result = result_vertexFormat;
-			}
-		}
-	}
 
-	for (auto it = eae6320::Graphics::Env::s_fragmentShaders.begin(); it != eae6320::Graphics::Env::s_fragmentShaders.end(); ++it)
-	{
-		const auto result_fragmentShader = cShader::s_manager.Release(it->second);
-		if (!result_fragmentShader)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
+			if (eae6320::Graphics::Env::s_renderState)
 			{
-				result = result_fragmentShader;
+				const auto result_renderState = cRenderState::s_manager.Release(eae6320::Graphics::Env::s_renderState);
+				if (!result_renderState)
+				{
+					EAE6320_ASSERT(false);
+					if (result)
+					{
+						result = result_renderState;
+					}
+				}
 			}
-		}
-	}
-	if (eae6320::Graphics::Env::s_renderState)
-	{
-		const auto result_renderState = cRenderState::s_manager.Release(eae6320::Graphics::Env::s_renderState);
-		if (!result_renderState)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
-			{
-				result = result_renderState;
-			}
-		}
-	}
 
-	{
-		const auto result_constantBuffer_frame = eae6320::Graphics::Env::s_constantBuffer_frame.CleanUp();
-		if (!result_constantBuffer_frame)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
 			{
-				result = result_constantBuffer_frame;
+				const auto result_vertexFormatManager = cVertexFormat::s_manager.CleanUp();
+				if (!result_vertexFormatManager)
+				{
+					EAE6320_ASSERT(false);
+					if (result)
+					{
+						result = result_vertexFormatManager;
+					}
+				}
 			}
-		}
-	}
 
-	{
-		const auto result_shaderManager = cShader::s_manager.CleanUp();
-		if (!result_shaderManager)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
-			{
-				result = result_shaderManager;
-			}
+			return result;
 		}
 	}
-	{
-		const auto result_renderStateManager = cRenderState::s_manager.CleanUp();
-		if (!result_renderStateManager)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
-			{
-				result = result_renderStateManager;
-			}
-		}
-	}
-	{
-		const auto result_vertexFormatManager = cVertexFormat::s_manager.CleanUp();
-		if (!result_vertexFormatManager)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
-			{
-				result = result_vertexFormatManager;
-			}
-		}
-	}
-
-	{
-		const auto result_context = sContext::g_context.CleanUp();
-		if (!result_context)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
-			{
-				result = result_context;
-			}
-		}
-	}
-
-	return result;
 }
+
 
 // Helper Function Definitions
 //============================

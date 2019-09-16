@@ -46,6 +46,7 @@ namespace eae6320
 			extern sDataRequiredToRenderAFrame s_dataRequiredToRenderAFrame[2];
 			extern sDataRequiredToRenderAFrame* s_dataBeingSubmittedByApplicationThread;
 			extern sDataRequiredToRenderAFrame* s_dataBeingRenderedByRenderThread;
+			extern std::vector<eae6320::Graphics::RenderObject> s_waitingClearRenderObjects;
 			// The following two events work together to make sure that
 			// the main/render thread and the application loop thread can work in parallel but stay in sync:
 			// This event is signaled by the application loop thread when it has finished submitting render data for a frame

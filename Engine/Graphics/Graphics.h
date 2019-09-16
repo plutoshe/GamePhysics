@@ -81,6 +81,7 @@ namespace eae6320
 			eae6320::Graphics::ShaderTypes::eType shaderType);
 
 		cResult Initialize( const sInitializationParameters& i_initializationParameters );
+		cResult PlatformCleanUp();
 		cResult CleanUp();
 	}
 }

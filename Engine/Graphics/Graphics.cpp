@@ -76,6 +76,8 @@ namespace eae6320
 					// Switch the render data pointers so that
 					// the data that the application just submitted becomes the data that will now be rendered
 					std::swap(eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread, eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread);
+					eae6320::Graphics::Env::s_waitingClearRenderObjects.clear();
+					eae6320::Graphics::Env::s_waitingClearRenderObjects = eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread->m_renderObjects;
 					// Once the pointers have been swapped the application loop can submit new data
 					const auto result = eae6320::Graphics::Env::s_whenDataForANewFrameCanBeSubmittedFromApplicationThread.Signal();
 					if (!result)
@@ -111,7 +113,7 @@ namespace eae6320
 
 			for (size_t i = 0; i < eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects.size(); i++)
 			{
-				auto result_initGeometry = eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_geometry.InitDevicePipeline();
+				auto result_initGeometry = eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_geometry->InitDevicePipeline();
 				if (!result_initGeometry)
 				{
 					EAE6320_ASSERT(false);
@@ -120,7 +122,7 @@ namespace eae6320
 			auto result = eae6320::Results::Success;
 			for (size_t i = 0; i < eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects.size(); i++)
 			{
-				if (!(result = eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_effect.Load(
+				if (!(result = eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_effect->Load(
 					eae6320::Graphics::cShader::s_manager)))
 				{
 					EAE6320_ASSERTF(false, "Can't initialize effects");
@@ -133,12 +135,123 @@ namespace eae6320
 			{
 				for (size_t i = 0; i < eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects.size(); i++)
 				{
-					eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_effect.Bind();
-					eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_geometry.Draw();
+					eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_effect->Bind();
+					eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_geometry->Draw();
 				}
 			}
 			PostpocessAfterRender();
 		}
+
+		eae6320::cResult eae6320::Graphics::CleanUp()
+		{
+			auto result = Results::Success;
+			if (!(result = PlatformCleanUp()))
+			{
+				EAE6320_ASSERT(false);
+			}
+			eae6320::Graphics::Env::s_waitingClearRenderObjects.clear();
+			eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects.clear();
+			eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread->m_renderObjects.clear();
+			for (auto it = eae6320::Graphics::Env::s_vertexShaders.begin(); it != eae6320::Graphics::Env::s_vertexShaders.end(); ++it)
+			{
+				const auto result_vertexShader = cShader::s_manager.Release(it->second);
+				if (!result_vertexShader)
+				{
+					EAE6320_ASSERT(false);
+					if (result)
+					{
+						result = result_vertexShader;
+					}
+				}
+			}
+			for (auto it = eae6320::Graphics::Env::s_fragmentShaders.begin(); it != eae6320::Graphics::Env::s_fragmentShaders.end(); ++it)
+			{
+				const auto result_fragmentShader = cShader::s_manager.Release(it->second);
+				if (!result_fragmentShader)
+				{
+					EAE6320_ASSERT(false);
+					if (result)
+					{
+						result = result_fragmentShader;
+					}
+				}
+			}
+
+			if (eae6320::Graphics::Env::s_renderState)
+			{
+				const auto result_renderState = cRenderState::s_manager.Release(eae6320::Graphics::Env::s_renderState);
+				if (!result_renderState)
+				{
+					EAE6320_ASSERT(false);
+					if (result)
+					{
+						result = result_renderState;
+					}
+				}
+			}
+			{
+				const auto result_constantBuffer_frame = eae6320::Graphics::Env::s_constantBuffer_frame.CleanUp();
+				if (!result_constantBuffer_frame)
+				{
+					EAE6320_ASSERT(false);
+					if (result)
+					{
+						result = result_constantBuffer_frame;
+					}
+				}
+			}
+
+
+			{
+				const auto result_constantBuffer_frame = eae6320::Graphics::Env::s_constantBuffer_frame.CleanUp();
+				if (!result_constantBuffer_frame)
+				{
+					EAE6320_ASSERT(false);
+					if (result)
+					{
+						result = result_constantBuffer_frame;
+					}
+				}
+			}
+
+			{
+				const auto result_shaderManager = cShader::s_manager.CleanUp();
+				if (!result_shaderManager)
+				{
+					EAE6320_ASSERT(false);
+					if (result)
+					{
+						result = result_shaderManager;
+					}
+				}
+			}
+			{
+				const auto result_renderStateManager = cRenderState::s_manager.CleanUp();
+				if (!result_renderStateManager)
+				{
+					EAE6320_ASSERT(false);
+					if (result)
+					{
+						result = result_renderStateManager;
+					}
+				}
+			}
+
+			{
+				const auto result_context = sContext::g_context.CleanUp();
+				if (!result_context)
+				{
+					EAE6320_ASSERT(false);
+					if (result)
+					{
+						result = result_context;
+					}
+				}
+			}
+
+			return result;
+		}
+
 	}
 
 }

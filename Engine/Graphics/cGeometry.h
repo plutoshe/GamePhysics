@@ -4,6 +4,7 @@
 
 #include "cVertexFormat.h"
 #include "PlatformIncludes.h"
+#include <Engine/Assets/ReferenceCountedAssets.h>
 
 namespace eae6320
 {
@@ -56,31 +57,32 @@ namespace eae6320
 
 				void Draw();
 				unsigned int vertexCountToRender();
-				eae6320::cResult Release();
-
-				
+				EAE6320_ASSETS_DECLAREDELETEDREFERENCECOUNTEDFUNCTIONS(cGeometryRenderTarget);
+				EAE6320_ASSETS_DECLAREREFERENCECOUNT();
+				EAE6320_ASSETS_DECLAREREFERENCECOUNTINGFUNCTIONS();
 				void InitData(const std::vector<cGeometryVertex>& vertices, const std::vector<unsigned int> &triangleIndices);
 				eae6320::cResult InitDevicePipeline();
-
-#if defined( EAE6320_PLATFORM_D3D )
-				cGeometryRenderTarget() { m_vertexBuffer = m_indexBuffer = nullptr; }
-
-				ID3D11Buffer* m_vertexBuffer;
-				ID3D11Buffer* m_indexBuffer;
-#elif defined( EAE6320_PLATFORM_GL )
-				cGeometryRenderTarget() { m_vertexBufferId = m_indexBufferId = m_vertexArrayId = 0; }
-				GLuint m_vertexBufferId;
-				GLuint m_indexBufferId;
-				GLuint m_vertexArrayId;
-#endif
+				static cResult Factory(cGeometryRenderTarget*& o_geometryRenderTarget);
+				void SetToPointer(cGeometryRenderTarget* &i_geometryRenderTarget);
+private:
 				std::vector<cGeometryVertex> m_vertices;
 				std::vector<unsigned int> m_indices;
+				bool m_isInitialized;
+				eae6320::cResult Release();
+				~cGeometryRenderTarget() { Release(); }
+#if defined( EAE6320_PLATFORM_D3D )
+				cGeometryRenderTarget() { m_isInitialized = false; m_vertexBuffer = m_indexBuffer = nullptr; }
+
+				ID3D11Buffer* m_vertexBuffer = nullptr;
+				ID3D11Buffer* m_indexBuffer = nullptr;
+#elif defined( EAE6320_PLATFORM_GL )
 				
-				cGeometryRenderTarget(const cGeometryRenderTarget& i)
-				{
-					m_vertices = i.m_vertices;
-					m_indices = i.m_indices;
-				}
+				
+				cGeometryRenderTarget() { m_isInitialized = false;  m_vertexBufferId = m_indexBufferId = m_vertexArrayId = 0; }
+				GLuint m_vertexBufferId = 0;
+				GLuint m_indexBufferId = 0;
+				GLuint m_vertexArrayId = 0;
+#endif
 			};
 		}
 	}

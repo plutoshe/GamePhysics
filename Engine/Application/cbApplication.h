@@ -102,8 +102,6 @@ namespace eae6320
 			void SetRenderObjects(std::vector<eae6320::Graphics::RenderObject> i_renderObjects);
 			void DeleteRenderObjectById(int id);
 			void AddRenderObject(eae6320::Graphics::RenderObject i_renderObject);
-			std::vector<eae6320::Graphics::Geometry::cGeometryRenderTarget> m_geometries;
-			std::vector<eae6320::Graphics::Effect> m_effects;
 			std::vector<eae6320::Graphics::RenderObject> m_renderObjects;
 			std::vector<float> m_backgroundColor;
 			//------
@@ -125,7 +123,12 @@ namespace eae6320
 
 			// Inheritable Implementation
 			//===========================
-
+			virtual cResult Initialize() = 0;
+			virtual cResult CleanUp()
+			{
+				m_renderObjects.clear();
+				return eae6320::Results::Success;
+			}
 		private:
 
 			// Configuration
@@ -191,15 +194,14 @@ namespace eae6320
 			// Your application should override the following function
 			// to instuct the Graphics system what to render for the next frame
 			virtual void SubmitDataToBeRendered(const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate);
-			
+
 			// Initialization / Clean Up
 			//--------------------------
 
 			// These functions are for initializing and cleaning up application-specific systems and data
 			// (i.e. initializing the engine and application base class happens automatically;
 			// a derived class only needs to worry about itself)
-			virtual cResult Initialize() = 0;
-			virtual cResult CleanUp() = 0;
+
 
 			// Data
 			//=====

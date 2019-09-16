@@ -45,21 +45,39 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 	else if (m_isJPressed)
 	{
 		m_isJPressed = false;
-		AddRenderObject(Graphics::RenderObject(m_geometries[1], m_effects[1]));
+		std::vector<eae6320::Graphics::Geometry::cGeometryVertex> verticesB{
+			eae6320::Graphics::Geometry::cGeometryVertex(-1.0f, -1.0f, 0.0f),
+			eae6320::Graphics::Geometry::cGeometryVertex(-0.4f, -1.0f, 0.0f),
+			eae6320::Graphics::Geometry::cGeometryVertex(-1.0f, -0.4f, 0.0f),
+			eae6320::Graphics::Geometry::cGeometryVertex(-0.3f, -0.3f, 0.0f),
+		};
+		std::vector<unsigned int> indicesB{ 0, 1, 2, 1, 3, 2 };
+		eae6320::Graphics::Geometry::cGeometryRenderTarget* geometryB;
+		eae6320::Graphics::Geometry::cGeometryRenderTarget::Factory(geometryB);
+		geometryB->InitData(verticesB, indicesB);
+		eae6320::Graphics::Effect* effectB;
+		eae6320::Graphics::Effect::Factory(effectB);
+		effectB->SetVertexShaderPath("data/shaders/vertex/standard.shader");
+		effectB->SetFragmentShaderPath("data/shaders/fragment/standard.shader");
+		
+		AddRenderObject(Graphics::RenderObject(geometryB, effectB));
+		geometryB->DecrementReferenceCount();
+		effectB->DecrementReferenceCount();
 	}
 
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::K))
 	{
-		m_renderObjects[0].m_effect = m_effects[0];
+		m_effectChangeA->SetToPointer(m_renderObjects[0].m_effect);
 	}
 	else
 	{
-		m_renderObjects[0].m_effect = m_effects[3];
+		m_effectChangeB->SetToPointer(m_renderObjects[0].m_effect);
 	}
 }
 
 // Initialization / Clean Up
 //--------------------------
+
 
 eae6320::cResult eae6320::cMyGame::Initialize()
 {
@@ -78,31 +96,45 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 		eae6320::Graphics::Geometry::cGeometryVertex(-0.3f, -0.3f, 0.0f),
 	};
 
-	eae6320::Graphics::Geometry::cGeometryRenderTarget geometryA, geometryB;
-	geometryA.InitData(verticesA, indicesA);
-	geometryB.InitData(verticesB, indicesA);
-	m_geometries.push_back(geometryA);
-	m_geometries.push_back(geometryB);
+	eae6320::Graphics::Geometry::cGeometryRenderTarget* geometryA;
+	eae6320::Graphics::Geometry::cGeometryRenderTarget* geometryB;
+	eae6320::Graphics::Geometry::cGeometryRenderTarget::Factory(geometryA);
+	eae6320::Graphics::Geometry::cGeometryRenderTarget::Factory(geometryB);
+	geometryA->InitData(verticesA, indicesA);
+	geometryB->InitData(verticesB, indicesA);
+	geometryA->InitDevicePipeline();
+	geometryB->InitDevicePipeline();
+	eae6320::Graphics::Effect* effectA, * effectB;
+	eae6320::Graphics::Effect::Factory(effectA);
+	eae6320::Graphics::Effect::Factory(effectB);
+	eae6320::Graphics::Effect::Factory(m_effectChangeA);
+	eae6320::Graphics::Effect::Factory(m_effectChangeB);
 
-	eae6320::Graphics::Effect effectA, effectB, effectC, effectD;
-	effectA.SetVertexShaderPath("data/shaders/vertex/standard.shader");
-	effectA.SetFragmentShaderPath("data/shaders/fragment/change_color.shader");
-	effectB.SetVertexShaderPath("data/shaders/vertex/standard.shader");
-	effectB.SetFragmentShaderPath("data/shaders/fragment/standard.shader");
-	effectC.SetVertexShaderPath("data/shaders/vertex/standard.shader");
-	effectC.SetFragmentShaderPath("data/shaders/fragment/blue.shader");
-	effectD.SetVertexShaderPath("data/shaders/vertex/expand2times.shader");
-	effectD.SetFragmentShaderPath("data/shaders/fragment/blue.shader");
 
-	m_effects.push_back(effectA);
-	m_effects.push_back(effectB);
-	m_effects.push_back(effectC);
-	m_effects.push_back(effectD);
+	effectA->SetVertexShaderPath("data/shaders/vertex/standard.shader");
+	effectA->SetFragmentShaderPath("data/shaders/fragment/change_color.shader");
+	effectB->SetVertexShaderPath("data/shaders/vertex/standard.shader");
+	effectB->SetFragmentShaderPath("data/shaders/fragment/standard.shader");
+	m_effectChangeA->SetVertexShaderPath("data/shaders/vertex/standard.shader");
+	m_effectChangeA->SetFragmentShaderPath("data/shaders/fragment/blue.shader");
+	m_effectChangeB->SetVertexShaderPath("data/shaders/vertex/expand2times.shader");
+	m_effectChangeB->SetFragmentShaderPath("data/shaders/fragment/change_color.shader");
 	SetRenderObjects(std::vector<Graphics::RenderObject>{Graphics::RenderObject(geometryA, effectA), Graphics::RenderObject(geometryB, effectB)});
+	geometryA->DecrementReferenceCount();
+	geometryB->DecrementReferenceCount();
+
+	effectA->DecrementReferenceCount();
+	effectB->DecrementReferenceCount();
+	//SetRenderObjects(std::vector<Graphics::RenderObject>{Graphics::RenderObject(geometryA, effectA), Graphics::RenderObject(geometryB, effectB)});
 	return Results::Success;
 }
 
 eae6320::cResult eae6320::cMyGame::CleanUp()
 {
+	
+	Application::cbApplication::CleanUp();
+	m_effectChangeA->DecrementReferenceCount(); m_effectChangeB->DecrementReferenceCount();
+	m_effectChangeA = nullptr; m_effectChangeB = nullptr;
+	
 	return Results::Success;
 }

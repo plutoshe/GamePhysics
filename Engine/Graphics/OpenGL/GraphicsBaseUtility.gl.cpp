@@ -185,99 +185,16 @@ eae6320::cResult eae6320::Graphics::InitializeShadingData()
 	}
 	return result;
 }
-
-eae6320::cResult eae6320::Graphics::CleanUp()
+namespace eae6320
 {
-	auto result = Results::Success;
-	
-	for (auto it = eae6320::Graphics::Env::s_vertexShaders.begin(); it != eae6320::Graphics::Env::s_vertexShaders.end(); ++it)
+	namespace Graphics
 	{
-		const auto result_vertexShader = cShader::s_manager.Release(it->second);
-		if (!result_vertexShader)
+		eae6320::cResult PlatformCleanUp()
 		{
-			EAE6320_ASSERT(false);
-			if (result)
-			{
-				result = result_vertexShader;
-			}
+			return eae6320::Results::Success;
 		}
 	}
-	for (auto it = eae6320::Graphics::Env::s_fragmentShaders.begin(); it != eae6320::Graphics::Env::s_fragmentShaders.end(); ++it)
-	{
-		const auto result_fragmentShader = cShader::s_manager.Release(it->second);
-		if (!result_fragmentShader)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
-			{
-				result = result_fragmentShader;
-			}
-		}
-	}
-	
-	if (eae6320::Graphics::Env::s_renderState )
-	{
-		const auto result_renderState = cRenderState::s_manager.Release(eae6320::Graphics::Env::s_renderState );
-		if ( !result_renderState )
-		{
-			EAE6320_ASSERT( false );
-			if ( result )
-			{
-				result = result_renderState;
-			}
-		}
-	}
-
-	{
-		const auto result_constantBuffer_frame = eae6320::Graphics::Env::s_constantBuffer_frame.CleanUp();
-		if ( !result_constantBuffer_frame )
-		{
-			EAE6320_ASSERT( false );
-			if ( result )
-			{
-				result = result_constantBuffer_frame;
-			}
-		}
-	}
-
-	{
-		const auto result_shaderManager = cShader::s_manager.CleanUp();
-		if ( !result_shaderManager )
-		{
-			EAE6320_ASSERT( false );
-			if ( result )
-			{
-				result = result_shaderManager;
-			}
-		}
-	}
-	{
-		const auto result_renderStateManager = cRenderState::s_manager.CleanUp();
-		if ( !result_renderStateManager )
-		{
-			EAE6320_ASSERT( false );
-			if ( result )
-			{
-				result = result_renderStateManager;
-			}
-		}
-	}
-	
-	{
-		const auto result_context = sContext::g_context.CleanUp();
-		if ( !result_context )
-		{
-			EAE6320_ASSERT( false );
-			if ( result )
-			{
-				result = result_context;
-			}
-		}
-	}
-
-	return result;
 }
-
 // Helper Function Definitions
 //============================
 

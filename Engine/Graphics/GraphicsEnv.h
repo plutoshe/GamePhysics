@@ -5,6 +5,7 @@
 #include "ConstantBufferFormats.h"
 #include "cEffect.h"
 #include "cGeometry.h"
+#include "cRenderObject.h"
 #include "cRenderState.h"
 #include "cVertexFormat.h"
 
@@ -35,6 +36,8 @@ namespace eae6320
 			struct sDataRequiredToRenderAFrame
 			{
 				eae6320::Graphics::ConstantBufferFormats::sFrame constantData_frame;
+				std::vector<float> m_backgroundColor;
+				std::vector<eae6320::Graphics::RenderObject> m_renderObjects;
 			};
 			// In our class there will be two copies of the data required to render a frame:
 			//	* One of them will be in the process of being populated by the data currently being submitted by the application loop thread
@@ -43,6 +46,7 @@ namespace eae6320
 			extern sDataRequiredToRenderAFrame s_dataRequiredToRenderAFrame[2];
 			extern sDataRequiredToRenderAFrame* s_dataBeingSubmittedByApplicationThread;
 			extern sDataRequiredToRenderAFrame* s_dataBeingRenderedByRenderThread;
+			extern std::vector<eae6320::Graphics::RenderObject> s_waitingClearRenderObjects;
 			// The following two events work together to make sure that
 			// the main/render thread and the application loop thread can work in parallel but stay in sync:
 			// This event is signaled by the application loop thread when it has finished submitting render data for a frame
@@ -63,9 +67,10 @@ namespace eae6320
 			extern eae6320::Graphics::cRenderState::Handle s_renderState;
 			// Geometry Data
 			//--------------
-
+/*
 			extern std::vector<eae6320::Graphics::Effect> s_effects;
-			extern std::vector<eae6320::Graphics::Geometry::cGeometryRenderTarget> s_geometries;
+			extern std::vector<eae6320::Graphics::Geometry::cGeometryRenderTarget> s_geometries;*/
+			extern eae6320::Graphics::cVertexFormat::Handle s_vertexFormat;
 			extern std::vector<float> s_BackgroundColor;
 
 		}

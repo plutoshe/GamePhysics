@@ -4,6 +4,32 @@
 
 #include <Engine/Asserts/Asserts.h>
 
+
+eae6320::cResult eae6320::Graphics::Effect::Factory(eae6320::Graphics::Effect*& o_effect)
+{
+	auto result = Results::Success;
+	o_effect = new eae6320::Graphics::Effect();
+	o_effect->m_referenceCount = 1;
+	o_effect->m_isInitialized = false;
+#if defined( EAE6320_PLATFORM_GL )	
+	o_effect->m_programId = 0;
+#endif
+	return result;
+}
+
+void eae6320::Graphics::Effect::SetToPointer(eae6320::Graphics::Effect* &i_effect)
+{
+	if (this != i_effect)
+	{
+		if (i_effect != nullptr)
+		{
+			i_effect->DecrementReferenceCount();
+		}
+		this->IncrementReferenceCount();
+		i_effect = this;
+	}
+}
+
 eae6320::cResult eae6320::Graphics::Effect::Bind()
 {
 	auto result = eae6320::Results::Success;
@@ -57,3 +83,19 @@ eae6320::cResult eae6320::Graphics::Effect::Bind()
 	return result;
 }
 
+eae6320::cResult eae6320::Graphics::Effect::LoadShaderData()
+{
+	auto result = eae6320::Results::Success;
+	if (!(result = eae6320::Graphics::LoadShaderData(
+		m_vertexShaderPath,
+		eae6320::Graphics::Env::s_vertexShaders,
+		eae6320::Graphics::ShaderTypes::Vertex)) ||
+		!(result = eae6320::Graphics::LoadShaderData(
+			m_fragmentShaderPath,
+			eae6320::Graphics::Env::s_fragmentShaders,
+			eae6320::Graphics::ShaderTypes::Fragment)))
+	{
+		EAE6320_ASSERTF(false, "Can't initialize shader for effect");
+	}
+	return result;
+}

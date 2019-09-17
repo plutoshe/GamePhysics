@@ -7,10 +7,13 @@
 
 // Includes
 //=========
-
+#include <vector>
 #include <Engine/Application/cbApplication.h>
 #include <Engine/Results/Results.h>
-
+#include <Engine/Graphics/cEffect.h>
+#include <Engine/Graphics/cGeometry.h>
+#include <Engine/Graphics/GraphicsEnv.h>
+#include <Engine/Graphics/cRenderObject.h>
 #if defined( EAE6320_PLATFORM_WINDOWS )
 	#include "Resource Files/Resource.h"
 #endif
@@ -24,7 +27,6 @@ namespace eae6320
 	{
 		// Inherited Implementation
 		//=========================
-
 	private:
 
 		// Configuration
@@ -77,6 +79,9 @@ namespace eae6320
 
 		virtual cResult Initialize() override;
 		virtual cResult CleanUp() override;
+		Graphics::Effect* m_effectChangeA = nullptr;
+		Graphics::Effect* m_effectChangeB = nullptr;
+		bool m_isJPressed = false;
 
 	};
 }

@@ -10,6 +10,37 @@ namespace eae6320
 	{
 		namespace Geometry
 		{
+			cResult cGeometryRenderTarget::Factory(cGeometryRenderTarget*& o_geometryRenderTarget)
+			{
+				auto result = Results::Success;
+				o_geometryRenderTarget = new cGeometryRenderTarget();
+				o_geometryRenderTarget->m_referenceCount = 1;
+				o_geometryRenderTarget->m_isInitialized = false;
+#if defined( EAE6320_PLATFORM_D3D )
+				o_geometryRenderTarget->m_vertexBuffer = nullptr;
+				o_geometryRenderTarget->m_indexBuffer = nullptr;
+#elif defined( EAE6320_PLATFORM_GL )
+				o_geometryRenderTarget->m_vertexBufferId = 0;
+				o_geometryRenderTarget->m_indexBufferId = 0;
+				o_geometryRenderTarget->m_vertexArrayId = 0;
+#endif
+				return result;
+			}
+
+			void cGeometryRenderTarget::SetToPointer(cGeometryRenderTarget* &i_geometryRenderTarget)
+			{
+				if (this != i_geometryRenderTarget)
+				{
+					if (i_geometryRenderTarget != nullptr)
+					{
+						i_geometryRenderTarget->DecrementReferenceCount();
+					}
+					this->IncrementReferenceCount();
+					i_geometryRenderTarget = this;
+				}
+			}
+
+
 			#if defined( EAE6320_PLATFORM_GL )
 				std::vector<unsigned int>  cGeometryIndexFace::GetGeometryIndices() const
 				{
@@ -31,6 +62,7 @@ namespace eae6320
 				}
 			}
 			void cGeometryRenderTarget::AddIndices(int FaceNum, const std::vector<unsigned int> &triangleIndices)
+
 			{
 				for (int i = 0; i < FaceNum; i++)
 				{

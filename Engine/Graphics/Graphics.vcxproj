@@ -95,6 +95,7 @@
     <ClInclude Include="cGeometry.h" />
     <ClInclude Include="Configuration.h" />
     <ClInclude Include="ConstantBufferFormats.h" />
+    <ClInclude Include="cRenderObject.h" />
     <ClInclude Include="cRenderState.h" />
     <ClInclude Include="cShader.h" />
     <ClInclude Include="cVertexFormat.h" />

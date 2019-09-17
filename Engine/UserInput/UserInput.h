@@ -68,6 +68,10 @@ namespace eae6320
 				F10 = 0x79,
 				F11 = 0x7a,
 				F12 = 0x7b,
+
+				I = 0x49,
+				J = 0x4A,
+				K = 0x4B,
 			};
 		}
 	}

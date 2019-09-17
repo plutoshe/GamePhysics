@@ -46,37 +46,8 @@ void eae6320::Graphics::ClearBackgroundColor()
 	}
 }
 
-void eae6320::Graphics::RenderFrame()
+void eae6320::Graphics::PrepocessBeforeRender()
 {
-	// Wait for the application loop to submit data to be rendered
-	{
-		const auto result = Concurrency::WaitForEvent(eae6320::Graphics::Env::s_whenAllDataHasBeenSubmittedFromApplicationThread);
-		if (result)
-		{
-			// Switch the render data pointers so that
-			// the data that the application just submitted becomes the data that will now be rendered
-			std::swap(eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread, eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread);
-			// Once the pointers have been swapped the application loop can submit new data
-			const auto result = eae6320::Graphics::Env::s_whenDataForANewFrameCanBeSubmittedFromApplicationThread.Signal();
-			if (!result)
-			{
-				EAE6320_ASSERTF(false, "Couldn't signal that new graphics data can be submitted");
-				Logging::OutputError("Failed to signal that new render data can be submitted");
-				UserOutput::Print("The renderer failed to signal to the application that new graphics data can be submitted."
-					" The application is probably in a bad state and should be exited");
-				return;
-			}
-		}
-		else
-		{
-			EAE6320_ASSERTF(false, "Waiting for the graphics data to be submitted failed");
-			Logging::OutputError("Waiting for the application loop to submit data to be rendered failed");
-			UserOutput::Print("The renderer failed to wait for the application to submit data to be rendered."
-				" The application is probably in a bad state and should be exited");
-			return;
-		}
-	}
-
 	auto* const direct3dImmediateContext = sContext::g_context.direct3dImmediateContext;
 	EAE6320_ASSERT(direct3dImmediateContext);
 
@@ -98,29 +69,13 @@ void eae6320::Graphics::RenderFrame()
 		constexpr uint8_t stencilValue = 0;	// Arbitrary if stencil isn't used
 		direct3dImmediateContext->ClearDepthStencilView(eae6320::Graphics::Env::s_depthStencilView, D3D11_CLEAR_DEPTH, clearToFarDepth, stencilValue);
 	}
+}
 
-	EAE6320_ASSERT(eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread);
-
-	// Update the frame constant buffer
-	{
-		// Copy the data from the system memory that the application owns to GPU memory
-		auto& constantData_frame = eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->constantData_frame;
-		eae6320::Graphics::Env::s_constantBuffer_frame.Update(&constantData_frame);
-	}
-
-	// Bind the shading data
-	// Draw the geometry
-	{
-		for (size_t i = 0; i < eae6320::Graphics::Env::s_geometries.size(); i++)
-		{
-			eae6320::Graphics::Env::s_effects[i].Bind();
-			eae6320::Graphics::Env::s_geometries[i].Draw();
-		}
-	}
-
+void eae6320::Graphics::PostpocessAfterRender()
+{
 	// Everything has been drawn to the "back buffer", which is just an image in memory.
-	// In order to display it the contents of the back buffer must be "presented"
-	// (or "swapped" with the "front buffer", which is the image that is actually being displayed)
+			// In order to display it the contents of the back buffer must be "presented"
+			// (or "swapped" with the "front buffer", which is the image that is actually being displayed)
 	{
 		auto* const swapChain = sContext::g_context.swapChain;
 		EAE6320_ASSERT(swapChain);
@@ -226,199 +181,100 @@ eae6320::cResult eae6320::Graphics::Initialize(const sInitializationParameters& 
 
 	return result;
 }
-
-eae6320::cResult eae6320::Graphics::CleanUp()
+namespace eae6320
 {
-	auto result = Results::Success;
+	namespace Graphics
+	{
+		eae6320::cResult PlatformCleanUp()
+		{
+			auto result = Results::Success;
 
-	if (eae6320::Graphics::Env::s_renderTargetView)
-	{
-		eae6320::Graphics::Env::s_renderTargetView->Release();
-		eae6320::Graphics::Env::s_renderTargetView = nullptr;
-	}
-	if (eae6320::Graphics::Env::s_depthStencilView)
-	{
-		eae6320::Graphics::Env::s_depthStencilView->Release();
-		eae6320::Graphics::Env::s_depthStencilView = nullptr;
-	}
-	for (int i = 0; i < eae6320::Graphics::Env::s_geometries.size(); i++)
-	{
-		const auto result_geometry = eae6320::Graphics::Env::s_geometries[i].Release();
-		if (!result_geometry)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
+			if (eae6320::Graphics::Env::s_renderTargetView)
 			{
-				result = result_geometry;
+				eae6320::Graphics::Env::s_renderTargetView->Release();
+				eae6320::Graphics::Env::s_renderTargetView = nullptr;
 			}
-		}
-	}
+			if (eae6320::Graphics::Env::s_depthStencilView)
+			{
+				eae6320::Graphics::Env::s_depthStencilView->Release();
+				eae6320::Graphics::Env::s_depthStencilView = nullptr;
+			}
 
-	for (size_t i = 0; i < eae6320::Graphics::Env::s_effects.size(); i++)
-	{
-		const auto result_effect = eae6320::Graphics::Env::s_effects[i].Release();
-		if (!result_effect)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
+			
+			if (eae6320::Graphics::Env::s_vertexFormat)
 			{
-				result = result_effect;
+				const auto result_vertexFormat = cVertexFormat::s_manager.Release(eae6320::Graphics::Env::s_vertexFormat);
+				if (!result_vertexFormat)
+				{
+					EAE6320_ASSERT(false);
+					if (result)
+					{
+						result = result_vertexFormat;
+					}
+				}
 			}
-		}
-	}
 
+			if (eae6320::Graphics::Env::s_renderState)
+			{
+				const auto result_renderState = cRenderState::s_manager.Release(eae6320::Graphics::Env::s_renderState);
+				if (!result_renderState)
+				{
+					EAE6320_ASSERT(false);
+					if (result)
+					{
+						result = result_renderState;
+					}
+				}
+			}
 
-	for (auto it = eae6320::Graphics::Env::s_vertexShaders.begin(); it != eae6320::Graphics::Env::s_vertexShaders.end(); ++it)
-	{
-		const auto result_vertexShader = cShader::s_manager.Release(it->second);
-		if (!result_vertexShader)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
 			{
-				result = result_vertexShader;
+				const auto result_vertexFormatManager = cVertexFormat::s_manager.CleanUp();
+				if (!result_vertexFormatManager)
+				{
+					EAE6320_ASSERT(false);
+					if (result)
+					{
+						result = result_vertexFormatManager;
+					}
+				}
 			}
-		}
-	}
-	for (auto it = eae6320::Graphics::Env::s_fragmentShaders.begin(); it != eae6320::Graphics::Env::s_fragmentShaders.end(); ++it)
-	{
-		const auto result_fragmentShader = cShader::s_manager.Release(it->second);
-		if (!result_fragmentShader)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
-			{
-				result = result_fragmentShader;
-			}
-		}
-	}
-	if (eae6320::Graphics::Env::s_renderState)
-	{
-		const auto result_renderState = cRenderState::s_manager.Release(eae6320::Graphics::Env::s_renderState);
-		if (!result_renderState)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
-			{
-				result = result_renderState;
-			}
-		}
-	}
 
-	{
-		const auto result_constantBuffer_frame = eae6320::Graphics::Env::s_constantBuffer_frame.CleanUp();
-		if (!result_constantBuffer_frame)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
-			{
-				result = result_constantBuffer_frame;
-			}
+			return result;
 		}
 	}
-
-	{
-		const auto result_shaderManager = cShader::s_manager.CleanUp();
-		if (!result_shaderManager)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
-			{
-				result = result_shaderManager;
-			}
-		}
-	}
-	{
-		const auto result_renderStateManager = cRenderState::s_manager.CleanUp();
-		if (!result_renderStateManager)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
-			{
-				result = result_renderStateManager;
-			}
-		}
-	}
-	{
-		const auto result_vertexFormatManager = cVertexFormat::s_manager.CleanUp();
-		if (!result_vertexFormatManager)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
-			{
-				result = result_vertexFormatManager;
-			}
-		}
-	}
-
-	{
-		const auto result_context = sContext::g_context.CleanUp();
-		if (!result_context)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
-			{
-				result = result_context;
-			}
-		}
-	}
-
-	return result;
 }
+
 
 // Helper Function Definitions
 //============================
 
+eae6320::cResult eae6320::Graphics::InitializeShadingData()
+{
+	auto result = eae6320::Results::Success;
+	// Vertex Format
+	{
+		if (!(result = eae6320::Graphics::cVertexFormat::s_manager.Load(eae6320::Graphics::VertexTypes::_3dObject, eae6320::Graphics::Env::s_vertexFormat,
+			"data/shaders/vertex/vertexinputlayout_3dobject.shader")))
+		{
+			EAE6320_ASSERTF(false, "Can't initialize geometry without vertex format");
+			return result;
+		}
+	}
+	{
+		constexpr uint8_t defaultRenderState = 0;
+		if (!(result = eae6320::Graphics::cRenderState::s_manager.Load(defaultRenderState, eae6320::Graphics::Env::s_renderState)))
+		{
+			EAE6320_ASSERTF(false, "Can't initialize shading data without render state");
+			return result;
+		}
+	}
+	return result;
+}
+
+
 namespace
 {
-	eae6320::cResult InitializeGeometry()
-	{
-		auto result = eae6320::Results::Success;
 
-		// Vertex Buffer
-
-		std::vector<eae6320::Graphics::Geometry::cGeometryVertex> verticesA{
-			eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 0.0f, 0.0f),
-			eae6320::Graphics::Geometry::cGeometryVertex(1.0f, 0.0f, 0.0f),
-			eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 1.0f, 0.0f),
-			eae6320::Graphics::Geometry::cGeometryVertex(1.0f, 1.0f, 0.0f),
-		};
-		std::vector<unsigned int> indicesA{ 0, 1, 2, 1, 3, 2 };
-
-		std::vector<eae6320::Graphics::Geometry::cGeometryVertex> verticesB{
-			eae6320::Graphics::Geometry::cGeometryVertex(-1.0f, -1.0f, 0.0f),
-			eae6320::Graphics::Geometry::cGeometryVertex(0.0f, -1.0f, 0.0f),
-			eae6320::Graphics::Geometry::cGeometryVertex(-1.0f, 0.0f, 0.0f),
-			eae6320::Graphics::Geometry::cGeometryVertex(-0.3f, -0.3f, 0.0f),
-		};
-
-		eae6320::Graphics::Geometry::cGeometryRenderTarget geometryA, geometryB;
-		geometryA.InitData(verticesA, indicesA);
-		geometryB.InitData(verticesB, indicesA);
-
-		eae6320::Graphics::Env::s_geometries.push_back(
-			geometryA
-		);
-		eae6320::Graphics::Env::s_geometries.push_back(
-			geometryB
-		);
-		for (size_t i = 0; i < eae6320::Graphics::Env::s_geometries.size(); i++)
-		{
-			auto result_initGeometry = eae6320::Graphics::Env::s_geometries[i].InitDevicePipeline();
-			if (!result_initGeometry)
-			{
-				EAE6320_ASSERT(false);
-				if (result)
-				{
-					result = result_initGeometry;
-				}
-			}
-
-		}
-
-		return result;
-		
-	}
 
 	eae6320::cResult LoadShaderData(
 		std::string path,
@@ -440,54 +296,6 @@ namespace
 				shaderType)))
 			{
 				EAE6320_ASSERTF(false, "Load Shader failed");
-				return result;
-			}
-		}
-		return result;
-	}
-
-	eae6320::cResult InitializeShadingData()
-	{
-		auto result = eae6320::Results::Success;
-		eae6320::Graphics::Effect effectA, effectB;
-		effectA.SetVertexShaderPath("data/shaders/vertex/standard.shader");
-		effectA.SetFragmentShaderPath("data/shaders/fragment/change_color.shader");
-		effectB.SetVertexShaderPath("data/shaders/vertex/standard.shader");
-		effectB.SetFragmentShaderPath("data/shaders/fragment/standard.shader");
-
-		eae6320::Graphics::Env::s_effects.push_back(effectA);
-		eae6320::Graphics::Env::s_effects.push_back(effectB);
-
-		for (size_t i = 0; i < eae6320::Graphics::Env::s_effects.size(); i++)
-		{
-			if (!(result = eae6320::Graphics::LoadShaderData(
-				eae6320::Graphics::Env::s_effects[i].m_vertexShaderPath,
-				eae6320::Graphics::Env::s_vertexShaders,
-				eae6320::Graphics::ShaderTypes::Vertex)) ||
-				!(result = eae6320::Graphics::LoadShaderData(
-					eae6320::Graphics::Env::s_effects[i].m_fragmentShaderPath,
-					eae6320::Graphics::Env::s_fragmentShaders,
-					eae6320::Graphics::ShaderTypes::Fragment)))
-			{
-				EAE6320_ASSERTF(false, "Can't initialize effects");
-				return result;
-			}
-			if (!(result = eae6320::Graphics::Env::s_effects[i].Load(
-				eae6320::Graphics::cShader::s_manager,
-				eae6320::Graphics::Env::s_vertexShaders[eae6320::Graphics::Env::s_effects[i].m_vertexShaderPath],
-				eae6320::Graphics::Env::s_fragmentShaders[eae6320::Graphics::Env::s_effects[i].m_fragmentShaderPath])))
-			{
-				EAE6320_ASSERTF(false, "Can't initialize effects");
-				return result;
-			}
-
-		}
-
-		{
-			constexpr uint8_t defaultRenderState = 0;
-			if (!(result = eae6320::Graphics::cRenderState::s_manager.Load(defaultRenderState, eae6320::Graphics::Env::s_renderState)))
-			{
-				EAE6320_ASSERTF(false, "Can't initialize shading data without render state");
 				return result;
 			}
 		}

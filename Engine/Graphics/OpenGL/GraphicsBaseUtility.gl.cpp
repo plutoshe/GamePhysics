@@ -23,6 +23,9 @@
 #include <Engine/UserOutput/UserOutput.h>
 #include <utility>
 
+namespace {
+	eae6320::cResult InitializeShadingData();
+}
 
 void eae6320::Graphics::ClearBackgroundColor()
 {
@@ -37,36 +40,8 @@ void eae6320::Graphics::ClearBackgroundColor()
 	EAE6320_ASSERT(glGetError() == GL_NO_ERROR);
 }
 
-void eae6320::Graphics::RenderFrame()
+void eae6320::Graphics::PrepocessBeforeRender()
 {
-	// Wait for the application loop to submit data to be rendered
-	{
-		const auto result = Concurrency::WaitForEvent(eae6320::Graphics::Env::s_whenAllDataHasBeenSubmittedFromApplicationThread );
-		if ( result )
-		{
-			// Switch the render data pointers so that
-			// the data that the application just submitted becomes the data that will now be rendered
-			std::swap(eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread, eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread );
-			// Once the pointers have been swapped the application loop can submit new data
-			const auto result = eae6320::Graphics::Env::s_whenDataForANewFrameCanBeSubmittedFromApplicationThread.Signal();
-			if ( !result )
-			{
-				EAE6320_ASSERTF( false, "Couldn't signal that new graphics data can be submitted" );
-				Logging::OutputError( "Failed to signal that new render data can be submitted" );
-				UserOutput::Print( "The renderer failed to signal to the application that new graphics data can be submitted."
-					" The application is probably in a bad state and should be exited" );
-				return;
-			}
-		}
-		else
-		{
-			EAE6320_ASSERTF( false, "Waiting for the graphics data to be submitted failed" );
-			Logging::OutputError( "Waiting for the application loop to submit data to be rendered failed" );
-			UserOutput::Print( "The renderer failed to wait for the application to submit data to be rendered."
-				" The application is probably in a bad state and should be exited" );
-			return;
-		}
-	}
 
 	// Every frame an entirely new image will be created.
 	// Before drawing anything, then, the previous image will be erased
@@ -77,8 +52,8 @@ void eae6320::Graphics::RenderFrame()
 		}
 		{
 			constexpr GLbitfield clearColor = GL_COLOR_BUFFER_BIT;
-			glClear( clearColor );
-			EAE6320_ASSERT( glGetError() == GL_NO_ERROR );
+			glClear(clearColor);
+			EAE6320_ASSERT(glGetError() == GL_NO_ERROR);
 		}
 	}
 	// In addition to the color buffer there is also a hidden image called the "depth buffer"
@@ -86,38 +61,23 @@ void eae6320::Graphics::RenderFrame()
 	// It must also be "cleared" every frame just like the visible color buffer.
 	{
 		{
-			glDepthMask( GL_TRUE );
-			EAE6320_ASSERT( glGetError() == GL_NO_ERROR );
+			glDepthMask(GL_TRUE);
+			EAE6320_ASSERT(glGetError() == GL_NO_ERROR);
 			constexpr GLclampd clearToFarDepth = 1.0;
-			glClearDepth( clearToFarDepth );
-			EAE6320_ASSERT( glGetError() == GL_NO_ERROR );
+			glClearDepth(clearToFarDepth);
+			EAE6320_ASSERT(glGetError() == GL_NO_ERROR);
 		}
 		{
 			constexpr GLbitfield clearDepth = GL_DEPTH_BUFFER_BIT;
-			glClear( clearDepth );
-			EAE6320_ASSERT( glGetError() == GL_NO_ERROR );
+			glClear(clearDepth);
+			EAE6320_ASSERT(glGetError() == GL_NO_ERROR);
 		}
 	}
+}
 
-	EAE6320_ASSERT(eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread );
-
-	// Update the frame constant buffer
-	{
-		// Copy the data from the system memory that the application owns to GPU memory
-		auto& constantData_frame = eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->constantData_frame;
-		eae6320::Graphics::Env::s_constantBuffer_frame.Update( &constantData_frame );
-	}
-
-	// Bind the shading data
-	// Draw the geometry
-	{
-		for (size_t i = 0; i < eae6320::Graphics::Env::s_geometries.size(); i++)
-		{
-			eae6320::Graphics::Env::s_effects[i].Bind();
-			eae6320::Graphics::Env::s_geometries[i].Draw();
-		}
-	}
-
+	
+void eae6320::Graphics::PostpocessAfterRender()
+{
 	// Everything has been drawn to the "back buffer", which is just an image in memory.
 	// In order to display it the contents of the back buffer must be "presented"
 	// (or "swapped" with the "front buffer", which is the image that is actually being displayed)
@@ -212,124 +172,29 @@ eae6320::cResult eae6320::Graphics::Initialize( const sInitializationParameters&
 	return result;
 }
 
-eae6320::cResult eae6320::Graphics::CleanUp()
+eae6320::cResult eae6320::Graphics::InitializeShadingData()
 {
-	auto result = Results::Success;
-	for (size_t i = 0; i < eae6320::Graphics::Env::s_geometries.size(); i++)
+	auto result = eae6320::Results::Success;
 	{
-		const auto result_geometry = eae6320::Graphics::Env::s_geometries[i].Release();
-		if (!result_geometry)
+		constexpr uint8_t defaultRenderState = 0;
+		if (!(result = eae6320::Graphics::cRenderState::s_manager.Load(defaultRenderState, eae6320::Graphics::Env::s_renderState)))
 		{
-			EAE6320_ASSERT(false);
-			if (result)
-			{
-				result = result_geometry;
-			}
+			EAE6320_ASSERTF(false, "Can't initialize shading data without render state");
+			return result;
 		}
 	}
-
-	for (size_t i = 0; i < eae6320::Graphics::Env::s_effects.size(); i++)
-	{
-		const auto result_effect = eae6320::Graphics::Env::s_effects[i].Release();
-		if (!result_effect)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
-			{
-				result = result_effect;
-			}
-		}
-	}
-
-	
-	for (auto it = eae6320::Graphics::Env::s_vertexShaders.begin(); it != eae6320::Graphics::Env::s_vertexShaders.end(); ++it)
-	{
-		const auto result_vertexShader = cShader::s_manager.Release(it->second);
-		if (!result_vertexShader)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
-			{
-				result = result_vertexShader;
-			}
-		}
-	}
-	for (auto it = eae6320::Graphics::Env::s_fragmentShaders.begin(); it != eae6320::Graphics::Env::s_fragmentShaders.end(); ++it)
-	{
-		const auto result_fragmentShader = cShader::s_manager.Release(it->second);
-		if (!result_fragmentShader)
-		{
-			EAE6320_ASSERT(false);
-			if (result)
-			{
-				result = result_fragmentShader;
-			}
-		}
-	}
-	
-	if (eae6320::Graphics::Env::s_renderState )
-	{
-		const auto result_renderState = cRenderState::s_manager.Release(eae6320::Graphics::Env::s_renderState );
-		if ( !result_renderState )
-		{
-			EAE6320_ASSERT( false );
-			if ( result )
-			{
-				result = result_renderState;
-			}
-		}
-	}
-
-	{
-		const auto result_constantBuffer_frame = eae6320::Graphics::Env::s_constantBuffer_frame.CleanUp();
-		if ( !result_constantBuffer_frame )
-		{
-			EAE6320_ASSERT( false );
-			if ( result )
-			{
-				result = result_constantBuffer_frame;
-			}
-		}
-	}
-
-	{
-		const auto result_shaderManager = cShader::s_manager.CleanUp();
-		if ( !result_shaderManager )
-		{
-			EAE6320_ASSERT( false );
-			if ( result )
-			{
-				result = result_shaderManager;
-			}
-		}
-	}
-	{
-		const auto result_renderStateManager = cRenderState::s_manager.CleanUp();
-		if ( !result_renderStateManager )
-		{
-			EAE6320_ASSERT( false );
-			if ( result )
-			{
-				result = result_renderStateManager;
-			}
-		}
-	}
-	
-	{
-		const auto result_context = sContext::g_context.CleanUp();
-		if ( !result_context )
-		{
-			EAE6320_ASSERT( false );
-			if ( result )
-			{
-				result = result_context;
-			}
-		}
-	}
-
 	return result;
 }
-
+namespace eae6320
+{
+	namespace Graphics
+	{
+		eae6320::cResult PlatformCleanUp()
+		{
+			return eae6320::Results::Success;
+		}
+	}
+}
 // Helper Function Definitions
 //============================
 
@@ -338,48 +203,6 @@ namespace
 	eae6320::cResult InitializeGeometry()
 	{
 		auto result = eae6320::Results::Success;
-
-		// Vertex Buffer
-
-		std::vector<eae6320::Graphics::Geometry::cGeometryVertex> verticesA{
-			eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 0.0f, 0.0f),
-			eae6320::Graphics::Geometry::cGeometryVertex(1.0f, 0.0f, 0.0f),
-			eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 1.0f, 0.0f),
-			eae6320::Graphics::Geometry::cGeometryVertex(1.0f, 1.0f, 0.0f),
-		};
-		std::vector<unsigned int> indicesA{ 0, 1, 2, 1, 3, 2 };
-
-		std::vector<eae6320::Graphics::Geometry::cGeometryVertex> verticesB{
-			eae6320::Graphics::Geometry::cGeometryVertex(-1.0f, -1.0f, 0.0f),
-			eae6320::Graphics::Geometry::cGeometryVertex(0.0f, -1.0f, 0.0f),
-			eae6320::Graphics::Geometry::cGeometryVertex(-1.0f, 0.0f, 0.0f),
-			eae6320::Graphics::Geometry::cGeometryVertex(-0.3f, -0.3f, 0.0f),
-		};
-
-		eae6320::Graphics::Geometry::cGeometryRenderTarget geometryA, geometryB;
-		geometryA.InitData(verticesA, indicesA);
-		geometryB.InitData(verticesB, indicesA);
-		
-		eae6320::Graphics::Env::s_geometries.push_back(
-			geometryA
-		);
-		eae6320::Graphics::Env::s_geometries.push_back(
-			geometryB
-		);
-		for (size_t i = 0; i < eae6320::Graphics::Env::s_geometries.size(); i++)
-		{
-			auto result_initGeometry = eae6320::Graphics::Env::s_geometries[i].InitDevicePipeline();
-			if (!result_initGeometry)
-			{
-				EAE6320_ASSERT(false);
-				if (result)
-				{
-					result = result_initGeometry;
-				}
-			}
-
-		}
-
 		return result;
 
 	}
@@ -413,39 +236,6 @@ namespace
 	eae6320::cResult InitializeShadingData()
 	{
 		auto result = eae6320::Results::Success;
-		eae6320::Graphics::Effect effectA, effectB;
-		effectA.SetVertexShaderPath("data/shaders/vertex/standard.shader");
-		effectA.SetFragmentShaderPath("data/shaders/fragment/change_color.shader");
-		effectB.SetVertexShaderPath("data/shaders/vertex/standard.shader");
-		effectB.SetFragmentShaderPath("data/shaders/fragment/standard.shader");
-
-		eae6320::Graphics::Env::s_effects.push_back(effectA);
-		eae6320::Graphics::Env::s_effects.push_back(effectB);
-
-		for (size_t i = 0; i < eae6320::Graphics::Env::s_effects.size(); i++)
-		{
-			if (!(result = eae6320::Graphics::LoadShaderData(
-				eae6320::Graphics::Env::s_effects[i].m_vertexShaderPath,
-				eae6320::Graphics::Env::s_vertexShaders,
-				eae6320::Graphics::ShaderTypes::Vertex)) || 
-				!(result = eae6320::Graphics::LoadShaderData(
-					eae6320::Graphics::Env::s_effects[i].m_fragmentShaderPath,
-					eae6320::Graphics::Env::s_fragmentShaders,
-					eae6320::Graphics::ShaderTypes::Fragment)))
-			{
-				EAE6320_ASSERTF(false, "Can't initialize effects");
-					return result;
-			}
-			if (!(result = eae6320::Graphics::Env::s_effects[i].Load(
-				eae6320::Graphics::cShader::s_manager, 
-				eae6320::Graphics::Env::s_vertexShaders[eae6320::Graphics::Env::s_effects[i].m_vertexShaderPath], 
-				eae6320::Graphics::Env::s_fragmentShaders[eae6320::Graphics::Env::s_effects[i].m_fragmentShaderPath])))
-			{
-				EAE6320_ASSERTF(false, "Can't initialize effects");
-				return result;
-			}
-
-		}
 
 		{
 			constexpr uint8_t defaultRenderState = 0;

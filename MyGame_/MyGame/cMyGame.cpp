@@ -27,11 +27,11 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 	}
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::I))
 	{
-		SetBackgroundColor(std::vector<float>{1.0f, 0.f, 0.f, 1.f});
+		SetBackgroundColor(0.5f, 0.0f, 0.5f, 1.f);
 	}
 	else
 	{
-		SetBackgroundColor(std::vector<float>{1.0f, 1.f, 0.f, 1.f});
+		SetBackgroundColor(0.7f, 0.7f, 0.7f, 1.f);
 	}
 
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::J))
@@ -125,7 +125,6 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 	effectA->DecrementReferenceCount();
 	effectB->DecrementReferenceCount();
-	//SetRenderObjects(std::vector<Graphics::RenderObject>{Graphics::RenderObject(geometryA, effectA), Graphics::RenderObject(geometryB, effectB)});
 	return Results::Success;
 }
 

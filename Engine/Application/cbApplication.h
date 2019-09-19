@@ -98,7 +98,7 @@ namespace eae6320
 			double GetElapsedSecondCount_systemTime() const;
 			double GetElapsedSecondCount_simulation() const;
 			void SetSimulationRate( const float i_simulationRate );
-			void SetBackgroundColor(std::vector<float> backgroundColor);
+			void SetBackgroundColor(float i_colorR, float i_colorG, float i_colorB, float i_colorA);
 			void SetRenderObjects(std::vector<eae6320::Graphics::RenderObject> i_renderObjects);
 			void DeleteRenderObjectById(int id);
 			void AddRenderObject(eae6320::Graphics::RenderObject i_renderObject);

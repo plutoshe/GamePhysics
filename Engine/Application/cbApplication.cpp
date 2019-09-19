@@ -287,9 +287,9 @@ void eae6320::Application::cbApplication::SetRenderObjects(std::vector<eae6320::
 	m_renderObjects = i_renderObjects;
 }
 
-void eae6320::Application::cbApplication::SetBackgroundColor(std::vector<float> backgroundColor)
+void eae6320::Application::cbApplication::SetBackgroundColor(float i_colorR, float i_colorG, float i_colorB, float i_colorA)
 {
-	m_backgroundColor = backgroundColor;
+	m_backgroundColor = std::vector<float>{ i_colorA, i_colorB, i_colorG, i_colorR };
 }
 
 void eae6320::Application::cbApplication::EntryPoint_applicationLoopThread( void* const io_application )

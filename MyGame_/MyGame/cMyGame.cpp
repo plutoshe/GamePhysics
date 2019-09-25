@@ -20,22 +20,70 @@ void eae6320::cMyGame::BlockMoveMoment()
 {
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Up))
 	{
-		m_gameObjects[0].m_rigidBodyStatue.velocity.y = 1;
+		if (!m_isUpPressed)
+		{
+			m_isUpPressed = true;
+			m_gameObjects[0].m_rigidBodyStatue.velocity.y += 1;
+		}
+	}
+	else
+	{
+		if (m_isUpPressed)
+		{
+			m_isUpPressed = false;
+			m_gameObjects[0].m_rigidBodyStatue.velocity.y -= 1;
+		}
 	}
 
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Down))
 	{
-		m_gameObjects[0].m_rigidBodyStatue.velocity.y = -1;
+		if (!m_isDownPressed)
+		{
+			m_isDownPressed = true;
+			m_gameObjects[0].m_rigidBodyStatue.velocity.y += -1;
+		}
+	}
+	else
+	{
+		if (m_isDownPressed)
+		{
+			m_isDownPressed = false;
+			m_gameObjects[0].m_rigidBodyStatue.velocity.y -= -1;
+		}
 	}
 
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Left))
 	{
-		m_gameObjects[0].m_rigidBodyStatue.velocity.x = -1;
+		if (!m_isLeftPressed)
+		{
+			m_isLeftPressed = true;
+			m_gameObjects[0].m_rigidBodyStatue.velocity.x += -1;
+		}
+	}
+	else
+	{
+		if (m_isLeftPressed)
+		{
+			m_isLeftPressed = false;
+			m_gameObjects[0].m_rigidBodyStatue.velocity.x -= -1;
+		}
 	}
 
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Right))
 	{
-		m_gameObjects[0].m_rigidBodyStatue.velocity.x = 1;
+		if (!m_isRightPressed)
+		{
+			m_isRightPressed = true;
+			m_gameObjects[0].m_rigidBodyStatue.velocity.x += 1;
+		}
+	}
+	else
+	{
+		if (m_isRightPressed)
+		{
+			m_isRightPressed = false;
+			m_gameObjects[0].m_rigidBodyStatue.velocity.x -= 1;
+		}
 	}
 }
 
@@ -156,7 +204,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	effectB->SetFragmentShaderPath("data/shaders/fragment/standard.shader");
 	m_effectChangeA->SetVertexShaderPath("data/shaders/vertex/standard.shader");
 	m_effectChangeA->SetFragmentShaderPath("data/shaders/fragment/blue.shader");
-	m_effectChangeB->SetVertexShaderPath("data/shaders/vertex/expand2times.shader");
+	m_effectChangeB->SetVertexShaderPath("data/shaders/vertex/standard.shader");
 	m_effectChangeB->SetFragmentShaderPath("data/shaders/fragment/change_color.shader");
 	SetGameObjects(std::vector<Application::GameObject>{Application::GameObject(Graphics::RenderObject(geometryA, effectA)), Application::GameObject(Graphics::RenderObject(geometryB, effectB))});
 	geometryA->DecrementReferenceCount();

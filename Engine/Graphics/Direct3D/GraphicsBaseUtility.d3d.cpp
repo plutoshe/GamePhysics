@@ -96,64 +96,16 @@ void eae6320::Graphics::PostpocessAfterRender()
 // Initialization / Clean Up
 //--------------------------
 
-eae6320::cResult eae6320::Graphics::Initialize(const sInitializationParameters& i_initializationParameters)
+eae6320::cResult eae6320::Graphics::PlatformSpecificInitialization(const sInitializationParameters& i_initializationParameters)
 {
 	auto result = Results::Success;
 
-	// Initialize the platform-specific context
-	if (!(result = sContext::g_context.Initialize(i_initializationParameters)))
+	if (!(result = cVertexFormat::s_manager.Initialize()))
 	{
-		EAE6320_ASSERTF(false, "Can't initialize Graphics without context");
+		EAE6320_ASSERTF(false, "Can't initialize Graphics without the vertex format manager");
 		return result;
 	}
-	// Initialize the asset managers
-	{
-		if (!(result = cRenderState::s_manager.Initialize()))
-		{
-			EAE6320_ASSERTF(false, "Can't initialize Graphics without the render state manager");
-			return result;
-		}
-		if (!(result = cShader::s_manager.Initialize()))
-		{
-			EAE6320_ASSERTF(false, "Can't initialize Graphics without the shader manager");
-			return result;
-		}
-		if (!(result = cVertexFormat::s_manager.Initialize()))
-		{
-			EAE6320_ASSERTF(false, "Can't initialize Graphics without the vertex format manager");
-			return result;
-		}
-	}
-	// Initialize the platform-independent graphics objects
-	{
-		if (result = eae6320::Graphics::Env::s_constantBuffer_frame.Initialize())
-		{
-			// There is only a single frame constant buffer that is reused
-			// and so it can be bound at initialization time and never unbound
-			eae6320::Graphics::Env::s_constantBuffer_frame.Bind(
-				// In our class both vertex and fragment shaders use per-frame constant data
-				ShaderTypes::Vertex | ShaderTypes::Fragment);
-		}
-		else
-		{
-			EAE6320_ASSERTF(false, "Can't initialize Graphics without frame constant buffer");
-			return result;
-		}
-	}
-	// Initialize the events
-	{
-		if (!(result = eae6320::Graphics::Env::s_whenAllDataHasBeenSubmittedFromApplicationThread.Initialize(Concurrency::EventType::ResetAutomaticallyAfterBeingSignaled)))
-		{
-			EAE6320_ASSERTF(false, "Can't initialize Graphics without event for when data has been submitted from the application thread");
-			return result;
-		}
-		if (!(result = eae6320::Graphics::Env::s_whenDataForANewFrameCanBeSubmittedFromApplicationThread.Initialize(Concurrency::EventType::ResetAutomaticallyAfterBeingSignaled,
-			Concurrency::EventState::Signaled)))
-		{
-			EAE6320_ASSERTF(false, "Can't initialize Graphics without event for when data can be submitted from the application thread");
-			return result;
-		}
-	}
+	
 	// Initialize the views
 	{
 		if (!(result = InitializeViews(i_initializationParameters.resolutionWidth, i_initializationParameters.resolutionHeight)))
@@ -162,22 +114,7 @@ eae6320::cResult eae6320::Graphics::Initialize(const sInitializationParameters& 
 			return result;
 		}
 	}
-	// Initialize the shading data
-	{
-		if (!(result = InitializeShadingData()))
-		{
-			EAE6320_ASSERTF(false, "Can't initialize Graphics without the shading data");
-			return result;
-		}
-	}
-	// Initialize the geometry
-	{
-		if (!(result = InitializeGeometry()))
-		{
-			EAE6320_ASSERTF(false, "Can't initialize Graphics without the geometry data");
-			return result;
-		}
-	}
+	
 
 	return result;
 }

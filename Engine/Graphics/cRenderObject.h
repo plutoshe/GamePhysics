@@ -38,6 +38,7 @@ namespace eae6320
 				{
 					c.m_effect->SetToPointer(m_effect);
 				}
+				m_Transformation = c.m_Transformation;
 			}
 			RenderObject() { m_geometry = nullptr; m_effect = nullptr; }
 			~RenderObject() { 

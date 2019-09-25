@@ -14,6 +14,106 @@ namespace eae6320
 		}
 
 
+
+		eae6320::cResult eae6320::Graphics::Initialize(const sInitializationParameters& i_initializationParameters)
+		{
+			auto result = Results::Success;
+
+			// Initialize the platform-specific context
+			if (!(result = sContext::g_context.Initialize(i_initializationParameters)))
+			{
+				EAE6320_ASSERTF(false, "Can't initialize Graphics without context");
+				return result;
+			}
+			// Initialize the asset managers
+			{
+				if (!(result = cRenderState::s_manager.Initialize()))
+				{
+					EAE6320_ASSERTF(false, "Can't initialize Graphics without the render state manager");
+					return result;
+				}
+				if (!(result = cShader::s_manager.Initialize()))
+				{
+					EAE6320_ASSERTF(false, "Can't initialize Graphics without the shader manager");
+					return result;
+				}
+			}
+
+			// Initialize the platform-independent graphics objects
+			{
+				if (result = eae6320::Graphics::Env::s_constantBuffer_frame.Initialize())
+				{
+					// There is only a single frame constant buffer that is reused
+					// and so it can be bound at initialization time and never unbound
+					eae6320::Graphics::Env::s_constantBuffer_frame.Bind(
+						// In our class both vertex and fragment shaders use per-frame constant data
+						ShaderTypes::Vertex | ShaderTypes::Fragment);
+				}
+				else
+				{
+					EAE6320_ASSERTF(false, "Can't initialize Graphics without frame constant buffer");
+					return result;
+				}
+
+				if (result = eae6320::Graphics::Env::s_constantBuffer_drawCall.Initialize())
+				{
+					// There is only a single frame constant buffer that is reused
+					// and so it can be bound at initialization time and never unbound
+					eae6320::Graphics::Env::s_constantBuffer_drawCall.Bind(ShaderTypes::Vertex | ShaderTypes::Fragment);
+				}
+				else
+				{
+					EAE6320_ASSERTF(false, "Can't initialize Graphics without drawCall constant buffer");
+					return result;
+				}
+			}
+
+
+			// Initialize the events
+			{
+				if (!(result = eae6320::Graphics::Env::s_whenAllDataHasBeenSubmittedFromApplicationThread.Initialize(Concurrency::EventType::ResetAutomaticallyAfterBeingSignaled)))
+				{
+					EAE6320_ASSERTF(false, "Can't initialize Graphics without event for when data has been submitted from the application thread");
+					return result;
+				}
+				if (!(result = eae6320::Graphics::Env::s_whenDataForANewFrameCanBeSubmittedFromApplicationThread.Initialize(Concurrency::EventType::ResetAutomaticallyAfterBeingSignaled,
+					Concurrency::EventState::Signaled)))
+				{
+					EAE6320_ASSERTF(false, "Can't initialize Graphics without event for when data can be submitted from the application thread");
+					return result;
+				}
+			}
+
+			// Initialize the shading data
+			{
+				if (!(result = InitializeShadingData()))
+				{
+					EAE6320_ASSERTF(false, "Can't initialize Graphics without the shading data");
+					return result;
+				}
+			}
+			// Initialize the geometry
+			{
+				if (!(result = InitializeGeometry()))
+				{
+					EAE6320_ASSERTF(false, "Can't initialize Graphics without the geometry data");
+					return result;
+				}
+			}
+
+			{
+				if (!(result = PlatformSpecificInitialization(i_initializationParameters)))
+				{
+					EAE6320_ASSERTF(false, "Can't initialize for platform specific setting");
+					return result;
+				}
+
+			}
+
+			return result;
+		}
+
+
 		eae6320::cResult InitializeGeometry()
 		{
 			return eae6320::Results::Success;
@@ -135,6 +235,9 @@ namespace eae6320
 			{
 				for (size_t i = 0; i < eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects.size(); i++)
 				{
+					auto& constantData_drawCall = eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_Transformation;
+					eae6320::Graphics::Env::s_constantBuffer_drawCall.Update(&constantData_drawCall);
+
 					eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_effect->Bind();
 					eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_geometry->Draw();
 				}
@@ -190,13 +293,13 @@ namespace eae6320
 				}
 			}
 			{
-				const auto result_constantBuffer_frame = eae6320::Graphics::Env::s_constantBuffer_frame.CleanUp();
-				if (!result_constantBuffer_frame)
+				const auto result_constantBuffer_drawCall = eae6320::Graphics::Env::s_constantBuffer_drawCall.CleanUp();
+				if (!result_constantBuffer_drawCall)
 				{
 					EAE6320_ASSERT(false);
 					if (result)
 					{
-						result = result_constantBuffer_frame;
+						result = result_constantBuffer_drawCall;
 					}
 				}
 			}

@@ -82,6 +82,10 @@ namespace eae6320
 		virtual cResult CleanUp() override;
 		Graphics::Effect* m_effectChangeA = nullptr;
 		Graphics::Effect* m_effectChangeB = nullptr;
+		bool m_isUpPressed = false;
+		bool m_isDownPressed = false;
+		bool m_isLeftPressed = false;
+		bool m_isRightPressed = false;
 		bool m_isJPressed = false;
 		bool m_isLPressed = false;
 

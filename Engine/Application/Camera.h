@@ -19,6 +19,7 @@ namespace eae6320
 			eae6320::Math::cMatrix_transformation GetWorldToCameraForPrediction(float i_predictTime);
 			eae6320::Math::cMatrix_transformation GetWorldToCamera();
 			void SetVelocityInCameraAxis(eae6320::Math::sVector i_VelocityCameraAxis);
+			void SetAngularVelocity(eae6320::Math::sVector i_angularVelocity);
 		};
 	}
 }

@@ -77,7 +77,8 @@ namespace eae6320
 				S = 0x53,
 				A = 0x41,
 				D = 0x44,
-
+				Q = 0x51,
+				E = 0x45,
 			};
 		}
 	}

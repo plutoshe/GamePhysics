@@ -26,3 +26,8 @@ void eae6320::Application::Camera::SetVelocityInCameraAxis(eae6320::Math::sVecto
 	
 	m_rigidBodyStatue.velocity = tranform.GetRightDirection() * i_VelocityCameraAxis.x - tranform.GetBackDirection() * i_VelocityCameraAxis.z;
 }
+
+void eae6320::Application::Camera::SetAngularVelocity(eae6320::Math::sVector i_angularVelocity)
+{
+	m_rigidBodyStatue.angularSpeed = i_angularVelocity.y;
+}

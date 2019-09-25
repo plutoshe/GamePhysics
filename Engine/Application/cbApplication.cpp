@@ -269,7 +269,6 @@ void eae6320::Application::cbApplication::UpdateUntilExit()
 
 void eae6320::Application::cbApplication::UpdateBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate)
 {
-
 }
 
 void eae6320::Application::cbApplication::UpdateSimulationBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate)
@@ -279,18 +278,15 @@ void eae6320::Application::cbApplication::UpdateSimulationBasedOnTime(const floa
 		m_gameObjects[i].m_rigidBodyStatue.Update(i_elapsedSecondCount_sinceLastUpdate);
 		
 	}
-
+	m_camera.m_rigidBodyStatue.Update(i_elapsedSecondCount_sinceLastUpdate);
 }
 
-
-#include <Engine/Logging/Logging.h>
 void eae6320::Application::cbApplication::SubmitDataToBeRendered(const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
 {
-	eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread->constantData_frame.g_transform_worldToCamera = m_camera.GetWorldToCamera();
+	eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread->constantData_frame.g_transform_worldToCamera = m_camera.GetWorldToCameraForPrediction(i_elapsedSecondCount_sinceLastSimulationUpdate);
 	eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread->constantData_frame.g_transform_cameraToProjected = m_camera.GetProjectionMatrix();
 	eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread->m_backgroundColor = m_backgroundColor;
 	eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread->m_renderObjects.clear();
-	eae6320::Logging::OutputMessage("%.2f", i_elapsedSecondCount_sinceLastSimulationUpdate);
 	for (size_t i = 0; i < m_gameObjects.size(); i++)
 	{
 		if (m_gameObjects[i].m_isVisiable)

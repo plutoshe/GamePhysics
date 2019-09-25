@@ -13,3 +13,16 @@ eae6320::Math::cMatrix_transformation eae6320::Application::Camera::GetWorldToCa
 {
 	return eae6320::Math::cMatrix_transformation::CreateWorldToCameraTransform(m_rigidBodyStatue.orientation, m_rigidBodyStatue.position);
 }
+
+
+eae6320::Math::cMatrix_transformation eae6320::Application::Camera::GetWorldToCameraForPrediction(float i_predictTime)
+{
+	return eae6320::Math::cMatrix_transformation::CreateWorldToCameraTransform(m_rigidBodyStatue.PredictFutureOrientation(i_predictTime), m_rigidBodyStatue.PredictFuturePosition(i_predictTime));
+}
+
+void eae6320::Application::Camera::SetVelocityInCameraAxis(eae6320::Math::sVector i_VelocityCameraAxis)
+{
+	auto tranform = eae6320::Math::cMatrix_transformation(m_rigidBodyStatue.orientation, m_rigidBodyStatue.position);
+	
+	m_rigidBodyStatue.velocity = tranform.GetRightDirection() * i_VelocityCameraAxis.x - tranform.GetBackDirection() * i_VelocityCameraAxis.z;
+}

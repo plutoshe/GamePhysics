@@ -87,6 +87,32 @@ void eae6320::cMyGame::UpdateSimulationBasedOnInput()
 			m_gameObjects[0].m_rigidBodyStatue.velocity.x -= 1;
 		}
 	}
+
+	// camera pressed
+	Math::sVector cameraVelocity(0, 0, 0);
+	float cameraSpeed = 5.f;
+	
+	if (UserInput::IsKeyPressed(UserInput::KeyCodes::W))
+	{
+		cameraVelocity.z += cameraSpeed;
+	}
+	
+
+	if (UserInput::IsKeyPressed(UserInput::KeyCodes::S))
+	{
+		cameraVelocity.z -= cameraSpeed;
+	}
+
+	if (UserInput::IsKeyPressed(UserInput::KeyCodes::A))
+	{
+		cameraVelocity.x -= cameraSpeed;
+	}
+	
+	if (UserInput::IsKeyPressed(UserInput::KeyCodes::D))
+	{
+		cameraVelocity.x += cameraSpeed;
+	}
+	m_camera.SetVelocityInCameraAxis(cameraVelocity);
 }
 
 void eae6320::cMyGame::UpdateBasedOnInput()

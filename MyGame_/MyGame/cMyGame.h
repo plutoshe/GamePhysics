@@ -87,6 +87,10 @@ namespace eae6320
 		bool m_isRightPressed = false;
 		bool m_isJPressed = false;
 		bool m_isLPressed = false;
+		bool m_isWPressed = false;
+		bool m_isAPressed = false;
+		bool m_isSPressed = false;
+		bool m_isDPressed = false;
 
 	};
 }

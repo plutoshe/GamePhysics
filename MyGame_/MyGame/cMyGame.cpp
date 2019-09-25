@@ -16,8 +16,33 @@
 // Run
 //----
 
+void eae6320::cMyGame::BlockMoveMoment()
+{
+	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Up))
+	{
+		m_gameObjects[0].m_rigidBodyStatue.velocity.y = 1;
+	}
+
+	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Down))
+	{
+		m_gameObjects[0].m_rigidBodyStatue.velocity.y = -1;
+	}
+
+	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Left))
+	{
+		m_gameObjects[0].m_rigidBodyStatue.velocity.x = -1;
+	}
+
+	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Right))
+	{
+		m_gameObjects[0].m_rigidBodyStatue.velocity.x = 1;
+	}
+}
+
 void eae6320::cMyGame::UpdateBasedOnInput()
 {
+	BlockMoveMoment();
+
 	// Is the user pressing the ESC key?
 	if ( UserInput::IsKeyPressed( UserInput::KeyCodes::Escape ) )
 	{
@@ -38,7 +63,7 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 	{
 		if (!m_isJPressed)
 		{
-			DeleteRenderObjectById((int)m_renderObjects.size() - 1);
+			DeleteGameObjectById((int)m_gameObjects.size() - 1);
 			m_isJPressed = true;
 		}
 	}
@@ -60,7 +85,7 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 		effectB->SetVertexShaderPath("data/shaders/vertex/standard.shader");
 		effectB->SetFragmentShaderPath("data/shaders/fragment/standard.shader");
 		
-		AddRenderObject(Graphics::RenderObject(geometryB, effectB));
+		AddGameObject(Application::GameObject(eae6320::Graphics::RenderObject(geometryB, effectB)));
 		geometryB->DecrementReferenceCount();
 		effectB->DecrementReferenceCount();
 	}
@@ -69,23 +94,23 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 	{
 		if (!m_isLPressed)
 		{
-			m_renderObjects[0].m_geometry->SetIndices(std::vector<unsigned int>{ 0, 1, 2 });
+			m_gameObjects[0].m_renderObject.m_geometry->SetIndices(std::vector<unsigned int>{ 0, 1, 2 });
 			m_isLPressed = true;
 		}
 	}
 	else if (m_isLPressed)
 	{
 		m_isLPressed = false;
-		m_renderObjects[0].m_geometry->SetIndices(std::vector<unsigned int>{ 0, 1, 2, 1, 3, 2 });
+		m_gameObjects[0].m_renderObject.m_geometry->SetIndices(std::vector<unsigned int>{ 0, 1, 2, 1, 3, 2 });
 	}
 
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::K))
 	{
-		m_effectChangeA->SetToPointer(m_renderObjects[0].m_effect);
+		m_effectChangeA->SetToPointer(m_gameObjects[0].m_renderObject.m_effect);
 	}
 	else
 	{
-		m_effectChangeB->SetToPointer(m_renderObjects[0].m_effect);
+		m_effectChangeB->SetToPointer(m_gameObjects[0].m_renderObject.m_effect);
 	}
 }
 
@@ -133,7 +158,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	m_effectChangeA->SetFragmentShaderPath("data/shaders/fragment/blue.shader");
 	m_effectChangeB->SetVertexShaderPath("data/shaders/vertex/expand2times.shader");
 	m_effectChangeB->SetFragmentShaderPath("data/shaders/fragment/change_color.shader");
-	SetRenderObjects(std::vector<Graphics::RenderObject>{Graphics::RenderObject(geometryA, effectA), Graphics::RenderObject(geometryB, effectB)});
+	SetGameObjects(std::vector<Application::GameObject>{Application::GameObject(Graphics::RenderObject(geometryA, effectA)), Application::GameObject(Graphics::RenderObject(geometryB, effectB))});
 	geometryA->DecrementReferenceCount();
 	geometryB->DecrementReferenceCount();
 

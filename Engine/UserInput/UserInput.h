@@ -73,6 +73,11 @@ namespace eae6320
 				J = 0x4A,
 				K = 0x4B,
 				L = 0x4C,
+				W = 0x57,
+				S = 0x53,
+				A = 0x41,
+				D = 0x44,
+
 			};
 		}
 	}

@@ -26,6 +26,11 @@ cbuffer g_constantBuffer_frame : register( b0 )
 	float2 g_padding;
 };
 
+cbuffer g_constantBuffer_drawCall : register( b2 )
+{
+  float4x4 g_transform_localToWorld;
+};
+
 // Entry Point
 //============
 
@@ -90,6 +95,12 @@ layout( std140, binding = 0 ) uniform g_constantBuffer_frame
 
 // These values come from one of the VertexFormats::s3dObject that the vertex buffer was filled with in C code
 layout( location = 0 ) in vec3 i_vertexPosition_local;
+
+
+layout( std140, binding = 2 ) uniform g_constantBuffer_drawCall
+{
+  mat4 g_transform_localToWorld;
+};
 
 // Output
 //=======

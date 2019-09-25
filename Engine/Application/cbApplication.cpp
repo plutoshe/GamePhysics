@@ -266,25 +266,42 @@ void eae6320::Application::cbApplication::UpdateUntilExit()
 	}
 }
 
+
+void eae6320::Application::cbApplication::UpdateBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate)
+{
+	for (size_t i = 0; i < m_gameObjects.size(); i++)
+	{
+		m_gameObjects[i].Update(i_elapsedSecondCount_sinceLastUpdate);
+	}
+}
+
+
 void eae6320::Application::cbApplication::SubmitDataToBeRendered(const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
 {
 	eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread->m_backgroundColor = m_backgroundColor;
 	eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread->m_renderObjects.clear();
-	eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread->m_renderObjects = m_renderObjects;
+	for (size_t i = 0; i < m_gameObjects.size(); i++)
+	{
+		if (m_gameObjects[i].m_isVisiable)
+		{
+			eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread->m_renderObjects.push_back(m_gameObjects[i].m_renderObject);
+		}
+	}
 }
 
-void eae6320::Application::cbApplication::DeleteRenderObjectById(int id)
+void eae6320::Application::cbApplication::DeleteGameObjectById(int id)
 {
-	m_renderObjects.erase(m_renderObjects.begin() + id);
-}
-void eae6320::Application::cbApplication::AddRenderObject(eae6320::Graphics::RenderObject i_renderObject)
-{
-	m_renderObjects.push_back(i_renderObject);
+	m_gameObjects.erase(m_gameObjects.begin() + id);
 }
 
-void eae6320::Application::cbApplication::SetRenderObjects(std::vector<eae6320::Graphics::RenderObject> i_renderObjects)
+void eae6320::Application::cbApplication::AddGameObject(eae6320::Application::GameObject i_renderObject)
 {
-	m_renderObjects = i_renderObjects;
+	m_gameObjects.push_back(i_renderObject);
+}
+
+void eae6320::Application::cbApplication::SetGameObjects(std::vector<eae6320::Application::GameObject> i_gameObjects)
+{
+	m_gameObjects = i_gameObjects;
 }
 
 void eae6320::Application::cbApplication::SetBackgroundColor(float i_colorR, float i_colorG, float i_colorB, float i_colorA)

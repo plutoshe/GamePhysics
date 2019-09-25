@@ -11,7 +11,6 @@ namespace eae6320
 			eae6320::Graphics::RenderObject m_renderObject;
 			eae6320::Physics::sRigidBodyState m_rigidBodyStatue;
 			bool m_isVisiable;
-			void Update(const float i_deltaTime);
 			GameObject() {}
 			GameObject(eae6320::Graphics::RenderObject i_renderObject) :m_renderObject(i_renderObject) {}
 		};

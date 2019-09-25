@@ -73,8 +73,7 @@ namespace eae6320
 		//----
 
 		virtual void UpdateBasedOnInput() override;
-		void BlockMoveMoment();
-
+		virtual void UpdateSimulationBasedOnInput() override;
 		// Initialization / Clean Up
 		//--------------------------
 

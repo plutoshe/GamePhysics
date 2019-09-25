@@ -190,7 +190,7 @@ namespace eae6320
 			// They will both be called every time the simulation is updated
 			// (i.e. whenever GetSimulationUpdatePeriod_inSeconds() of simulation time has elapsed)
 			virtual void UpdateSimulationBasedOnInput() {}
-			virtual void UpdateSimulationBasedOnTime( const float i_elapsedSecondCount_sinceLastUpdate ) {}
+			virtual void UpdateSimulationBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate);
 
 			// Your application should override the following function
 			// to instuct the Graphics system what to render for the next frame

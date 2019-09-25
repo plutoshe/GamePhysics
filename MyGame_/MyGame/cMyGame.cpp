@@ -16,7 +16,7 @@
 // Run
 //----
 
-void eae6320::cMyGame::BlockMoveMoment()
+void eae6320::cMyGame::UpdateSimulationBasedOnInput()
 {
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Up))
 	{
@@ -89,8 +89,6 @@ void eae6320::cMyGame::BlockMoveMoment()
 
 void eae6320::cMyGame::UpdateBasedOnInput()
 {
-	BlockMoveMoment();
-
 	// Is the user pressing the ESC key?
 	if ( UserInput::IsKeyPressed( UserInput::KeyCodes::Escape ) )
 	{
@@ -154,11 +152,11 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::K))
 	{
-		m_effectChangeA->SetToPointer(m_gameObjects[0].m_renderObject.m_effect);
+		m_effectChangeB->SetToPointer(m_gameObjects[0].m_renderObject.m_effect);
 	}
 	else
 	{
-		m_effectChangeB->SetToPointer(m_gameObjects[0].m_renderObject.m_effect);
+		m_effectChangeA->SetToPointer(m_gameObjects[0].m_renderObject.m_effect);
 	}
 }
 

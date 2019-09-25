@@ -237,7 +237,6 @@ namespace eae6320
 				{
 					auto& constantData_drawCall = eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_Transformation;
 					eae6320::Graphics::Env::s_constantBuffer_drawCall.Update(&constantData_drawCall);
-
 					eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_effect->Bind();
 					eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_geometry->Draw();
 				}

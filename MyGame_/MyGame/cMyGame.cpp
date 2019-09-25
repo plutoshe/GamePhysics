@@ -65,6 +65,20 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 		effectB->DecrementReferenceCount();
 	}
 
+	if (UserInput::IsKeyPressed(UserInput::KeyCodes::L))
+	{
+		if (!m_isLPressed)
+		{
+			m_renderObjects[0].m_geometry->SetIndices(std::vector<unsigned int>{ 0, 1, 2 });
+			m_isLPressed = true;
+		}
+	}
+	else if (m_isLPressed)
+	{
+		m_isLPressed = false;
+		m_renderObjects[0].m_geometry->SetIndices(std::vector<unsigned int>{ 0, 1, 2, 1, 3, 2 });
+	}
+
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::K))
 	{
 		m_effectChangeA->SetToPointer(m_renderObjects[0].m_effect);

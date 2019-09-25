@@ -5,6 +5,7 @@
     <ClCompile Include="Windows\cbApplication.win.cpp">
       <Filter>Windows</Filter>
     </ClCompile>
+    <ClCompile Include="GameObject.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cbApplication.h" />
@@ -14,6 +15,7 @@
     <ClInclude Include="Windows\ExternalLibraries.win.h">
       <Filter>Windows</Filter>
     </ClInclude>
+    <ClInclude Include="GameObject.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Windows">

@@ -20,10 +20,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cbApplication.cpp" />
+    <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Windows\cbApplication.win.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cbApplication.h" />
+    <ClInclude Include="GameObject.h" />
     <ClInclude Include="Windows\cbApplication.win.h" />
     <ClInclude Include="Windows\ExternalLibraries.win.h" />
   </ItemGroup>

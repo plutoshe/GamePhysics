@@ -82,6 +82,7 @@ namespace eae6320
 		Graphics::Effect* m_effectChangeA = nullptr;
 		Graphics::Effect* m_effectChangeB = nullptr;
 		bool m_isJPressed = false;
+		bool m_isLPressed = false;
 
 	};
 }

@@ -286,6 +286,8 @@ void eae6320::Application::cbApplication::UpdateSimulationBasedOnTime(const floa
 #include <Engine/Logging/Logging.h>
 void eae6320::Application::cbApplication::SubmitDataToBeRendered(const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
 {
+	eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread->constantData_frame.g_transform_worldToCamera = m_camera.GetWorldToCamera();
+	eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread->constantData_frame.g_transform_cameraToProjected = m_camera.GetProjectionMatrix();
 	eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread->m_backgroundColor = m_backgroundColor;
 	eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread->m_renderObjects.clear();
 	eae6320::Logging::OutputMessage("%.2f", i_elapsedSecondCount_sinceLastSimulationUpdate);

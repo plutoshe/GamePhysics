@@ -9,7 +9,9 @@
 #include <Engine/Graphics/cEffect.h>
 #include <Engine/Graphics/cGeometry.h>
 #include <vector>
-
+#define M_PI 3.1415926f
+#define Deg2Rad(x) (x * M_PI / 180.f)
+#define Rad2Deg(x) (x * 180.f / M_PI)
 // Inherited Implementation
 //=========================
 
@@ -166,6 +168,14 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 
 eae6320::cResult eae6320::cMyGame::Initialize()
 {
+	m_camera.m_AspectRatio = 1;
+	m_camera.m_rigidBodyStatue.position = Math::sVector(0, 0, 10);
+
+
+	m_camera.m_FOV = Deg2Rad(45);
+	m_camera.m_ZFarPlane = 100.f;
+	m_camera.m_ZNearPlane = 0.01f;
+
 	std::vector<eae6320::Graphics::Geometry::cGeometryVertex> verticesA{
 				eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 0.0f, 0.0f),
 				eae6320::Graphics::Geometry::cGeometryVertex(0.5f, 0.0f, 0.0f),

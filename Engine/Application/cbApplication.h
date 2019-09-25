@@ -18,6 +18,7 @@
 #include <Engine/Graphics/Graphics.h>
 #include <Engine/Graphics/cRenderObject.h>
 #include <Engine/Application/GameObject.h>
+#include <Engine/Application/Camera.h>
 
 #if defined( EAE6320_PLATFORM_WINDOWS )
 	#include <Engine/Windows/Includes.h>
@@ -104,6 +105,7 @@ namespace eae6320
 			void DeleteGameObjectById(int id);
 			void AddGameObject(GameObject i_renderObject);
 			std::vector<GameObject> m_gameObjects;
+			Camera m_camera;
 			std::vector<float> m_backgroundColor;
 			//------
 

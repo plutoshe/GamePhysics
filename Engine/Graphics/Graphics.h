@@ -72,7 +72,7 @@ namespace eae6320
 	#endif
 #endif
 		};
-
+		cResult PlatformSpecificInitialization(const sInitializationParameters& i_initializationParameters);
 		cResult InitializeGeometry();
 		cResult InitializeShadingData();
 		cResult LoadShaderData(

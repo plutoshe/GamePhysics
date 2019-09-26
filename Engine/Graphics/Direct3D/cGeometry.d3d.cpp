@@ -10,9 +10,9 @@ namespace eae6320
 			eae6320::cResult cGeometryRenderTarget::InitDevicePipeline()
 			{
 				eae6320::cResult result = eae6320::Results::Success;
-				if (!m_isInitialized)
+				if (m_isUpdateData)
 				{
-					m_isInitialized = true;
+					m_isUpdateData = false;
 					auto* const direct3dDevice = eae6320::Graphics::sContext::g_context.direct3dDevice;
 					EAE6320_ASSERT(direct3dDevice);
 

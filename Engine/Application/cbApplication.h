@@ -17,6 +17,8 @@
 #include <Engine/Results/Results.h>
 #include <Engine/Graphics/Graphics.h>
 #include <Engine/Graphics/cRenderObject.h>
+#include <Engine/Application/GameObject.h>
+#include <Engine/Application/Camera.h>
 
 #if defined( EAE6320_PLATFORM_WINDOWS )
 	#include <Engine/Windows/Includes.h>
@@ -99,10 +101,11 @@ namespace eae6320
 			double GetElapsedSecondCount_simulation() const;
 			void SetSimulationRate( const float i_simulationRate );
 			void SetBackgroundColor(float i_colorR, float i_colorG, float i_colorB, float i_colorA);
-			void SetRenderObjects(std::vector<eae6320::Graphics::RenderObject> i_renderObjects);
-			void DeleteRenderObjectById(int id);
-			void AddRenderObject(eae6320::Graphics::RenderObject i_renderObject);
-			std::vector<eae6320::Graphics::RenderObject> m_renderObjects;
+			void SetGameObjects(std::vector<GameObject> i_gameObjects);
+			void DeleteGameObjectById(int id);
+			void AddGameObject(GameObject i_renderObject);
+			std::vector<GameObject> m_gameObjects;
+			Camera m_camera;
 			std::vector<float> m_backgroundColor;
 			//------
 
@@ -126,7 +129,7 @@ namespace eae6320
 			virtual cResult Initialize() = 0;
 			virtual cResult CleanUp()
 			{
-				m_renderObjects.clear();
+				m_gameObjects.clear();
 				return eae6320::Results::Success;
 			}
 		private:
@@ -182,14 +185,14 @@ namespace eae6320
 			// (in a game this would be e.g. the UI).
 			// They will both be called every rendered frame.
 			virtual void UpdateBasedOnInput() {}
-			virtual void UpdateBasedOnTime( const float i_elapsedSecondCount_sinceLastUpdate ) {}
+			virtual void UpdateBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate);
 
 			// Your application can implement the following two functions
 			// to control the update of the simulation.
 			// They will both be called every time the simulation is updated
 			// (i.e. whenever GetSimulationUpdatePeriod_inSeconds() of simulation time has elapsed)
 			virtual void UpdateSimulationBasedOnInput() {}
-			virtual void UpdateSimulationBasedOnTime( const float i_elapsedSecondCount_sinceLastUpdate ) {}
+			virtual void UpdateSimulationBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate);
 
 			// Your application should override the following function
 			// to instuct the Graphics system what to render for the next frame

@@ -27,6 +27,7 @@ namespace eae6320
 #endif
 			// Constant buffer object
 			extern eae6320::Graphics::cConstantBuffer s_constantBuffer_frame;
+			extern eae6320::Graphics::cConstantBuffer s_constantBuffer_drawCall;
 
 			// Submission Data
 			//----------------

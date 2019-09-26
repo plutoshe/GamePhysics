@@ -10,6 +10,40 @@ namespace eae6320
 	{
 		namespace Geometry
 		{
+			void cGeometryRenderTarget::UpdateData()
+			{
+				m_isUpdateData = true;
+			}
+			void cGeometryRenderTarget::SetIndicesByFaces(std::vector<cGeometryIndexFace>& i_faces)
+			{
+				m_indices.clear();
+				for (size_t faceId = 0; faceId <= i_faces.size(); faceId++)
+				{
+					std::vector<unsigned int> result = i_faces[faceId].GetGeometryIndices();
+					for (int i = 0; i < 3; i++)
+					{
+						m_indices.push_back(result[i]);
+					}
+				}
+				UpdateData();
+			}
+
+			void cGeometryRenderTarget::SetIndices(std::vector<unsigned int>& i_indices)
+			{
+				m_indices.clear();
+				for (size_t i = 0; i < i_indices.size() / 3; i++)
+				{
+					AddFace(cGeometryIndexFace(i_indices[i * 3], i_indices[i * 3 + 1], i_indices[i * 3 + 2]));
+				}
+				UpdateData();
+			}
+
+			void cGeometryRenderTarget::SetVertices(std::vector<cGeometryVertex>& i_vertices)
+			{
+				m_vertices = i_vertices;
+				UpdateData();
+			}
+
 			cResult cGeometryRenderTarget::Factory(cGeometryRenderTarget*& o_geometryRenderTarget)
 			{
 				auto result = Results::Success;
@@ -60,6 +94,7 @@ namespace eae6320
 				{
 					m_indices.push_back(result[i]);
 				}
+				UpdateData();
 			}
 			void cGeometryRenderTarget::AddIndices(int FaceNum, const std::vector<unsigned int> &triangleIndices)
 
@@ -68,11 +103,13 @@ namespace eae6320
 				{
 					AddFace(cGeometryIndexFace(triangleIndices[i * 3], triangleIndices[i * 3 + 1], triangleIndices[i * 3 + 2]));
 				}
+				UpdateData();
 			}
 
 			void cGeometryRenderTarget::AddVetices(int vertexNum, const std::vector<cGeometryVertex> &vertices)
 			{
 				m_vertices.insert(m_vertices.end(), vertices.begin(), vertices.begin() + vertexNum);
+				UpdateData();
 			}
 
 			unsigned int cGeometryRenderTarget::VertexBufferSize()
@@ -104,6 +141,7 @@ namespace eae6320
 			{
 				AddVetices((int)vertices.size(), vertices);
 				AddIndices((int)triangleIndices.size() / 3, triangleIndices);
+				UpdateData();
 			}
 
 			unsigned int cGeometryRenderTarget::GetIndexCount()

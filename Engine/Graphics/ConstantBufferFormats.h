@@ -35,6 +35,11 @@ namespace eae6320
 				// For float4 alignment
 				float padding[2];
 			};
+
+			struct sDrawCall
+			{
+				Math::cMatrix_transformation g_transform_localToWorld;
+			};
 		}
 	}
 }

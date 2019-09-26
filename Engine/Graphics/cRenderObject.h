@@ -1,4 +1,5 @@
 #pragma once
+#include <Engine/Math/cMatrix_transformation.h>
 #include "cGeometry.h"
 #include "cEffect.h"
 
@@ -10,6 +11,8 @@ namespace eae6320
 		{
 			Graphics::Geometry::cGeometryRenderTarget *m_geometry;
 			Graphics::Effect *m_effect;
+			eae6320::Math::cMatrix_transformation m_Transformation;
+
 			RenderObject(Graphics::Geometry::cGeometryRenderTarget *i_geometry, Graphics::Effect *i_effect) 
 			{
 				m_geometry = nullptr;
@@ -35,6 +38,7 @@ namespace eae6320
 				{
 					c.m_effect->SetToPointer(m_effect);
 				}
+				m_Transformation = c.m_Transformation;
 			}
 			RenderObject() { m_geometry = nullptr; m_effect = nullptr; }
 			~RenderObject() { 

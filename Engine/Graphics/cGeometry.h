@@ -45,40 +45,46 @@ namespace eae6320
 			class cGeometryRenderTarget
 			{
 			public:
-				
+				EAE6320_ASSETS_DECLAREDELETEDREFERENCECOUNTEDFUNCTIONS(cGeometryRenderTarget);
+				EAE6320_ASSETS_DECLAREREFERENCECOUNT();
+				EAE6320_ASSETS_DECLAREREFERENCECOUNTINGFUNCTIONS();
+
 				unsigned int VertexBufferSize();
 				unsigned int GetIndexCount();
 				unsigned int IndexBufferSize();
 				void AddFace(const cGeometryIndexFace &face);
 				void AddIndices(int FaceNum, const std::vector<unsigned int> &triangleIndices);
 				void AddVetices(int vertexNum, const std::vector<cGeometryVertex>& vertices);
+				void SetIndicesByFaces(std::vector<cGeometryIndexFace>& i_faces);
+				void SetIndices(std::vector<unsigned int>& i_indices);
+				void SetVertices(std::vector<cGeometryVertex>& i_vertices);
+				void UpdateData();
 				cGeometryVertex* GetVertexData();
 				unsigned int* GetIndexData();
-
 				void Draw();
 				unsigned int vertexCountToRender();
-				EAE6320_ASSETS_DECLAREDELETEDREFERENCECOUNTEDFUNCTIONS(cGeometryRenderTarget);
-				EAE6320_ASSETS_DECLAREREFERENCECOUNT();
-				EAE6320_ASSETS_DECLAREREFERENCECOUNTINGFUNCTIONS();
 				void InitData(const std::vector<cGeometryVertex>& vertices, const std::vector<unsigned int> &triangleIndices);
 				eae6320::cResult InitDevicePipeline();
 				static cResult Factory(cGeometryRenderTarget*& o_geometryRenderTarget);
 				void SetToPointer(cGeometryRenderTarget* &i_geometryRenderTarget);
+
 private:
+				bool m_isInitialized;
+				bool m_isUpdateData;
 				std::vector<cGeometryVertex> m_vertices;
 				std::vector<unsigned int> m_indices;
-				bool m_isInitialized;
+
 				eae6320::cResult Release();
 				~cGeometryRenderTarget() { Release(); }
 #if defined( EAE6320_PLATFORM_D3D )
-				cGeometryRenderTarget() { m_isInitialized = false; m_vertexBuffer = m_indexBuffer = nullptr; }
+				cGeometryRenderTarget() { m_isInitialized = false; m_isUpdateData = false; m_vertexBuffer = m_indexBuffer = nullptr; }
 
 				ID3D11Buffer* m_vertexBuffer = nullptr;
 				ID3D11Buffer* m_indexBuffer = nullptr;
 #elif defined( EAE6320_PLATFORM_GL )
 				
 				
-				cGeometryRenderTarget() { m_isInitialized = false;  m_vertexBufferId = m_indexBufferId = m_vertexArrayId = 0; }
+				cGeometryRenderTarget() { m_isInitialized = false; m_isUpdateData = false; m_vertexBufferId = m_indexBufferId = m_vertexArrayId = 0; }
 				GLuint m_vertexBufferId = 0;
 				GLuint m_indexBufferId = 0;
 				GLuint m_vertexArrayId = 0;

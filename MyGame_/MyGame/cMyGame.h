@@ -73,7 +73,7 @@ namespace eae6320
 		//----
 
 		virtual void UpdateBasedOnInput() override;
-
+		virtual void UpdateSimulationBasedOnInput() override;
 		// Initialization / Clean Up
 		//--------------------------
 
@@ -82,6 +82,7 @@ namespace eae6320
 		Graphics::Effect* m_effectChangeA = nullptr;
 		Graphics::Effect* m_effectChangeB = nullptr;
 		bool m_isJPressed = false;
+		bool m_isLPressed = false;
 
 	};
 }

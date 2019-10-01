@@ -5,6 +5,7 @@
 #include "cVertexFormat.h"
 #include "PlatformIncludes.h"
 #include <Engine/Assets/ReferenceCountedAssets.h>
+#include <External/Lua/Includes.h>
 
 namespace eae6320
 {
@@ -45,6 +46,16 @@ namespace eae6320
 			class cGeometryRenderTarget
 			{
 			public:
+
+				/*static Assets::cManager<cGeometryRenderTarget> s_manager;
+
+				static cResult Load(const std::string& i_path, cShader*& o_shader, const ShaderTypes::eType i_type);
+				cResult Initialize(const std::string& i_path, const Platform::sDataFromFile& i_loadedShader);
+				cResult CleanUp();*/
+
+				eae6320::cResult LoadIndicesFromLua(lua_State& io_luaState);
+				eae6320::cResult LoadVerticesFromLua(lua_State& io_luaState);
+
 				EAE6320_ASSETS_DECLAREDELETEDREFERENCECOUNTEDFUNCTIONS(cGeometryRenderTarget);
 				EAE6320_ASSETS_DECLAREREFERENCECOUNT();
 				EAE6320_ASSETS_DECLAREREFERENCECOUNTINGFUNCTIONS();
@@ -64,6 +75,7 @@ namespace eae6320
 				void Draw();
 				unsigned int vertexCountToRender();
 				void InitData(const std::vector<cGeometryVertex>& vertices, const std::vector<unsigned int> &triangleIndices);
+				eae6320::cResult  InitData(std::string i_path);
 				eae6320::cResult InitDevicePipeline();
 				static cResult Factory(cGeometryRenderTarget*& o_geometryRenderTarget);
 				void SetToPointer(cGeometryRenderTarget* &i_geometryRenderTarget);
@@ -90,6 +102,7 @@ private:
 				GLuint m_vertexArrayId = 0;
 #endif
 			};
+
 		}
 	}
 }

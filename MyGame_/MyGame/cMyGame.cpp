@@ -110,16 +110,9 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 	else if (m_isJPressed)
 	{
 		m_isJPressed = false;
-		std::vector<eae6320::Graphics::Geometry::cGeometryVertex> verticesB{
-			eae6320::Graphics::Geometry::cGeometryVertex(-1.0f, -1.0f, 0.0f),
-			eae6320::Graphics::Geometry::cGeometryVertex(-0.4f, -1.0f, 0.0f),
-			eae6320::Graphics::Geometry::cGeometryVertex(-1.0f, -0.4f, 0.0f),
-			eae6320::Graphics::Geometry::cGeometryVertex(-0.3f, -0.3f, 0.0f),
-		};
-		std::vector<unsigned int> indicesB{ 0, 1, 2, 1, 3, 2 };
 		eae6320::Graphics::Geometry::cGeometryRenderTarget* geometryB;
 		eae6320::Graphics::Geometry::cGeometryRenderTarget::Factory(geometryB);
-		geometryB->InitData(verticesB, indicesB);
+		geometryB->InitData("data/geometries/objectTriangle.bin");
 		eae6320::Graphics::Effect* effectB;
 		eae6320::Graphics::Effect::Factory(effectB);
 		effectB->SetVertexShaderPath("data/shaders/vertex/standard.shader");
@@ -168,27 +161,14 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	m_camera.m_ZFarPlane = 100.f;
 	m_camera.m_ZNearPlane = 0.01f;
 
-	std::vector<eae6320::Graphics::Geometry::cGeometryVertex> verticesA{
-				eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 0.0f, 0.0f),
-				eae6320::Graphics::Geometry::cGeometryVertex(0.5f, 0.0f, 0.0f),
-				eae6320::Graphics::Geometry::cGeometryVertex(0.0f, 0.5f, 0.0f),
-				eae6320::Graphics::Geometry::cGeometryVertex(0.5f, 0.5f, 0.0f),
-	};
-	std::vector<unsigned int> indicesA{ 0, 1, 2, 1, 3, 2 };
-
-	std::vector<eae6320::Graphics::Geometry::cGeometryVertex> verticesB{
-		eae6320::Graphics::Geometry::cGeometryVertex(-1.0f, -1.0f, 0.0f),
-		eae6320::Graphics::Geometry::cGeometryVertex(-0.4f, -1.0f, 0.0f),
-		eae6320::Graphics::Geometry::cGeometryVertex(-1.0f, -0.4f, 0.0f),
-		eae6320::Graphics::Geometry::cGeometryVertex(-0.3f, -0.3f, 0.0f),
-	};
+	
 
 	eae6320::Graphics::Geometry::cGeometryRenderTarget* geometryA;
 	eae6320::Graphics::Geometry::cGeometryRenderTarget* geometryB;
 	eae6320::Graphics::Geometry::cGeometryRenderTarget::Factory(geometryA);
 	eae6320::Graphics::Geometry::cGeometryRenderTarget::Factory(geometryB);
-	geometryA->InitData(verticesA, indicesA);
-	geometryB->InitData(verticesB, indicesA);
+	geometryA->InitData("data/geometries/objectRectangle.bin");
+	geometryB->InitData("data/geometries/objectTriangle.bin");
 	geometryA->InitDevicePipeline();
 	geometryB->InitDevicePipeline();
 	eae6320::Graphics::Effect* effectA, * effectB;

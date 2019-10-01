@@ -120,6 +120,9 @@
     <None Include="cRenderState.inl" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\External\Lua\LuaLib.vcxproj">
+      <Project>{a506e35d-bb34-468d-82cd-112386be29d1}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\External\Mcpp\Mcpp.vcxproj">
       <Project>{dd1b3bf3-3c86-49f6-abf4-e021ebcdaf80}</Project>
     </ProjectReference>

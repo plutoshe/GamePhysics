@@ -10,14 +10,15 @@ namespace eae6320
 			eae6320::cResult cGeometry::InitDevicePipeline()
 			{
 				// Create a vertex array object, vertex buffer, and index buffer
+				cGeometryRenderTarget* rt = cGeometryRenderTarget::s_manager.Get(m_handler);
 				auto result = eae6320::Results::Success; 
-				if (!m_isInitialized)
+				if (!rt->m_isInitialized)
 				{
-					m_isInitialized = true;
+					rt->m_isInitialized = true;
 					// generate VAO
 					{
 						constexpr GLsizei arrayCount = 1;
-						glGenVertexArrays(arrayCount, &m_vertexArrayId);
+						glGenVertexArrays(arrayCount, &rt->m_vertexArrayId);
 						const auto errorCode = glGetError();
 						if (errorCode != GL_NO_ERROR)
 						{
@@ -32,7 +33,7 @@ namespace eae6320
 					// generate vertex buffer
 					{
 						constexpr GLsizei bufferCount = 1;
-						glGenBuffers(bufferCount, &m_vertexBufferId);
+						glGenBuffers(bufferCount, &rt->m_vertexBufferId);
 						const auto errorCode = glGetError();
 						if (errorCode != GL_NO_ERROR)
 						{
@@ -47,7 +48,7 @@ namespace eae6320
 					// generate index buffer
 					{
 						constexpr GLsizei bufferCount = 1;
-						glGenBuffers(bufferCount, &m_indexBufferId);
+						glGenBuffers(bufferCount, &rt->m_indexBufferId);
 						const auto errorCode = glGetError();
 						if (errorCode != GL_NO_ERROR)
 
@@ -60,14 +61,14 @@ namespace eae6320
 						}
 					}
 				}
-				if (m_isUpdateData)
+				if (rt->m_isUpdateData)
 				{
-					m_isUpdateData = false;
+					rt->m_isUpdateData = false;
 					// Update Data
 					{
 						{
 							// bind vertex array object
-							glBindVertexArray(m_vertexArrayId);
+							glBindVertexArray(rt->m_vertexArrayId);
 							const auto errorCode = glGetError();
 							if (errorCode != GL_NO_ERROR)
 							{
@@ -78,7 +79,7 @@ namespace eae6320
 								return result;
 							}
 							{
-								glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
+								glBindBuffer(GL_ARRAY_BUFFER, rt->m_vertexBufferId);
 								const auto errorCode = glGetError();
 								if (errorCode != GL_NO_ERROR)
 								{
@@ -90,7 +91,7 @@ namespace eae6320
 								}
 							}
 							{
-								glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferId);
+								glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rt->m_indexBufferId);
 								const auto errorCode = glGetError();
 								if (errorCode != GL_NO_ERROR)
 								{
@@ -106,9 +107,9 @@ namespace eae6320
 						// Assign the data to the vertex position buffer
 						{
 							{
-								const auto bufferSize = m_vertices.size();
+								const auto bufferSize = rt->m_vertices.size();
 								EAE6320_ASSERT(bufferSize < (uint64_t(1u) << (sizeof(GLsizeiptr) * 8)));
-								glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(eae6320::Graphics::Geometry::cGeometryVertex), reinterpret_cast<GLvoid*>(GetVertexData()),
+								glBufferData(GL_ARRAY_BUFFER, rt->m_vertices.size() * sizeof(eae6320::Graphics::Geometry::cGeometryVertex), reinterpret_cast<GLvoid*>(rt->GetVertexData()),
 									// In our class we won't ever read from the buffer
 									GL_STATIC_DRAW);
 								const auto errorCode = glGetError();
@@ -127,9 +128,9 @@ namespace eae6320
 						// Assign the data to the vertex index buffer
 						{
 							{
-								const auto bufferSize = GetIndexCount();
+								const auto bufferSize = rt->GetIndexCount();
 								EAE6320_ASSERT(bufferSize < (uint64_t(1u) << (sizeof(GLsizeiptr) * 8)));
-								glBufferData(GL_ELEMENT_ARRAY_BUFFER, GetIndexCount() * sizeof(unsigned int), reinterpret_cast<GLvoid*>(GetIndexData()),
+								glBufferData(GL_ELEMENT_ARRAY_BUFFER, rt->GetIndexCount() * sizeof(unsigned int), reinterpret_cast<GLvoid*>(rt->GetIndexData()),
 									// In our class we won't ever read from the buffer
 									GL_STATIC_DRAW);
 								const auto errorCode = glGetError();
@@ -254,7 +255,7 @@ namespace eae6320
 				{
 					
 					EAE6320_ASSERT(rt->m_vertexArrayId != 0);
-					glBindVertexArray((rt->m_vertexArrayId);
+					glBindVertexArray(rt->m_vertexArrayId);
 					EAE6320_ASSERT(glGetError() == GL_NO_ERROR);
 					EAE6320_ASSERT(rt->m_vertexBufferId != 0);
 					glBindBuffer(GL_ARRAY_BUFFER, rt->m_vertexBufferId);

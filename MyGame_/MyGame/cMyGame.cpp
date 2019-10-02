@@ -110,16 +110,16 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 	else if (m_isJPressed)
 	{
 		m_isJPressed = false;
-		eae6320::Graphics::Geometry::cGeometryRenderTarget* geometryB;
-		eae6320::Graphics::Geometry::cGeometryRenderTarget::Factory(geometryB);
-		geometryB->InitData("data/geometries/objectTriangle.bin");
+		eae6320::Graphics::Geometry::cGeometry geometryB;
+		geometryB.m_path = "data/geometries/objectTriangle.bin";
+		geometryB.Load();
+
 		eae6320::Graphics::Effect* effectB;
 		eae6320::Graphics::Effect::Factory(effectB);
 		effectB->SetVertexShaderPath("data/shaders/vertex/standard.shader");
 		effectB->SetFragmentShaderPath("data/shaders/fragment/standard.shader");
 		
 		AddGameObject(Application::GameObject(eae6320::Graphics::RenderObject(geometryB, effectB)));
-		geometryB->DecrementReferenceCount();
 		effectB->DecrementReferenceCount();
 	}
 
@@ -127,14 +127,14 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 	{
 		if (!m_isLPressed)
 		{
-			m_gameObjects[0].m_renderObject.m_geometry->SetIndices(std::vector<unsigned int>{ 0, 1, 2 });
+			//m_gameObjects[0].m_renderObject.m_geometry->SetIndices(std::vector<unsigned int>{ 0, 1, 2 });
 			m_isLPressed = true;
 		}
 	}
 	else if (m_isLPressed)
 	{
 		m_isLPressed = false;
-		m_gameObjects[0].m_renderObject.m_geometry->SetIndices(std::vector<unsigned int>{ 0, 1, 2, 1, 3, 2 });
+		//m_gameObjects[0].m_renderObject.m_geometry->SetIndices(std::vector<unsigned int>{ 0, 1, 2, 1, 3, 2 });
 	}
 
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::K))
@@ -163,14 +163,10 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 	
 
-	eae6320::Graphics::Geometry::cGeometryRenderTarget* geometryA;
-	eae6320::Graphics::Geometry::cGeometryRenderTarget* geometryB;
-	eae6320::Graphics::Geometry::cGeometryRenderTarget::Factory(geometryA);
-	eae6320::Graphics::Geometry::cGeometryRenderTarget::Factory(geometryB);
-	geometryA->InitData("data/geometries/objectRectangle.bin");
-	geometryB->InitData("data/geometries/objectTriangle.bin");
-	geometryA->InitDevicePipeline();
-	geometryB->InitDevicePipeline();
+	eae6320::Graphics::Geometry::cGeometry geometryA("data/geometries/objectRectangle.bin");
+	eae6320::Graphics::Geometry::cGeometry geometryB("data/geometries/objectTriangle.bin");
+	geometryA.Load();
+	geometryB.Load();
 	eae6320::Graphics::Effect* effectA, * effectB;
 	eae6320::Graphics::Effect::Factory(effectA);
 	eae6320::Graphics::Effect::Factory(effectB);
@@ -187,8 +183,6 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	m_effectChangeB->SetVertexShaderPath("data/shaders/vertex/standard.shader");
 	m_effectChangeB->SetFragmentShaderPath("data/shaders/fragment/change_color.shader");
 	SetGameObjects(std::vector<Application::GameObject>{Application::GameObject(Graphics::RenderObject(geometryA, effectA)), Application::GameObject(Graphics::RenderObject(geometryB, effectB))});
-	geometryA->DecrementReferenceCount();
-	geometryB->DecrementReferenceCount();
 
 	effectA->DecrementReferenceCount();
 	effectB->DecrementReferenceCount();

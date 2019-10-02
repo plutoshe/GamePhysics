@@ -7,7 +7,7 @@ namespace eae6320
 	{
 		namespace Geometry
 		{
-			eae6320::cResult cGeometryRenderTarget::InitDevicePipeline()
+			eae6320::cResult cGeometry::InitDevicePipeline()
 			{
 				// Create a vertex array object, vertex buffer, and index buffer
 				auto result = eae6320::Results::Success; 
@@ -188,8 +188,6 @@ namespace eae6320
 						glBindVertexArray(0);
 					}
 				}
-
-				
 				return result;
 			}
 
@@ -249,17 +247,17 @@ namespace eae6320
 				return result;
 			}
 
-			void cGeometryRenderTarget::Draw()
+			void cGeometry::Draw()
 			{
-
+				cGeometryRenderTarget* rt = cGeometryRenderTarget::s_manager.Get(m_handler);
 				// Bind a specific vertex buffer to the device as a data source
 				{
 					
-					EAE6320_ASSERT(m_vertexArrayId != 0);
-					glBindVertexArray(m_vertexArrayId);
+					EAE6320_ASSERT(rt->m_vertexArrayId != 0);
+					glBindVertexArray((rt->m_vertexArrayId);
 					EAE6320_ASSERT(glGetError() == GL_NO_ERROR);
-					EAE6320_ASSERT(m_vertexBufferId != 0);
-					glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
+					EAE6320_ASSERT(rt->m_vertexBufferId != 0);
+					glBindBuffer(GL_ARRAY_BUFFER, rt->m_vertexBufferId);
 					EAE6320_ASSERT(glGetError() == GL_NO_ERROR);
 				}
 				// Render triangles from the currently-bound vertex buffer

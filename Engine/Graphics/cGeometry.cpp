@@ -5,7 +5,7 @@
 #include <Engine/Asserts/Asserts.h>
 #include <Engine/ScopeGuard/cScopeGuard.h>
 
-//eae6320::Assets::cManager<eae6320::Graphics::Geometry::cGeometryRenderTarget> eae6320::Graphics::Geometry::cGeometryRenderTarget::s_manager;
+eae6320::Assets::cManager<eae6320::Graphics::Geometry::cGeometryRenderTarget> eae6320::Graphics::Geometry::cGeometryRenderTarget::s_manager;
 
 namespace eae6320
 {
@@ -47,59 +47,29 @@ namespace eae6320
 				UpdateData();
 			}
 
-			cResult cGeometryRenderTarget::Factory(cGeometryRenderTarget*& o_geometryRenderTarget)
+
+#if defined( EAE6320_PLATFORM_GL )
+			std::vector<unsigned int>  cGeometryIndexFace::GetGeometryIndices() const
 			{
-				auto result = Results::Success;
-				o_geometryRenderTarget = new cGeometryRenderTarget();
-				o_geometryRenderTarget->m_referenceCount = 1;
-				o_geometryRenderTarget->m_isInitialized = false;
-#if defined( EAE6320_PLATFORM_D3D )
-				o_geometryRenderTarget->m_vertexBuffer = nullptr;
-				o_geometryRenderTarget->m_indexBuffer = nullptr;
-#elif defined( EAE6320_PLATFORM_GL )
-				o_geometryRenderTarget->m_vertexBufferId = 0;
-				o_geometryRenderTarget->m_indexBufferId = 0;
-				o_geometryRenderTarget->m_vertexArrayId = 0;
+				return std::vector<unsigned int>{ m_i0, m_i1, m_i2 };
+			}
+#elif defined( EAE6320_PLATFORM_D3D )
+			std::vector<unsigned int> cGeometryIndexFace::GetGeometryIndices() const
+			{
+				return std::vector<unsigned int>{ m_i0, m_i2, m_i1 };
+			}
 #endif
-				return result;
-			}
 
-			void cGeometryRenderTarget::SetToPointer(cGeometryRenderTarget* &i_geometryRenderTarget)
-			{
-				if (this != i_geometryRenderTarget)
-				{
-					if (i_geometryRenderTarget != nullptr)
-					{
-						i_geometryRenderTarget->DecrementReferenceCount();
-					}
-					this->IncrementReferenceCount();
-					i_geometryRenderTarget = this;
-				}
-			}
-
-
-			#if defined( EAE6320_PLATFORM_GL )
-				std::vector<unsigned int>  cGeometryIndexFace::GetGeometryIndices() const
-				{
-					return std::vector<unsigned int>{ m_i0, m_i1, m_i2 };
-				}
-			#elif defined( EAE6320_PLATFORM_D3D )
-				std::vector<unsigned int> cGeometryIndexFace::GetGeometryIndices() const
-				{
-					return std::vector<unsigned int>{ m_i0, m_i2, m_i1 };
-				}
-			#endif
-
-			void cGeometryRenderTarget::AddFace(const cGeometryIndexFace &face)
+			void cGeometryRenderTarget::AddFace(const cGeometryIndexFace& face)
 			{
 				std::vector<unsigned int> result = face.GetGeometryIndices();
-				for (int i = 0; i < 3; i++) 
+				for (int i = 0; i < 3; i++)
 				{
 					m_indices.push_back(result[i]);
 				}
 				UpdateData();
 			}
-			void cGeometryRenderTarget::AddIndices(int FaceNum, const std::vector<unsigned int> &triangleIndices)
+			void cGeometryRenderTarget::AddIndices(int FaceNum, const std::vector<unsigned int>& triangleIndices)
 
 			{
 				for (int i = 0; i < FaceNum; i++)
@@ -109,7 +79,7 @@ namespace eae6320
 				UpdateData();
 			}
 
-			void cGeometryRenderTarget::AddVetices(int vertexNum, const std::vector<cGeometryVertex> &vertices)
+			void cGeometryRenderTarget::AddVetices(int vertexNum, const std::vector<cGeometryVertex>& vertices)
 			{
 				m_vertices.insert(m_vertices.end(), vertices.begin(), vertices.begin() + vertexNum);
 				UpdateData();
@@ -216,7 +186,7 @@ namespace eae6320
 							EAE6320_ASSERTF(false, "Asset files must return a single table");
 							/*std::cerr << "Asset files must return a single table (instead of "
 								<< returnedValueCount << " values)" << std::endl;*/
-							// Pop every value that was returned
+								// Pop every value that was returned
 							lua_pop(luaState, returnedValueCount);
 							return result;
 						}
@@ -295,7 +265,7 @@ namespace eae6320
 						{
 							AddFace(cGeometryIndexFace(faceIndices[0], faceIndices[1], faceIndices[2]));
 						}
-						
+
 					}
 				}
 				else {
@@ -364,12 +334,86 @@ namespace eae6320
 				}
 				return result;
 			}
-			
+
 			unsigned int cGeometryRenderTarget::GetIndexCount()
 			{
 				return (unsigned int)m_indices.size();
-			}		
+			}
 
+			//eae6320::cResult cGeometry::Load(
+			//	eae6320::Assets::cManager<cGeometryRenderTarget>& manager)
+			//{
+			//}
+			eae6320::cResult cGeometry::Load()
+			{
+				auto result = eae6320::Results::Success;
+				if (m_path == "")
+				{
+					EAE6320_ASSERTF(false, "Load Geometry failed");
+					return  eae6320::Results::Failure;
+				}
+
+				if (!(result = cGeometryRenderTarget::s_manager.Load(
+					m_path,
+					m_handler)))
+				{
+					EAE6320_ASSERTF(false, "Load Geometry failed");
+					return result;
+				}
+
+				return result;
+			}
+			eae6320::cResult cGeometryRenderTarget::Load(const std::string& i_path, cGeometryRenderTarget*& o_geometry)
+			{
+				auto result = Results::Success;
+
+				cGeometryRenderTarget* newGeometry = nullptr;
+				cScopeGuard scopeGuard([&o_geometry, &result, &newGeometry]
+					{
+						if (result)
+						{
+							EAE6320_ASSERT(newGeometry != nullptr);
+							o_geometry = newGeometry;
+						}
+						else
+						{
+							if (newGeometry)
+							{
+								newGeometry->DecrementReferenceCount();
+								newGeometry = nullptr;
+							}
+							o_geometry = nullptr;
+						}
+					});
+
+
+				// Allocate a new shader
+				{
+					newGeometry = new (std::nothrow) cGeometryRenderTarget();
+					if (!newGeometry)
+					{
+						result = Results::OutOfMemory;
+						EAE6320_ASSERTF(false, "Couldn't allocate memory for the geometry %s", i_path.c_str());
+						Logging::OutputError("Failed to allocate memory for the geometry %s", i_path.c_str());
+						return result;
+					}
+				}
+
+
+
+				// Initialize the platform-specific graphics API shader object
+				if (!(result = newGeometry->InitData(i_path)))
+				{
+					EAE6320_ASSERTF(false, "Initialization of new geometry failed");
+					return result;
+				}
+
+				return result;
+			}
 		}
+
 	}
+
 }
+
+

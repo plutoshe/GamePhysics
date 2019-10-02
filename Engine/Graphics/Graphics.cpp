@@ -37,6 +37,11 @@ namespace eae6320
 					EAE6320_ASSERTF(false, "Can't initialize Graphics without the shader manager");
 					return result;
 				}
+				if (!(result = Geometry::cGeometryRenderTarget::s_manager.Initialize()))
+				{
+					EAE6320_ASSERTF(false, "Can't initialize Graphics without the render state manager");
+					return result;
+				}
 			}
 
 			// Initialize the platform-independent graphics objects
@@ -213,7 +218,7 @@ namespace eae6320
 
 			for (size_t i = 0; i < eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects.size(); i++)
 			{
-				auto result_initGeometry = eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_geometry->InitDevicePipeline();
+				auto result_initGeometry = eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_geometry.InitDevicePipeline();
 				if (!result_initGeometry)
 				{
 					EAE6320_ASSERT(false);
@@ -238,7 +243,7 @@ namespace eae6320
 					auto& constantData_drawCall = eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_Transformation;
 					eae6320::Graphics::Env::s_constantBuffer_drawCall.Update(&constantData_drawCall);
 					eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_effect->Bind();
-					eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_geometry->Draw();
+					eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_geometry.Draw();
 				}
 			}
 			PostpocessAfterRender();

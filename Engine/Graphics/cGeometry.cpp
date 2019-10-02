@@ -5,14 +5,15 @@
 #include <Engine/Asserts/Asserts.h>
 #include <Engine/ScopeGuard/cScopeGuard.h>
 
-eae6320::Assets::cManager<eae6320::Graphics::Geometry::cGeometryRenderTarget> eae6320::Graphics::Geometry::cGeometryRenderTarget::s_manager;
-
 namespace eae6320
 {
 	namespace Graphics
 	{
 		namespace Geometry
 		{
+			eae6320::Assets::cManager<eae6320::Graphics::Geometry::cGeometryRenderTarget> eae6320::Graphics::Geometry::cGeometryRenderTarget::s_manager;
+
+			std::map<std::string, cGeometryRenderTarget::Handle> eae6320::Graphics::Geometry::cGeometryRenderTarget::s_hanlderMap = std::map<std::string, cGeometryRenderTarget::Handle>();
 			void cGeometryRenderTarget::UpdateData()
 			{
 				m_isUpdateData = true;
@@ -225,20 +226,6 @@ namespace eae6320
 			eae6320::cResult cGeometryRenderTarget::LoadIndicesFromLua(lua_State& io_luaState)
 			{
 				auto result = eae6320::Results::Success;
-				/*constexpr auto* const keyIndicessNum = "numberOfIndices";
-				lua_pushstring(&io_luaState, keyIndicessNum);
-				lua_gettable(&io_luaState, -2);
-				lua_Number IndicesNum;
-				if (lua_isnumber(&io_luaState, -1))
-				{
-					IndicesNum = lua_tonumber(&io_luaState, -1);
-				}
-				else {
-					result = eae6320::Results::InvalidFile;
-					EAE6320_ASSERTF(false, "No number of vertices");
-					return result;
-				}
-				lua_pop(&io_luaState, 1);*/
 
 				constexpr auto* const keyIndices = "indices";
 				lua_pushstring(&io_luaState, keyIndices);
@@ -279,20 +266,6 @@ namespace eae6320
 			eae6320::cResult cGeometryRenderTarget::LoadVerticesFromLua(lua_State& io_luaState)
 			{
 				auto result = eae6320::Results::Success;
-				/*constexpr auto* const keyVerticesNum = "numberOfVertices";
-				lua_pushstring(&io_luaState, keyVerticesNum);
-				lua_gettable(&io_luaState, -2);
-				lua_Number verticesNum;
-				if (lua_isnumber(&io_luaState, -1))
-				{
-					verticesNum = lua_tonumber(&io_luaState, -1);
-				}
-				else {
-					result = eae6320::Results::InvalidFile;
-					EAE6320_ASSERTF(false, "No number of vertices");
-					return result;
-				}
-				lua_pop(&io_luaState, 1);*/
 
 				constexpr auto* const keyVertices = "vertices";
 				lua_pushstring(&io_luaState, keyVertices);
@@ -340,10 +313,7 @@ namespace eae6320
 				return (unsigned int)m_indices.size();
 			}
 
-			//eae6320::cResult cGeometry::Load(
-			//	eae6320::Assets::cManager<cGeometryRenderTarget>& manager)
-			//{
-			//}
+			
 			eae6320::cResult cGeometry::Load()
 			{
 				auto result = eae6320::Results::Success;
@@ -352,15 +322,21 @@ namespace eae6320
 					EAE6320_ASSERTF(false, "Load Geometry failed");
 					return  eae6320::Results::Failure;
 				}
-
-				if (!(result = cGeometryRenderTarget::s_manager.Load(
+				if (cGeometryRenderTarget::s_hanlderMap.find(m_path) != cGeometryRenderTarget::s_hanlderMap.end())
+				{
+					m_handler = cGeometryRenderTarget::s_hanlderMap[m_path];
+				}
+				else if (!(result = cGeometryRenderTarget::s_manager.Load(
 					m_path,
 					m_handler)))
 				{
 					EAE6320_ASSERTF(false, "Load Geometry failed");
 					return result;
 				}
-
+				else {
+					cGeometryRenderTarget::s_hanlderMap[m_path] = m_handler;
+				}
+				
 				return result;
 			}
 			eae6320::cResult cGeometryRenderTarget::Load(const std::string& i_path, cGeometryRenderTarget*& o_geometry)

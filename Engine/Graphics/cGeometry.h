@@ -46,10 +46,12 @@ namespace eae6320
 			class cGeometryRenderTarget
 			{
 			public:
+				
 				EAE6320_ASSETS_DECLAREDELETEDREFERENCECOUNTEDFUNCTIONS(cGeometryRenderTarget);
 				EAE6320_ASSETS_DECLAREREFERENCECOUNT();
 				EAE6320_ASSETS_DECLAREREFERENCECOUNTINGFUNCTIONS();
 				using Handle = Assets::cHandle<cGeometryRenderTarget>;
+				static std::map<std::string, Handle> s_hanlderMap;
 				static Assets::cManager<cGeometryRenderTarget> s_manager;
 				cResult CleanUp() { Release(); }
 
@@ -97,6 +99,7 @@ namespace eae6320
 				cGeometryRenderTarget::Handle m_handler;
 				cGeometry(const cGeometry& i_geometry) { m_path = i_geometry.m_path; m_handler = i_geometry.m_handler; }
 				cGeometry() { m_path = ""; }
+				~cGeometry() { }
 				cGeometry(std::string i_path) { m_path = i_path; }
 				eae6320::cResult InitDevicePipeline();
 				eae6320::cResult Load();

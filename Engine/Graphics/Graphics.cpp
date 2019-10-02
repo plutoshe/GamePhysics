@@ -283,6 +283,19 @@ namespace eae6320
 					}
 				}
 			}
+			for (auto it = eae6320::Graphics::Geometry::cGeometryRenderTarget::s_hanlderMap.begin(); it != eae6320::Graphics::Geometry::cGeometryRenderTarget::s_hanlderMap.end(); ++it)
+			{
+				const auto result_geometry = eae6320::Graphics::Geometry::cGeometryRenderTarget::s_manager.Release(it->second);
+				if (!result_geometry)
+				{
+					EAE6320_ASSERT(false);
+					if (result)
+					{
+						result = result_geometry;
+					}
+				}
+			}
+
 
 			if (eae6320::Graphics::Env::s_renderState)
 			{
@@ -320,7 +333,17 @@ namespace eae6320
 					}
 				}
 			}
-
+			{
+				const auto result_geometryManager = Geometry::cGeometryRenderTarget::s_manager.CleanUp();
+				if (!result_geometryManager)
+				{
+					EAE6320_ASSERT(false);
+					if (result)
+					{
+						result = result_geometryManager;
+					}
+				}
+			}
 			{
 				const auto result_shaderManager = cShader::s_manager.CleanUp();
 				if (!result_shaderManager)

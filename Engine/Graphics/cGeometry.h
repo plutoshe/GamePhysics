@@ -5,6 +5,7 @@
 #include "cVertexFormat.h"
 #include "PlatformIncludes.h"
 #include <Engine/Assets/ReferenceCountedAssets.h>
+#include <External/Lua/Includes.h>
 
 namespace eae6320
 {
@@ -45,10 +46,18 @@ namespace eae6320
 			class cGeometryRenderTarget
 			{
 			public:
+				
 				EAE6320_ASSETS_DECLAREDELETEDREFERENCECOUNTEDFUNCTIONS(cGeometryRenderTarget);
 				EAE6320_ASSETS_DECLAREREFERENCECOUNT();
 				EAE6320_ASSETS_DECLAREREFERENCECOUNTINGFUNCTIONS();
+				using Handle = Assets::cHandle<cGeometryRenderTarget>;
+				static std::map<std::string, Handle> s_hanlderMap;
+				static Assets::cManager<cGeometryRenderTarget> s_manager;
+				cResult CleanUp() { Release(); }
 
+				eae6320::cResult LoadIndicesFromLua(lua_State& io_luaState);
+				eae6320::cResult LoadVerticesFromLua(lua_State& io_luaState);
+				static eae6320::cResult Load(const std::string& i_path, cGeometryRenderTarget*& o_geometry);
 				unsigned int VertexBufferSize();
 				unsigned int GetIndexCount();
 				unsigned int IndexBufferSize();
@@ -61,14 +70,20 @@ namespace eae6320
 				void UpdateData();
 				cGeometryVertex* GetVertexData();
 				unsigned int* GetIndexData();
-				void Draw();
 				unsigned int vertexCountToRender();
 				void InitData(const std::vector<cGeometryVertex>& vertices, const std::vector<unsigned int> &triangleIndices);
-				eae6320::cResult InitDevicePipeline();
-				static cResult Factory(cGeometryRenderTarget*& o_geometryRenderTarget);
-				void SetToPointer(cGeometryRenderTarget* &i_geometryRenderTarget);
+				eae6320::cResult InitData(std::string i_path);
+#if defined( EAE6320_PLATFORM_D3D )
+				cGeometryRenderTarget() { m_isInitialized = false; m_isUpdateData = false; m_vertexBuffer = m_indexBuffer = nullptr; }
+				ID3D11Buffer* m_vertexBuffer = nullptr;
+				ID3D11Buffer* m_indexBuffer = nullptr;
+#elif defined( EAE6320_PLATFORM_GL )
+				cGeometryRenderTarget() { m_isInitialized = false; m_isUpdateData = false; m_vertexBufferId = m_indexBufferId = m_vertexArrayId = 0; }
+				GLuint m_vertexBufferId = 0;
+				GLuint m_indexBufferId = 0;
+				GLuint m_vertexArrayId = 0;
+#endif
 
-private:
 				bool m_isInitialized;
 				bool m_isUpdateData;
 				std::vector<cGeometryVertex> m_vertices;
@@ -76,19 +91,19 @@ private:
 
 				eae6320::cResult Release();
 				~cGeometryRenderTarget() { Release(); }
-#if defined( EAE6320_PLATFORM_D3D )
-				cGeometryRenderTarget() { m_isInitialized = false; m_isUpdateData = false; m_vertexBuffer = m_indexBuffer = nullptr; }
+			};
 
-				ID3D11Buffer* m_vertexBuffer = nullptr;
-				ID3D11Buffer* m_indexBuffer = nullptr;
-#elif defined( EAE6320_PLATFORM_GL )
-				
-				
-				cGeometryRenderTarget() { m_isInitialized = false; m_isUpdateData = false; m_vertexBufferId = m_indexBufferId = m_vertexArrayId = 0; }
-				GLuint m_vertexBufferId = 0;
-				GLuint m_indexBufferId = 0;
-				GLuint m_vertexArrayId = 0;
-#endif
+			class cGeometry {
+			public:
+				std::string m_path;
+				cGeometryRenderTarget::Handle m_handler;
+				cGeometry(const cGeometry& i_geometry) { m_path = i_geometry.m_path; m_handler = i_geometry.m_handler; }
+				cGeometry() { m_path = ""; }
+				~cGeometry() { }
+				cGeometry(std::string i_path) { m_path = i_path; }
+				eae6320::cResult InitDevicePipeline();
+				eae6320::cResult Load();
+				void Draw();
 			};
 		}
 	}

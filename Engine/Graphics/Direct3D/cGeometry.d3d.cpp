@@ -7,12 +7,13 @@ namespace eae6320
 	{
 		namespace Geometry
 		{
-			eae6320::cResult cGeometryRenderTarget::InitDevicePipeline()
+			eae6320::cResult cGeometry::InitDevicePipeline()
 			{
 				eae6320::cResult result = eae6320::Results::Success;
-				if (m_isUpdateData)
+				cGeometryRenderTarget* rt = cGeometryRenderTarget::s_manager.Get(m_handler);
+				if (rt->m_isUpdateData)
 				{
-					m_isUpdateData = false;
+					rt->m_isUpdateData = false;
 					auto* const direct3dDevice = eae6320::Graphics::sContext::g_context.direct3dDevice;
 					EAE6320_ASSERT(direct3dDevice);
 
@@ -20,7 +21,7 @@ namespace eae6320
 					{
 						D3D11_BUFFER_DESC bufferDescription{};
 						{
-							const auto bufferSize = VertexBufferSize();
+							const auto bufferSize = rt->VertexBufferSize();
 							EAE6320_ASSERT(bufferSize < (uint64_t(1u) << (sizeof(bufferDescription.ByteWidth) * 8)));
 							bufferDescription.ByteWidth = static_cast<unsigned int>(bufferSize);
 							bufferDescription.Usage = D3D11_USAGE_IMMUTABLE;	// In our class the buffer will never change after it's been created
@@ -31,11 +32,11 @@ namespace eae6320
 						}
 						D3D11_SUBRESOURCE_DATA initialData{};
 						{
-							initialData.pSysMem = GetVertexData();
+							initialData.pSysMem = rt->GetVertexData();
 							// (The other data members are ignored for non-texture buffers)
 						}
 
-						auto d3dResult = direct3dDevice->CreateBuffer(&bufferDescription, &initialData, &m_vertexBuffer);
+						auto d3dResult = direct3dDevice->CreateBuffer(&bufferDescription, &initialData, &rt->m_vertexBuffer);
 
 						if (FAILED(d3dResult))
 						{
@@ -46,17 +47,17 @@ namespace eae6320
 						}
 
 						CD3D11_BUFFER_DESC iDesc(
-							(UINT)m_indices.size() * sizeof(unsigned int),
+							(UINT)rt->m_indices.size() * sizeof(unsigned int),
 							D3D11_BIND_INDEX_BUFFER
 						);
 
 						D3D11_SUBRESOURCE_DATA iData;
 						ZeroMemory(&iData, sizeof(D3D11_SUBRESOURCE_DATA));
-						iData.pSysMem = GetIndexData();
+						iData.pSysMem = rt->GetIndexData();
 						iData.SysMemPitch = 0;
 						iData.SysMemSlicePitch = 0;
 
-						d3dResult = direct3dDevice->CreateBuffer(&iDesc, &iData, &m_indexBuffer);
+						d3dResult = direct3dDevice->CreateBuffer(&iDesc, &iData, &rt->m_indexBuffer);
 						if (FAILED(d3dResult))
 						{
 							result = eae6320::Results::Failure;
@@ -84,21 +85,22 @@ namespace eae6320
 				}
 				return result;
 			}
-			void cGeometryRenderTarget::Draw()
+			void cGeometry::Draw()
 			{
 				auto* const direct3dImmediateContext = sContext::g_context.direct3dImmediateContext;
+				cGeometryRenderTarget *rt = cGeometryRenderTarget::s_manager.Get(m_handler);
 				// Bind a specific vertex buffer to the device as a data source
 				{
-					EAE6320_ASSERT(m_vertexBuffer);
-					EAE6320_ASSERT(m_indexBuffer);
+					EAE6320_ASSERT(rt->m_vertexBuffer);
+					EAE6320_ASSERT(rt->m_indexBuffer);
 					constexpr unsigned int startingSlot = 0;
 					constexpr unsigned int vertexBufferCount = 1;
 					// The "stride" defines how large a single vertex is in the stream of data
 					constexpr unsigned int bufferStride = sizeof(Graphics::Geometry::cGeometryVertex);
 					// It's possible to start streaming data in the middle of a vertex buffer
 					constexpr unsigned int bufferOffset = 0;
-					direct3dImmediateContext->IASetVertexBuffers(startingSlot, vertexBufferCount, &m_vertexBuffer, &bufferStride, &bufferOffset);
-					direct3dImmediateContext->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+					direct3dImmediateContext->IASetVertexBuffers(startingSlot, vertexBufferCount, &rt->m_vertexBuffer, &bufferStride, &bufferOffset);
+					direct3dImmediateContext->IASetIndexBuffer(rt->m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 				}
 				// Specify what kind of data the vertex buffer holds
 				{
@@ -120,7 +122,7 @@ namespace eae6320
 					constexpr unsigned int indexOfFirstVertexToRender = 0;
 					//direct3dImmediateContext->Draw(vertexCountToRender(), indexOfFirstVertexToRender);
 					direct3dImmediateContext->DrawIndexed(
-						GetIndexCount(),
+						rt->GetIndexCount(),
 						0,
 						0
 					);

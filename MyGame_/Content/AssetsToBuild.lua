@@ -13,4 +13,9 @@ return
 		{ path = "shaders/fragment/blue.shader", arguments = { "fragment" } },
 		{ path = "shaders/fragment/change_color.shader", arguments = { "fragment" } },
 	},
+	geometries = 
+	{
+		{ path = "geometries/objectRectangle.bin"},
+		{ path = "geometries/objectTriangle.bin"},
+	},
 }

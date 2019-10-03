@@ -37,6 +37,11 @@ namespace eae6320
 					EAE6320_ASSERTF(false, "Can't initialize Graphics without the shader manager");
 					return result;
 				}
+				if (!(result = Geometry::cGeometryRenderTarget::s_manager.Initialize()))
+				{
+					EAE6320_ASSERTF(false, "Can't initialize Graphics without the render state manager");
+					return result;
+				}
 			}
 
 			// Initialize the platform-independent graphics objects
@@ -213,7 +218,7 @@ namespace eae6320
 
 			for (size_t i = 0; i < eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects.size(); i++)
 			{
-				auto result_initGeometry = eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_geometry->InitDevicePipeline();
+				auto result_initGeometry = eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_geometry.InitDevicePipeline();
 				if (!result_initGeometry)
 				{
 					EAE6320_ASSERT(false);
@@ -238,7 +243,7 @@ namespace eae6320
 					auto& constantData_drawCall = eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_Transformation;
 					eae6320::Graphics::Env::s_constantBuffer_drawCall.Update(&constantData_drawCall);
 					eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_effect->Bind();
-					eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_geometry->Draw();
+					eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_geometry.Draw();
 				}
 			}
 			PostpocessAfterRender();
@@ -278,6 +283,19 @@ namespace eae6320
 					}
 				}
 			}
+			for (auto it = eae6320::Graphics::Geometry::cGeometryRenderTarget::s_hanlderMap.begin(); it != eae6320::Graphics::Geometry::cGeometryRenderTarget::s_hanlderMap.end(); ++it)
+			{
+				const auto result_geometry = eae6320::Graphics::Geometry::cGeometryRenderTarget::s_manager.Release(it->second);
+				if (!result_geometry)
+				{
+					EAE6320_ASSERT(false);
+					if (result)
+					{
+						result = result_geometry;
+					}
+				}
+			}
+
 
 			if (eae6320::Graphics::Env::s_renderState)
 			{
@@ -315,7 +333,17 @@ namespace eae6320
 					}
 				}
 			}
-
+			{
+				const auto result_geometryManager = Geometry::cGeometryRenderTarget::s_manager.CleanUp();
+				if (!result_geometryManager)
+				{
+					EAE6320_ASSERT(false);
+					if (result)
+					{
+						result = result_geometryManager;
+					}
+				}
+			}
 			{
 				const auto result_shaderManager = cShader::s_manager.CleanUp();
 				if (!result_shaderManager)

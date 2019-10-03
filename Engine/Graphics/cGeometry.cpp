@@ -152,7 +152,8 @@ namespace eae6320
 					if (luaResult != LUA_OK)
 					{
 						result = eae6320::Results::Failure;
-						EAE6320_ASSERTF(false, lua_tostring(luaState, -1));
+						auto errorMessage = lua_tostring(luaState, -1);
+						EAE6320_ASSERTF(false, "cannot load file");
 						// Pop the error message
 						lua_pop(luaState, 1);
 						return result;

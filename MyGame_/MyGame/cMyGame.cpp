@@ -168,7 +168,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 	
 
-	eae6320::Graphics::Geometry::cGeometry geometryA("data/geometries/objectRectangle.bin");
+	eae6320::Graphics::Geometry::cGeometry geometryA("data/geometries/object1.bin");
 	eae6320::Graphics::Geometry::cGeometry geometryB("data/geometries/objectTriangle.bin");
 	auto resultGeometryA = geometryA.Load();
 	auto resultGeometryB = geometryB.Load();

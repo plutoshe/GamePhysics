@@ -114,7 +114,7 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 	{
 		m_isJPressed = false;
 		eae6320::Graphics::Geometry::cGeometry geometryB;
-		geometryB.m_path = "data/geometries/objectTriangle.bin";
+		geometryB.m_path = "data/geometries/object2.bin";
 		geometryB.Load();
 
 		eae6320::Graphics::Effect* effectB;
@@ -168,10 +168,12 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 	
 
-	eae6320::Graphics::Geometry::cGeometry geometryA("data/geometries/object1.bin");
-	eae6320::Graphics::Geometry::cGeometry geometryB("data/geometries/objectTriangle.bin");
+	eae6320::Graphics::Geometry::cGeometry geometryA("data/geometries/object2.bin");
+	eae6320::Graphics::Geometry::cGeometry geometryB("data/geometries/object1.bin");
+	eae6320::Graphics::Geometry::cGeometry geometryC("data/geometries/object3.bin");
 	auto resultGeometryA = geometryA.Load();
 	auto resultGeometryB = geometryB.Load();
+	auto resultGeometryC = geometryC.Load();
 	
 	eae6320::Graphics::Effect* effectA, * effectB;
 	eae6320::Graphics::Effect::Factory(effectA);
@@ -197,10 +199,15 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	{
 		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryA, effectA)));
 	}
+	if (resultGeometryC)
+	{
+		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryC, effectB)));
+	}
 	if (resultGeometryB)
 	{
-		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryB, effectB)));
+		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryB, effectA)));
 	}
+
 	SetGameObjects(objs);
 
 	effectA->DecrementReferenceCount();

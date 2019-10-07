@@ -75,6 +75,7 @@ namespace eae6320
 		cResult PlatformSpecificInitialization(const sInitializationParameters& i_initializationParameters);
 		cResult InitializeGeometry();
 		cResult InitializeShadingData();
+		cResult InitializeRenderState();
 		cResult LoadShaderData(
 			std::string path,
 			std::map<std::string, eae6320::Graphics::cShader::Handle>& shaderMap,

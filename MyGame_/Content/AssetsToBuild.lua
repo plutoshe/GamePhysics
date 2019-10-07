@@ -17,6 +17,8 @@ return
 	{
 		{ path = "geometries/objectRectangle.bin"},
 		{ path = "geometries/object1.bin"},
+		{ path = "geometries/object2.bin"},
+		{ path = "geometries/object3.bin"},
 		{ path = "geometries/objectTriangle.bin"},
 	},
 }

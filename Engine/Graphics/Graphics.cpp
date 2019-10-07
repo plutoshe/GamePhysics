@@ -97,6 +97,14 @@ namespace eae6320
 					return result;
 				}
 			}
+			{
+				if (!(result = InitializeRenderState()))
+				{
+					EAE6320_ASSERTF(false, "Can't initialize Graphics render state");
+					return result;
+				}
+			}
+
 			// Initialize the geometry
 			{
 				if (!(result = InitializeGeometry()))
@@ -114,10 +122,24 @@ namespace eae6320
 				}
 
 			}
-
+			
 			return result;
 		}
 
+
+		eae6320::cResult InitializeRenderState()
+		{	
+			auto result = eae6320::Results::Success;
+			uint8_t defaultRenderState = 0;
+			eae6320::Graphics::RenderStates::EnableDepthTesting(defaultRenderState);
+			eae6320::Graphics::RenderStates::EnableDepthWriting(defaultRenderState);
+			if (!(result = eae6320::Graphics::cRenderState::s_manager.Load(defaultRenderState, eae6320::Graphics::Env::s_renderState)))
+			{
+				EAE6320_ASSERTF(false, "Can't initialize shading data without render state");
+				return result;
+			}
+			return result;
+		}
 
 		eae6320::cResult InitializeGeometry()
 		{

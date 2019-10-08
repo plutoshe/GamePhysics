@@ -107,7 +107,9 @@ eae6320::cResult eae6320::Graphics::InitializeShadingData()
 {
 	auto result = eae6320::Results::Success;
 	{
-		constexpr uint8_t defaultRenderState = 0;
+		uint8_t defaultRenderState = 0;
+		eae6320::Graphics::RenderStates::EnableDepthTesting(defaultRenderState);
+		eae6320::Graphics::RenderStates::EnableDepthWriting(defaultRenderState);
 		if (!(result = eae6320::Graphics::cRenderState::s_manager.Load(defaultRenderState, eae6320::Graphics::Env::s_renderState)))
 		{
 			EAE6320_ASSERTF(false, "Can't initialize shading data without render state");
@@ -164,18 +166,4 @@ namespace
 		return result;
 	}
 
-	eae6320::cResult InitializeShadingData()
-	{
-		auto result = eae6320::Results::Success;
-
-		uint8_t defaultRenderState = 0;
-		eae6320::Graphics::RenderStates::EnableDepthTesting(defaultRenderState);
-		eae6320::Graphics::RenderStates::EnableDepthWriting(defaultRenderState);
-		if (!(result = eae6320::Graphics::cRenderState::s_manager.Load(defaultRenderState, eae6320::Graphics::Env::s_renderState)))
-		{
-			EAE6320_ASSERTF(false, "Can't initialize shading data without render state");
-			return result;
-		}
-		return result;
-	}
 }

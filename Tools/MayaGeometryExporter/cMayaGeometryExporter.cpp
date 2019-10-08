@@ -771,6 +771,11 @@ namespace
 		return MStatus::kSuccess;
 	}
 
+	int GetRGBAUintValue(float i_color)
+	{
+		return static_cast<int>(round(i_color * 255));
+	}
+
 	MStatus WriteGeometryToFile( const MString& i_fileName, const std::vector<sVertexInfo>& i_vertexArray, const std::vector<size_t>& i_indexArray,
 		const std::vector<sMaterialInfo>& i_materialInfo )
 	{
@@ -797,20 +802,24 @@ namespace
 				"{" "\n";
 			{
 				//EAE6320_TODO
-				fout << "  vertices = {";
+				fout << "    vertices = {\n";
 				for (auto i = 0; i < i_vertexArray.size(); i++)
 				{
 					if (i != 0)
 					{
-						fout << ",";
+						fout << ",\n";
 					}
-					fout << "{" << i_vertexArray[i].vertex.x << ","
+					fout << "       {position={" << i_vertexArray[i].vertex.x << ","
 						<< i_vertexArray[i].vertex.y << ","
-						<< i_vertexArray[i].vertex.z << "}";
+						<< i_vertexArray[i].vertex.z << "},";
+					fout << "color={" << GetRGBAUintValue(i_vertexArray[i].vertex.r) << ","
+						<< GetRGBAUintValue(i_vertexArray[i].vertex.g) << ","
+						<< GetRGBAUintValue(i_vertexArray[i].vertex.b) << ","
+						<< GetRGBAUintValue(i_vertexArray[i].vertex.a) << "}}";
 					
 				}
 				fout << "},\n";
-				fout << "  indices = {";
+				fout << "   indices = {";
 				for (auto i = 0; i < i_indexArray.size(); i++)
 				{
 					if (i != 0)

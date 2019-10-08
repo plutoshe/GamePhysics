@@ -58,25 +58,12 @@ eae6320::cResult eae6320::Graphics::cVertexFormat::Initialize( const VertexTypes
 					// POSITION
 					// 3 floats == 12 bytes
 					// Offset = 0
+
+					// COLOR
+					// 4 uint8_t = 4 bytes
+					// Offset =  12
 					{
-						//auto& positionElement = layoutDescription[0];
 
-						//positionElement.SemanticName = "POSITION";
-						//positionElement.SemanticIndex = 0;	// (Semantics without modifying indices at the end can always use zero)
-						//positionElement.Format = DXGI_FORMAT_R32G32B32_FLOAT;
-						//positionElement.InputSlot = 0U;
-						//positionElement.AlignedByteOffset = 0;
-						//positionElement.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-						//positionElement.InstanceDataStepRate = 0;	// (Must be zero for per-vertex data)
-						//auto& colorElement = layoutDescription[0];
-
-						//colorElement.SemanticName = "COLOR";
-						//colorElement.SemanticIndex = 0;	// (Semantics without modifying indices at the end can always use zero)
-						//colorElement.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-						//colorElement.InputSlot = 0U;
-						//colorElement.AlignedByteOffset = 3 * sizeof(float);
-						//colorElement.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-						//colorElement.InstanceDataStepRate = 0;	// (Must be zero for per-vertex data)
 						auto& positionElement = layoutDescription[0];
 						positionElement.SemanticName = "POSITION";
 						positionElement.SemanticIndex = 0;	// (Semantics without modifying indices at the end can always use zero)
@@ -90,10 +77,10 @@ eae6320::cResult eae6320::Graphics::cVertexFormat::Initialize( const VertexTypes
 						colorElement.SemanticIndex = 0;	// (Semantics without modifying indices at the end can always use zero)
 						colorElement.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 						colorElement.InputSlot = 0U;
-						colorElement.AlignedByteOffset = 12;// 3 * sizeof(float);
+						colorElement.AlignedByteOffset = 3 * sizeof(float);
 						colorElement.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 						colorElement.InstanceDataStepRate = 0;	// (Must be zero for per-vertex data)
-						
+
 
 					}
 				}

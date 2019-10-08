@@ -31,7 +31,7 @@ void main(
 	//======
 
 	in const float4 i_fragmentPosition : SV_POSITION,
-	in const float4 i_vertexColor : COLOR,
+	in float4 i_vertexColor;
 	// Output
 	//=======
 
@@ -42,14 +42,11 @@ void main(
 )
 {
 	// Output solid white
-	o_color = float4(
-		// RGB (color)
-		1.0, 1.0, 1.0,
-		// Alpha (opacity)
-		1.0 );
+	o_color = float4(0.0, 0.0, 0.7, 1.0);
 }
 
 #elif defined( EAE6320_PLATFORM_GL )
+
 
 // Constant Buffers
 //=================
@@ -71,18 +68,14 @@ layout( std140, binding = 0 ) uniform g_constantBuffer_frame
 // Whatever color value is output from the fragment shader
 // will determine the color of the corresponding pixel on the screen
 out vec4 o_color;
-in vec4 i_vertexColor;
+
 // Entry Point
 //============
 
 void main()
 {
 	// Output solid white
-	o_color = vec4(
-		// RGB (color)
-		1.0, 1.0, 1.0,
-		// Alpha (opacity)
-		1.0 );
+	o_color = i_vertexColor;
 }
 
 #endif

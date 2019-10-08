@@ -168,9 +168,9 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 	
 
-	eae6320::Graphics::Geometry::cGeometry geometryA("data/geometries/object2.bin");
-	eae6320::Graphics::Geometry::cGeometry geometryB("data/geometries/object1.bin");
-	eae6320::Graphics::Geometry::cGeometry geometryC("data/geometries/object3.bin");
+	eae6320::Graphics::Geometry::cGeometry geometryA("data/geometries/objectRectangle.bin");
+	eae6320::Graphics::Geometry::cGeometry geometryB("data/geometries/objectTriangle.bin");
+	eae6320::Graphics::Geometry::cGeometry geometryC("data/geometries/object1.bin");
 	auto resultGeometryA = geometryA.Load();
 	auto resultGeometryB = geometryB.Load();
 	auto resultGeometryC = geometryC.Load();
@@ -197,7 +197,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	}
 	if (resultGeometryA)
 	{
-		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryA, effectA)));
+		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryA, effectB)));
 	}
 	if (resultGeometryC)
 	{
@@ -205,7 +205,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	}
 	if (resultGeometryB)
 	{
-		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryB, effectA)));
+		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryB, effectB)));
 	}
 
 	SetGameObjects(objs);
@@ -219,7 +219,14 @@ eae6320::cResult eae6320::cMyGame::CleanUp()
 {
 	
 	Application::cbApplication::CleanUp();
-	m_effectChangeA->DecrementReferenceCount(); m_effectChangeB->DecrementReferenceCount();
+	if (m_effectChangeA)
+	{
+		m_effectChangeA->DecrementReferenceCount();
+	}
+	if (m_effectChangeB)
+	{
+		m_effectChangeB->DecrementReferenceCount();
+	}
 	m_effectChangeA = nullptr; m_effectChangeB = nullptr;
 	
 	return Results::Success;

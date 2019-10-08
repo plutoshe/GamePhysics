@@ -283,22 +283,78 @@ namespace eae6320
 					{
 						lua_pushinteger(&io_luaState, i);
 						lua_gettable(&io_luaState, -2);
-						eae6320::cScopeGuard scopeGuard_popVerticesIndex([&io_luaState]
+						eae6320::cScopeGuard scopeGuard_popVerticesTable([&io_luaState]
 							{
 								lua_pop(&io_luaState, 1);
 							});
-						std::vector<float> vertices;
-						for (int j = 1; j <= 3; j++)
+						cGeometryVertex currentVertex;
+						if (lua_istable(&io_luaState, -1))
 						{
-							lua_pushinteger(&io_luaState, j);
-							lua_gettable(&io_luaState, -2);
-							vertices.push_back(static_cast<float>(lua_tonumber(&io_luaState, -1)));
-							eae6320::cScopeGuard scopeGuard_poVerticePositionIndex([&io_luaState]
+							{
+								lua_pushstring(&io_luaState, "position");
+								lua_gettable(&io_luaState, -2);
+								eae6320::cScopeGuard scopeGuard_popVerticesPosition([&io_luaState]
+									{
+										lua_pop(&io_luaState, 1);
+									});
+								if (lua_istable(&io_luaState, -1))
 								{
-									lua_pop(&io_luaState, 1);
-								});
+									for (int j = 1; j <= 3; j++)
+									{
+										lua_pushinteger(&io_luaState, j);
+										auto result = lua_gettable(&io_luaState, -2);
+										auto currentValue = static_cast<float>(lua_tonumber(&io_luaState, -1));
+										eae6320::cScopeGuard scopeGuard_popVertexPos([&io_luaState]
+											{
+												lua_pop(&io_luaState, 1);
+											});
+										if (result > 0)
+										{
+											switch (j)
+											{
+											case 1: currentVertex.m_x = currentValue; break;
+											case 2: currentVertex.m_y = currentValue; break;
+											case 3: currentVertex.m_z = currentValue; break;
+											}
+										}
+									}
+								}
+							}
+							{
+								lua_pushstring(&io_luaState, "color");
+								lua_gettable(&io_luaState, -2);
+								eae6320::cScopeGuard scopeGuard_popVerticesColor([&io_luaState]
+									{
+										lua_pop(&io_luaState, 1);
+									});
+								if (lua_istable(&io_luaState, -1))
+								{
+									for (int j = 1; j <= 4; j++)
+									{
+										lua_pushinteger(&io_luaState, j);
+										auto result = lua_gettable(&io_luaState, -2);
+										auto currentValue = static_cast<uint8_t>(lua_tonumber(&io_luaState, -1));
+										eae6320::cScopeGuard scopeGuard_popVertexColor([&io_luaState]
+											{
+												lua_pop(&io_luaState, 1);
+											});
+										if (result > 0)
+										{
+											switch (j)
+											{
+											case 1: currentVertex.m_r = currentValue; break;
+											case 2: currentVertex.m_g = currentValue; break;
+											case 3: currentVertex.m_b = currentValue; break;
+											case 4: currentVertex.m_a = currentValue; break;
+											}
+										}
+									}
+									
+								}
+							}
+							m_vertices.push_back(currentVertex);
 						}
-						m_vertices.push_back(cGeometryVertex(vertices[0], vertices[1], vertices[2]));
+						
 					}
 				}
 				else {

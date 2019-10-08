@@ -162,7 +162,8 @@ namespace eae6320
 							constexpr GLint colorElementCount = 4;
 							constexpr GLboolean notNormalized = GL_FALSE;	// The given floats should be used as-is
 							glVertexAttribPointer(vertexPositionElementLocation, positionElementCount, GL_FLOAT, notNormalized, stride, 0);
-							glVertexAttribPointer(vertexColorElementLocation, colorElementCount, GL_FLOAT, notNormalized, stride, (GLvoid*)(3 * sizeof(GL_FLOAT)));
+							glVertexAttribPointer(vertexColorElementLocation, colorElementCount, GL_UNSIGNED_BYTE, GL_TRUE, stride, (GLvoid*)(3 * sizeof(GL_FLOAT)));
+							//glVertexAttribPointer(vertexPositionElementLocation, positionElementCount, GL_UNSIGNED_BYTE, GL_TRUE, stride, (GLvoid*)(3 * sizeof(GL_FLOAT)));
 							const auto errorCode = glGetError();
 							if (errorCode == GL_NO_ERROR)
 							{

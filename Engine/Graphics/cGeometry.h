@@ -13,17 +13,29 @@ namespace eae6320
 	{
 		namespace Geometry
 		{
+			//class cGeometryVertex
+			//{
+			//public:
+			//	float m_x, m_y, m_z;
+			//	uint8_t m_r, m_g, m_b, m_a;
+			//	cGeometryVertex() { m_x = m_y = m_z = 0; m_r = m_g = m_b = m_a = 255; }
+			//	cGeometryVertex(float x, float y, float z) { m_x = x; m_y = y; m_z = z; m_b = m_g = m_r = m_a = 255; }
+			//	cGeometryVertex(const cGeometryVertex& c) { this->Equal(c); }
+			//	void operator = (const cGeometryVertex& c) { this->Equal(c); }
+			//	void Equal(const cGeometryVertex& c) { m_x = c.m_x; m_y = c.m_y; m_z = c.m_z; m_r = c.m_r, m_g = c.m_g; m_b = c.m_b; m_a = c.m_a; }
+			//};
+
 			class cGeometryVertex
 			{
 			public:
 				float m_x, m_y, m_z;
-				cGeometryVertex() { m_x = m_y = m_z = 0; }
-				cGeometryVertex(float x, float y, float z) { m_x = x; m_y = y; m_z = z; }
+				uint8_t m_r, m_g, m_b, m_a;
+				cGeometryVertex() { m_x = m_y = m_z = 0; m_r = m_g = m_b = m_a = 255; }
+				cGeometryVertex(float x, float y, float z) { m_x = x; m_y = y; m_z = z; m_b = m_g = m_r = m_a = 255; }
 				cGeometryVertex(const cGeometryVertex& c) { this->Equal(c); }
 				void operator = (const cGeometryVertex& c) { this->Equal(c); }
-				void Equal(const cGeometryVertex& c) { m_x = c.m_x; m_y = c.m_y; m_z = c.m_z; }
+				void Equal(const cGeometryVertex& c) { m_x = c.m_x; m_y = c.m_y; m_z = c.m_z; m_r = c.m_r, m_g = c.m_g; m_b = c.m_b; m_a = c.m_a; }
 			};
-
 			class cGeometryIndexFace
 			{
 			public:

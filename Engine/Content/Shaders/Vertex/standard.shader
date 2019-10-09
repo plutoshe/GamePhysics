@@ -34,6 +34,17 @@ cbuffer g_constantBuffer_drawCall : register( b2 )
 // Entry Point
 //============
 
+struct VertexInputData {
+	float3 i_vertexPosition_local : POSITION;
+	float4 i_vertexColor : COLOR;
+	
+};
+struct VertexToFragmentData
+{
+	float4 o_vertexPosition_projected : SV_POSITION;
+	float4 o_vertexColor : COLOR;
+};
+
 void main(
 
 	// Input
@@ -43,14 +54,14 @@ void main(
 	// but must match the C call to CreateInputLayout()
 
 	// These values come from one of the VertexFormats::s3dObject that the vertex buffer was filled with in C code
-	in const float3 i_vertexPosition_local : POSITION,
-
+	in VertexInputData in_data,
+	out VertexToFragmentData out_data
 	// Output
 	//=======
 
 	// An SV_POSITION value must always be output from every vertex shader
 	// so that the GPU can figure out which fragments need to be shaded
-	out float4 o_vertexPosition_projected : SV_POSITION
+	
 
 )
 {
@@ -59,7 +70,7 @@ void main(
 	{
 		// This will be done in a future assignment.
 		// For now, however, local space is treated as if it is the same as world space.
-		float4 vertexPosition_local = float4( i_vertexPosition_local, 1.0 );
+		float4 vertexPosition_local = float4( in_data.i_vertexPosition_local, 1.0 );
 		vertexPosition_world = mul(g_transform_localToWorld, vertexPosition_local);
 	}
 	// Calculate the position of this vertex projected onto the display
@@ -67,7 +78,8 @@ void main(
 		// Transform the vertex from world space into camera space
 		float4 vertexPosition_camera = mul( g_transform_worldToCamera, vertexPosition_world );
 		// Project the vertex from camera space into projected space
-		o_vertexPosition_projected = mul( g_transform_cameraToProjected, vertexPosition_camera );
+		out_data.o_vertexPosition_projected = mul( g_transform_cameraToProjected, vertexPosition_camera );
+		out_data.o_vertexColor = in_data.i_vertexColor;
 	}
 }
 
@@ -95,7 +107,8 @@ layout( std140, binding = 0 ) uniform g_constantBuffer_frame
 
 // These values come from one of the VertexFormats::s3dObject that the vertex buffer was filled with in C code
 layout( location = 0 ) in vec3 i_vertexPosition_local;
-
+layout( location = 1 ) in vec4 i_vertexColor;
+out vec4 vertexColor;
 
 layout( std140, binding = 2 ) uniform g_constantBuffer_drawCall
 {
@@ -128,6 +141,7 @@ void main()
 		vec4 vertexPosition_camera = g_transform_worldToCamera * vertexPosition_world;
 		// Project the vertex from camera space into projected space
 		gl_Position = g_transform_cameraToProjected * vertexPosition_camera;
+		vertexColor = i_vertexColor;
 	}
 }
 

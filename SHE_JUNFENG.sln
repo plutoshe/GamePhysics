@@ -87,6 +87,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Graphics", "Engine\Graphics
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GeometryBuilder", "Tools\GeometryBuilder\GeometryBuilder.vcxproj", "{B0166807-E24C-418E-B630-B0BDFE059584}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MayaGeometryExporter", "Tools\MayaGeometryExporter\MayaGeometryExporter.vcxproj", "{29932845-9B7B-4E7D-9194-AD4EE1A035C7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -327,6 +329,14 @@ Global
 		{B0166807-E24C-418E-B630-B0BDFE059584}.Release|x64.Build.0 = Release|x64
 		{B0166807-E24C-418E-B630-B0BDFE059584}.Release|x86.ActiveCfg = Release|Win32
 		{B0166807-E24C-418E-B630-B0BDFE059584}.Release|x86.Build.0 = Release|Win32
+		{29932845-9B7B-4E7D-9194-AD4EE1A035C7}.Debug|x64.ActiveCfg = Debug|x64
+		{29932845-9B7B-4E7D-9194-AD4EE1A035C7}.Debug|x64.Build.0 = Debug|x64
+		{29932845-9B7B-4E7D-9194-AD4EE1A035C7}.Debug|x86.ActiveCfg = Debug|x64
+		{29932845-9B7B-4E7D-9194-AD4EE1A035C7}.Debug|x86.Build.0 = Debug|x64
+		{29932845-9B7B-4E7D-9194-AD4EE1A035C7}.Release|x64.ActiveCfg = Release|x64
+		{29932845-9B7B-4E7D-9194-AD4EE1A035C7}.Release|x64.Build.0 = Release|x64
+		{29932845-9B7B-4E7D-9194-AD4EE1A035C7}.Release|x86.ActiveCfg = Release|x64
+		{29932845-9B7B-4E7D-9194-AD4EE1A035C7}.Release|x86.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -362,6 +372,7 @@ Global
 		{B7ED3F7D-BFA1-42C9-9089-C6401FFDE3D4} = {E5C51EF7-81D3-4030-A4CE-0D2D666CEF4F}
 		{CD3D68D0-EAA0-4961-9D14-CD7091B5D8EE} = {E5C51EF7-81D3-4030-A4CE-0D2D666CEF4F}
 		{B0166807-E24C-418E-B630-B0BDFE059584} = {31B05C03-4BB2-4A0D-B621-B41DA6B0F57E}
+		{29932845-9B7B-4E7D-9194-AD4EE1A035C7} = {31B05C03-4BB2-4A0D-B621-B41DA6B0F57E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A89F366F-0B7F-464F-90A8-A4828B273298}

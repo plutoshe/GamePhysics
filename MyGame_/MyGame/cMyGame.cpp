@@ -114,13 +114,13 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 	{
 		m_isJPressed = false;
 		eae6320::Graphics::Geometry::cGeometry geometryB;
-		geometryB.m_path = "data/geometries/objectTriangle.bin";
+		geometryB.m_path = "data/geometries/object2.bin";
 		geometryB.Load();
 
 		eae6320::Graphics::Effect* effectB;
 		eae6320::Graphics::Effect::Factory(effectB);
 		effectB->SetVertexShaderPath("data/shaders/vertex/standard.shader");
-		effectB->SetFragmentShaderPath("data/shaders/fragment/standard.shader");
+		effectB->SetFragmentShaderPath("data/shaders/fragment/vertexColor.shader");
 		
 		AddGameObject(Application::GameObject(eae6320::Graphics::RenderObject(geometryB, effectB)));
 		effectB->DecrementReferenceCount();
@@ -139,7 +139,7 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 		m_isLPressed = false;
 		//m_gameObjects[0].m_renderObject.m_geometry->SetIndices(std::vector<unsigned int>{ 0, 1, 2, 1, 3, 2 });
 	}
-	if (m_gameObjects.size() > 0) 
+	/*if (m_gameObjects.size() > 0) 
 	{
 		if (UserInput::IsKeyPressed(UserInput::KeyCodes::K))
 		{
@@ -149,7 +149,7 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 		{
 			m_effectChangeA->SetToPointer(m_gameObjects[0].m_renderObject.m_effect);
 		}
-	}
+	}*/
 }
 
 // Initialization / Clean Up
@@ -168,10 +168,12 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 	
 
-	eae6320::Graphics::Geometry::cGeometry geometryA("data/geometries/objectRectangle.bin");
-	eae6320::Graphics::Geometry::cGeometry geometryB("data/geometries/objectTriangle.bin");
+	eae6320::Graphics::Geometry::cGeometry geometryA("data/geometries/object2.bin");
+	eae6320::Graphics::Geometry::cGeometry geometryB("data/geometries/object3.bin");
+	eae6320::Graphics::Geometry::cGeometry geometryC("data/geometries/object1.bin");
 	auto resultGeometryA = geometryA.Load();
 	auto resultGeometryB = geometryB.Load();
+	auto resultGeometryC = geometryC.Load();
 	
 	eae6320::Graphics::Effect* effectA, * effectB;
 	eae6320::Graphics::Effect::Factory(effectA);
@@ -181,9 +183,9 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 
 	effectA->SetVertexShaderPath("data/shaders/vertex/standard.shader");
-	effectA->SetFragmentShaderPath("data/shaders/fragment/change_color.shader");
+	effectA->SetFragmentShaderPath("data/shaders/fragment/vertexColor.shader");
 	effectB->SetVertexShaderPath("data/shaders/vertex/standard.shader");
-	effectB->SetFragmentShaderPath("data/shaders/fragment/standard.shader");
+	effectB->SetFragmentShaderPath("data/shaders/fragment/vertexColor.shader");
 	m_effectChangeA->SetVertexShaderPath("data/shaders/vertex/standard.shader");
 	m_effectChangeA->SetFragmentShaderPath("data/shaders/fragment/blue.shader");
 	m_effectChangeB->SetVertexShaderPath("data/shaders/vertex/standard.shader");
@@ -195,12 +197,17 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	}
 	if (resultGeometryA)
 	{
-		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryA, effectA)));
+		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryA, effectB)));
+	}
+	if (resultGeometryC)
+	{
+		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryC, effectB)));
 	}
 	if (resultGeometryB)
 	{
 		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryB, effectB)));
 	}
+
 	SetGameObjects(objs);
 
 	effectA->DecrementReferenceCount();
@@ -212,7 +219,14 @@ eae6320::cResult eae6320::cMyGame::CleanUp()
 {
 	
 	Application::cbApplication::CleanUp();
-	m_effectChangeA->DecrementReferenceCount(); m_effectChangeB->DecrementReferenceCount();
+	if (m_effectChangeA)
+	{
+		m_effectChangeA->DecrementReferenceCount();
+	}
+	if (m_effectChangeB)
+	{
+		m_effectChangeB->DecrementReferenceCount();
+	}
 	m_effectChangeA = nullptr; m_effectChangeB = nullptr;
 	
 	return Results::Success;

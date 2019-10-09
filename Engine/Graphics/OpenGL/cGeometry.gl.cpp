@@ -156,21 +156,38 @@ namespace eae6320
 						// 3 floats == 12 bytes
 						// Offset = 0
 						{
-							constexpr GLuint vertexElementLocation = 0;
-							constexpr GLint elementCount = 3;
+							constexpr GLuint vertexPositionElementLocation = 0;
+							constexpr GLuint vertexColorElementLocation = 1;
+							constexpr GLint positionElementCount = 3;
+							constexpr GLint colorElementCount = 4;
 							constexpr GLboolean notNormalized = GL_FALSE;	// The given floats should be used as-is
-							glVertexAttribPointer(vertexElementLocation, elementCount, GL_FLOAT, notNormalized, stride, 0);
+							glVertexAttribPointer(vertexPositionElementLocation, positionElementCount, GL_FLOAT, notNormalized, stride, 0);
+							glVertexAttribPointer(vertexColorElementLocation, colorElementCount, GL_UNSIGNED_BYTE, GL_TRUE, stride, (GLvoid*)(3 * sizeof(GL_FLOAT)));
+							//glVertexAttribPointer(vertexPositionElementLocation, positionElementCount, GL_UNSIGNED_BYTE, GL_TRUE, stride, (GLvoid*)(3 * sizeof(GL_FLOAT)));
 							const auto errorCode = glGetError();
 							if (errorCode == GL_NO_ERROR)
 							{
-								glEnableVertexAttribArray(vertexElementLocation);
-								const GLenum errorCode = glGetError();
+								glEnableVertexAttribArray(vertexPositionElementLocation);
+								
+								GLenum errorCode = glGetError();
 								if (errorCode != GL_NO_ERROR)
 								{
 									result = eae6320::Results::Failure;
 									EAE6320_ASSERTF(false, reinterpret_cast<const char*>(gluErrorString(errorCode)));
 									eae6320::Logging::OutputError("OpenGL failed to enable the POSITION vertex attribute at location %u: %s",
-										vertexElementLocation, reinterpret_cast<const char*>(gluErrorString(errorCode)));
+										vertexPositionElementLocation, reinterpret_cast<const char*>(gluErrorString(errorCode)));
+
+									return result;
+								}
+								glEnableVertexAttribArray(vertexColorElementLocation);
+								errorCode = glGetError();
+								if (errorCode != GL_NO_ERROR)
+								{
+									result = eae6320::Results::Failure;
+									EAE6320_ASSERTF(false, reinterpret_cast<const char*>(gluErrorString(errorCode)));
+									eae6320::Logging::OutputError("OpenGL failed to enable the COLOR vertex attribute at location %u: %s",
+										vertexColorElementLocation, reinterpret_cast<const char*>(gluErrorString(errorCode)));
+
 									return result;
 								}
 							}
@@ -179,7 +196,7 @@ namespace eae6320
 								result = eae6320::Results::Failure;
 								EAE6320_ASSERTF(false, reinterpret_cast<const char*>(gluErrorString(errorCode)));
 								eae6320::Logging::OutputError("OpenGL failed to set the POSITION vertex attribute at location %u: %s",
-									vertexElementLocation, reinterpret_cast<const char*>(gluErrorString(errorCode)));
+									vertexColorElementLocation, reinterpret_cast<const char*>(gluErrorString(errorCode)));
 								return result;
 							}
 						}
@@ -272,7 +289,7 @@ namespace eae6320
 
 					// It's possible to start rendering primitives in the middle of the stream
 					constexpr unsigned int indexOfFirstVertexToRender = 0;
-					glDrawElements(mode, 6, GL_UNSIGNED_INT, indexOfFirstVertexToRender);
+					glDrawElements(mode, rt->GetIndexCount(), GL_UNSIGNED_INT, indexOfFirstVertexToRender);
 					EAE6320_ASSERT(glGetError() == GL_NO_ERROR);
 				}
 

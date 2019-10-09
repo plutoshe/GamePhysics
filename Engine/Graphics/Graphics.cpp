@@ -97,6 +97,8 @@ namespace eae6320
 					return result;
 				}
 			}
+
+
 			// Initialize the geometry
 			{
 				if (!(result = InitializeGeometry()))
@@ -114,9 +116,10 @@ namespace eae6320
 				}
 
 			}
-
+			
 			return result;
 		}
+
 
 
 		eae6320::cResult InitializeGeometry()

@@ -67,8 +67,6 @@ namespace eae6320
 				static Assets::cManager<cGeometryRenderTarget> s_manager;
 				cResult CleanUp() { Release(); }
 
-				eae6320::cResult LoadIndicesFromLua(lua_State& io_luaState);
-				eae6320::cResult LoadVerticesFromLua(lua_State& io_luaState);
 				static eae6320::cResult Load(const std::string& i_path, cGeometryRenderTarget*& o_geometry);
 				unsigned int VertexBufferSize();
 				unsigned int GetIndexCount();

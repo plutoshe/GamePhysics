@@ -28,9 +28,9 @@ eae6320::cResult eae6320::Assets::cGeometryBuilder::Build(const std::vector<std:
 	size_t vertexNum = loadedGeometry.m_vertices.size();
 	size_t indexNum = loadedGeometry.m_indices.size();
 	outfile.write(reinterpret_cast<const char*>(&vertexNum), sizeof(vertexNum));
-	outfile.write(reinterpret_cast<const char*>(&loadedGeometry.m_vertices[0]), loadedGeometry.m_vertices.size() * sizeof(eae6320::Graphics::Geometry::cGeometryVertex));
 	outfile.write(reinterpret_cast<const char*>(&indexNum), sizeof(size_t));
-	outfile.write(reinterpret_cast<const char*>(&loadedGeometry.m_indices[0]), loadedGeometry.m_indices.size() * sizeof(unsigned int));
+	outfile.write(reinterpret_cast<const char*>(&loadedGeometry.m_indices[0]), indexNum * sizeof(size_t));
+	outfile.write(reinterpret_cast<const char*>(&loadedGeometry.m_vertices[0]), vertexNum * sizeof(eae6320::Graphics::Geometry::cGeometryVertex));
 	outfile.close();
 	return result;
 }

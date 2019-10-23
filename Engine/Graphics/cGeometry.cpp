@@ -3,6 +3,7 @@
 #include "GraphicsEnv.h"
 #include "sContext.h"
 #include <Engine/Asserts/Asserts.h>
+#include <Engine/Platform/Platform.h>
 #include <Engine/ScopeGuard/cScopeGuard.h>
 
 namespace eae6320
@@ -122,6 +123,33 @@ namespace eae6320
 			eae6320::cResult cGeometryRenderTarget::InitData(std::string i_path)
 			{
 				auto result = eae6320::Results::Success;
+				std::string errorMessage;
+				eae6320::Platform::sDataFromFile dataFromFile;
+				
+				auto resultReadBinaryFile = eae6320::Platform::LoadBinaryFile(i_path.c_str(), dataFromFile, &errorMessage);
+				if (!resultReadBinaryFile)
+				{
+					result = resultReadBinaryFile;
+					EAE6320_ASSERTF(false, "Couldn't read binary file at path %s", i_path.c_str());
+					Logging::OutputError("Couldn't read binary file at path %s", i_path.c_str());
+					return result;
+				}
+
+				auto currentOffset = reinterpret_cast<uintptr_t>(dataFromFile.data);
+				size_t vertexCount, indexCount;
+
+				memcpy(&vertexCount, reinterpret_cast<void*>(currentOffset), sizeof(size_t));
+				currentOffset += sizeof(size_t);
+				memcpy(&indexCount, reinterpret_cast<void*>(currentOffset), sizeof(size_t));
+				currentOffset += sizeof(size_t);
+				m_indices.resize(indexCount);
+				memcpy(&m_indices[0], reinterpret_cast<void*>(currentOffset), indexCount * sizeof(unsigned int));
+				currentOffset += indexCount * sizeof(unsigned int);
+
+				m_vertices.resize(vertexCount);
+				memcpy(&m_vertices[0], reinterpret_cast<void*>(currentOffset), vertexCount * sizeof(cGeometryVertex));
+				
+
 				UpdateData();
 				return result;
 			}

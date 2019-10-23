@@ -67,11 +67,9 @@ namespace eae6320
 				static Assets::cManager<cGeometryRenderTarget> s_manager;
 				cResult CleanUp() { Release(); }
 
-				eae6320::cResult LoadIndicesFromLua(lua_State& io_luaState);
-				eae6320::cResult LoadVerticesFromLua(lua_State& io_luaState);
 				static eae6320::cResult Load(const std::string& i_path, cGeometryRenderTarget*& o_geometry);
 				unsigned int VertexBufferSize();
-				unsigned int GetIndexCount();
+				uint16_t GetIndexCount();
 				unsigned int IndexBufferSize();
 				void AddFace(const cGeometryIndexFace &face);
 				void AddIndices(int FaceNum, const std::vector<unsigned int> &triangleIndices);
@@ -81,7 +79,7 @@ namespace eae6320
 				void SetVertices(std::vector<cGeometryVertex>& i_vertices);
 				void UpdateData();
 				cGeometryVertex* GetVertexData();
-				unsigned int* GetIndexData();
+				uint16_t* GetIndexData();
 				unsigned int vertexCountToRender();
 				void InitData(const std::vector<cGeometryVertex>& vertices, const std::vector<unsigned int> &triangleIndices);
 				eae6320::cResult InitData(std::string i_path);
@@ -99,7 +97,7 @@ namespace eae6320
 				bool m_isInitialized;
 				bool m_isUpdateData;
 				std::vector<cGeometryVertex> m_vertices;
-				std::vector<unsigned int> m_indices;
+				std::vector<uint16_t> m_indices;
 
 				eae6320::cResult Release();
 				~cGeometryRenderTarget() { Release(); }

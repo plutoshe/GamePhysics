@@ -47,7 +47,7 @@ namespace eae6320
 						}
 
 						CD3D11_BUFFER_DESC iDesc(
-							(UINT)rt->m_indices.size() * sizeof(unsigned int),
+							(UINT)rt->m_indices.size() * sizeof(uint16_t),
 							D3D11_BIND_INDEX_BUFFER
 						);
 
@@ -100,7 +100,7 @@ namespace eae6320
 					// It's possible to start streaming data in the middle of a vertex buffer
 					constexpr unsigned int bufferOffset = 0;
 					direct3dImmediateContext->IASetVertexBuffers(startingSlot, vertexBufferCount, &rt->m_vertexBuffer, &bufferStride, &bufferOffset);
-					direct3dImmediateContext->IASetIndexBuffer(rt->m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+					direct3dImmediateContext->IASetIndexBuffer(rt->m_indexBuffer, DXGI_FORMAT_R16_UINT, 0);
 				}
 				// Specify what kind of data the vertex buffer holds
 				{

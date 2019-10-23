@@ -17,7 +17,7 @@ eae6320::cResult eae6320::Assets::cGeometryBuilder::Build(const std::vector<std:
 	std::string errorMessage;
 	eae6320::Graphics::Geometry::cGeometryRenderTarget loadedGeometry;
 	eae6320::Assets::cGeometryBuilder::InitData(m_path_source, loadedGeometry);
-	std::ofstream outfile(m_path_target, std::ofstream::binary | std::ios::out);
+	std::ofstream outfile(m_path_target, std::ofstream::binary);
 	if (!outfile.is_open())
 	{
 		OutputErrorMessageWithFileInfo(m_path_source, "no invalid geometry output path!");
@@ -25,11 +25,12 @@ eae6320::cResult eae6320::Assets::cGeometryBuilder::Build(const std::vector<std:
 		result = eae6320::Results::Failure;
 		return result;
 	}
-	size_t vertexNum = loadedGeometry.m_vertices.size();
-	size_t indexNum = loadedGeometry.m_indices.size();
+	uint16_t indexNum = static_cast<uint16_t>(loadedGeometry.m_indices.size());
+	uint16_t vertexNum = static_cast<uint16_t>(loadedGeometry.m_vertices.size());
+	
 	outfile.write(reinterpret_cast<const char*>(&vertexNum), sizeof(vertexNum));
-	outfile.write(reinterpret_cast<const char*>(&indexNum), sizeof(size_t));
-	outfile.write(reinterpret_cast<const char*>(&loadedGeometry.m_indices[0]), indexNum * sizeof(size_t));
+	outfile.write(reinterpret_cast<const char*>(&indexNum), sizeof(indexNum));
+	outfile.write(reinterpret_cast<const char*>(&loadedGeometry.m_indices[0]), indexNum * sizeof(loadedGeometry.m_indices[0]));
 	outfile.write(reinterpret_cast<const char*>(&loadedGeometry.m_vertices[0]), vertexNum * sizeof(eae6320::Graphics::Geometry::cGeometryVertex));
 	outfile.close();
 	return result;

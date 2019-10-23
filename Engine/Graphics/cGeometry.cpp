@@ -102,7 +102,7 @@ namespace eae6320
 				return &m_vertices[0];
 			}
 
-			unsigned int* cGeometryRenderTarget::GetIndexData()
+			uint16_t* cGeometryRenderTarget::GetIndexData()
 			{
 				return &m_indices[0];
 			}
@@ -136,15 +136,48 @@ namespace eae6320
 				}
 
 				auto currentOffset = reinterpret_cast<uintptr_t>(dataFromFile.data);
-				size_t vertexCount, indexCount;
+				uint16_t vertexCount, indexCount;
+				size_t sizeS = 0;
+				if (sizeS + sizeof(uint16_t) > dataFromFile.size)
+				{
+					EAE6320_ASSERTF(false, "Wrong file size at path %s", i_path.c_str());
+					Logging::OutputError("Wrong file size at path %s", i_path.c_str());
+					return result;
+				}
 
-				memcpy(&vertexCount, reinterpret_cast<void*>(currentOffset), sizeof(size_t));
-				currentOffset += sizeof(size_t);
-				memcpy(&indexCount, reinterpret_cast<void*>(currentOffset), sizeof(size_t));
-				currentOffset += sizeof(size_t);
+				memcpy(&vertexCount, reinterpret_cast<void*>(currentOffset), sizeof(uint16_t));
+				currentOffset += sizeof(uint16_t);
+				sizeS += sizeof(uint16_t);
+				
+				if (sizeS + sizeof(uint16_t) > dataFromFile.size)
+				{
+					EAE6320_ASSERTF(false, "Wrong file size at path %s", i_path.c_str());
+					Logging::OutputError("Wrong file size at path %s", i_path.c_str());
+					return result;
+				}
+
+				memcpy(&indexCount, reinterpret_cast<void*>(currentOffset), sizeof(uint16_t));
+				currentOffset += sizeof(uint16_t);
+				sizeS += sizeof(uint16_t);
+
+				if (sizeS + indexCount * sizeof(unsigned int) > dataFromFile.size)
+				{
+					EAE6320_ASSERTF(false, "Wrong file size at path %s", i_path.c_str());
+					Logging::OutputError("Wrong file size at path %s", i_path.c_str());
+					return result;
+				}
+
 				m_indices.resize(indexCount);
-				memcpy(&m_indices[0], reinterpret_cast<void*>(currentOffset), indexCount * sizeof(unsigned int));
-				currentOffset += indexCount * sizeof(unsigned int);
+				memcpy(&m_indices[0], reinterpret_cast<void*>(currentOffset), indexCount * sizeof(uint16_t));
+				currentOffset += indexCount * sizeof(uint16_t);
+				sizeS += indexCount * sizeof(uint16_t);
+
+				if (sizeS + vertexCount * sizeof(cGeometryVertex) > dataFromFile.size)
+				{
+					EAE6320_ASSERTF(false, "Wrong file size at path %s", i_path.c_str());
+					Logging::OutputError("Wrong file size at path %s", i_path.c_str());
+					return result;
+				}
 
 				m_vertices.resize(vertexCount);
 				memcpy(&m_vertices[0], reinterpret_cast<void*>(currentOffset), vertexCount * sizeof(cGeometryVertex));
@@ -154,9 +187,9 @@ namespace eae6320
 				return result;
 			}
 
-			unsigned int cGeometryRenderTarget::GetIndexCount()
+			uint16_t cGeometryRenderTarget::GetIndexCount()
 			{
-				return (unsigned int)m_indices.size();
+				return (uint16_t)m_indices.size();
 			}
 
 			

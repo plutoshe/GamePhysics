@@ -130,7 +130,7 @@ namespace eae6320
 							{
 								const auto bufferSize = rt->GetIndexCount();
 								EAE6320_ASSERT(bufferSize < (uint64_t(1u) << (sizeof(GLsizeiptr) * 8)));
-								glBufferData(GL_ELEMENT_ARRAY_BUFFER, rt->GetIndexCount() * sizeof(unsigned int), reinterpret_cast<GLvoid*>(rt->GetIndexData()),
+								glBufferData(GL_ELEMENT_ARRAY_BUFFER, rt->GetIndexCount() * sizeof(uint16_t), reinterpret_cast<GLvoid*>(rt->GetIndexData()),
 									// In our class we won't ever read from the buffer
 									GL_STATIC_DRAW);
 								const auto errorCode = glGetError();
@@ -289,7 +289,7 @@ namespace eae6320
 
 					// It's possible to start rendering primitives in the middle of the stream
 					constexpr unsigned int indexOfFirstVertexToRender = 0;
-					glDrawElements(mode, rt->GetIndexCount(), GL_UNSIGNED_INT, indexOfFirstVertexToRender);
+					glDrawElements(mode, rt->GetIndexCount(), GL_UNSIGNED_SHORT, indexOfFirstVertexToRender);
 					EAE6320_ASSERT(glGetError() == GL_NO_ERROR);
 				}
 

@@ -68,6 +68,7 @@ namespace eae6320
 				cResult CleanUp() { Release(); }
 
 				static eae6320::cResult Load(const std::string& i_path, cGeometryRenderTarget*& o_geometry);
+
 				unsigned int VertexBufferSize();
 				uint16_t GetIndexCount();
 				unsigned int IndexBufferSize();

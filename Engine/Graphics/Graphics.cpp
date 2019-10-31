@@ -230,7 +230,7 @@ namespace eae6320
 			auto result = eae6320::Results::Success;
 			for (size_t i = 0; i < eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects.size(); i++)
 			{
-				if (!(result = eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_effect->Load(
+				if (!(result = eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_effect.Prepare(
 					eae6320::Graphics::cShader::s_manager)))
 				{
 					EAE6320_ASSERTF(false, "Can't initialize effects");
@@ -245,7 +245,7 @@ namespace eae6320
 				{
 					auto& constantData_drawCall = eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_Transformation;
 					eae6320::Graphics::Env::s_constantBuffer_drawCall.Update(&constantData_drawCall);
-					eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_effect->Bind();
+					eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_effect.Bind();
 					eae6320::Graphics::Env::s_dataBeingRenderedByRenderThread->m_renderObjects[i].m_geometry.Draw();
 				}
 			}
@@ -289,6 +289,19 @@ namespace eae6320
 			for (auto it = eae6320::Graphics::Geometry::cGeometryRenderTarget::s_hanlderMap.begin(); it != eae6320::Graphics::Geometry::cGeometryRenderTarget::s_hanlderMap.end(); ++it)
 			{
 				const auto result_geometry = eae6320::Graphics::Geometry::cGeometryRenderTarget::s_manager.Release(it->second);
+				if (!result_geometry)
+				{
+					EAE6320_ASSERT(false);
+					if (result)
+					{
+						result = result_geometry;
+					}
+				}
+			}
+
+			for (auto it = eae6320::Graphics::EffectAsset::s_hanlderMap.begin(); it != eae6320::Graphics::EffectAsset::s_hanlderMap.end(); ++it)
+			{
+				const auto result_geometry = eae6320::Graphics::EffectAsset::s_manager.Release(it->second);
 				if (!result_geometry)
 				{
 					EAE6320_ASSERT(false);

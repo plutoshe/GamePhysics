@@ -5,7 +5,7 @@
 
 #include <Engine/ScopeGuard/cScopeGuard.h>
 
-eae6320::cResult eae6320::Graphics::Effect::Release()
+eae6320::cResult eae6320::Graphics::EffectAsset::Release()
 {
 	auto result = eae6320::Results::Success;
 	if (m_programId != 0)
@@ -28,25 +28,26 @@ eae6320::cResult eae6320::Graphics::Effect::Release()
 }
 
 
-eae6320::cResult eae6320::Graphics::Effect::Load(
+eae6320::cResult eae6320::Graphics::cEffect::Prepare(
 	eae6320::Assets::cManager<eae6320::Graphics::cShader>& manager)
 {
+	EffectAsset* effect = EffectAsset::s_manager.Get(m_handler);
 	auto result = eae6320::Results::Success;
-	if (!m_isInitialized)
+	if (!effect->m_isInitialized)
 	{
-		m_isInitialized = true;
-		if (!(result = LoadShaderData()))
+		effect->m_isInitialized = true;
+		if (!(result = PrepareShaderData()))
 		{
 			EAE6320_ASSERTF(false, "Can't initialize shader for effect");
 			return result;
 		}
-		eae6320::cScopeGuard scopeGuard_program([this, &result]
+		eae6320::cScopeGuard scopeGuard_program([&effect, &result]
 			{
 				if (!result)
 				{
-					if (this->m_programId != 0)
+					if (effect->m_programId != 0)
 					{
-						glDeleteProgram(this->m_programId);
+						glDeleteProgram(effect->m_programId);
 						const auto errorCode = glGetError();
 						if (errorCode != GL_NO_ERROR)
 						{
@@ -54,7 +55,7 @@ eae6320::cResult eae6320::Graphics::Effect::Load(
 							eae6320::Logging::OutputError("OpenGL failed to delete the program: %s",
 								reinterpret_cast<const char*>(gluErrorString(errorCode)));
 						}
-						this->m_programId = 0;
+						effect->m_programId = 0;
 					}
 				}
 			});
@@ -62,7 +63,7 @@ eae6320::cResult eae6320::Graphics::Effect::Load(
 		// Create a program
 
 		{
-			m_programId = glCreateProgram();
+			effect->m_programId = glCreateProgram();
 			const auto errorCode = glGetError();
 			if (errorCode != GL_NO_ERROR)
 			{
@@ -72,7 +73,7 @@ eae6320::cResult eae6320::Graphics::Effect::Load(
 					reinterpret_cast<const char*>(gluErrorString(errorCode)));
 				return result;
 			}
-			else if (m_programId == 0)
+			else if (effect->m_programId == 0)
 			{
 				result = eae6320::Results::Failure;
 				EAE6320_ASSERT(false);
@@ -84,7 +85,7 @@ eae6320::cResult eae6320::Graphics::Effect::Load(
 		{
 			// Vertex
 			{
-				glAttachShader(m_programId, manager.Get(eae6320::Graphics::Env::s_vertexShaders[m_vertexShaderPath])->m_shaderId);
+				glAttachShader(effect->m_programId, manager.Get(eae6320::Graphics::Env::s_vertexShaders[effect->m_vertexShaderPath])->m_shaderId);
 				const auto errorCode = glGetError();
 				if (errorCode != GL_NO_ERROR)
 				{
@@ -97,7 +98,7 @@ eae6320::cResult eae6320::Graphics::Effect::Load(
 			}
 			// Fragment
 			{
-				glAttachShader(m_programId, manager.Get(eae6320::Graphics::Env::s_fragmentShaders[m_fragmentShaderPath])->m_shaderId);
+				glAttachShader(effect->m_programId, manager.Get(eae6320::Graphics::Env::s_fragmentShaders[effect->m_fragmentShaderPath])->m_shaderId);
 				const auto errorCode = glGetError();
 				if (errorCode != GL_NO_ERROR)
 				{
@@ -111,7 +112,7 @@ eae6320::cResult eae6320::Graphics::Effect::Load(
 		}
 		// Link the program
 		{
-			glLinkProgram(m_programId);
+			glLinkProgram(effect->m_programId);
 			const auto errorCode = glGetError();
 			if (errorCode == GL_NO_ERROR)
 			{
@@ -121,7 +122,7 @@ eae6320::cResult eae6320::Graphics::Effect::Load(
 				std::string linkInfo;
 				{
 					GLint infoSize;
-					glGetProgramiv(m_programId, GL_INFO_LOG_LENGTH, &infoSize);
+					glGetProgramiv(effect->m_programId, GL_INFO_LOG_LENGTH, &infoSize);
 					const auto errorCode = glGetError();
 					if (errorCode == GL_NO_ERROR)
 					{
@@ -132,7 +133,7 @@ eae6320::cResult eae6320::Graphics::Effect::Load(
 							~sLogInfo() { if (memory) free(memory); }
 						} info(static_cast<size_t>(infoSize));
 						constexpr GLsizei* const dontReturnLength = nullptr;
-						glGetProgramInfoLog(m_programId, static_cast<GLsizei>(infoSize), dontReturnLength, info.memory);
+						glGetProgramInfoLog(effect->m_programId, static_cast<GLsizei>(infoSize), dontReturnLength, info.memory);
 						const auto errorCode = glGetError();
 						if (errorCode == GL_NO_ERROR)
 						{
@@ -159,7 +160,7 @@ eae6320::cResult eae6320::Graphics::Effect::Load(
 				// Check to see if there were link errors
 				GLint didLinkingSucceed;
 				{
-					glGetProgramiv(m_programId, GL_LINK_STATUS, &didLinkingSucceed);
+					glGetProgramiv(effect->m_programId, GL_LINK_STATUS, &didLinkingSucceed);
 					const auto errorCode = glGetError();
 					if (errorCode == GL_NO_ERROR)
 					{

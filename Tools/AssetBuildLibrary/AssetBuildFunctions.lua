@@ -290,7 +290,37 @@ NewAssetTypeInfo( "geometries",
 		end
 	}
 )
-
+NewAssetTypeInfo( "effects",
+	{
+		ConvertSourceRelativePathToBuiltRelativePath = function( i_sourceRelativePath )
+			-- Change the source file extension to the binary version
+			local relativeDirectory, file = i_sourceRelativePath:match( "(.-)([^/\\]+)$" )
+			local fileName, extensionWithPeriod = file:match( "([^%.]+)(.*)" )
+			-- The line below just puts the original pieces back together,
+			-- but you could change this to customize the way that you build assets
+			-- (you could, for example, use a different extension for binary shaders)
+			return relativeDirectory .. fileName .. extensionWithPeriod
+		end,
+		RegisterReferencedAssets = function( i_sourceRelativePath )
+		  local sourceAbsolutePath = FindSourceContentAbsolutePathFromRelativePath( i_sourceRelativePath )
+		  if DoesFileExist( sourceAbsolutePath ) then
+			local effect = dofile( sourceAbsolutePath )
+			-- EAE6320_TODO Get the source shader paths from the effect table and then do something like:
+			RegisterAssetToBeBuilt( effect.vertex, "shaders", { "vertex" } )
+			RegisterAssetToBeBuilt( effect.fragment, "shaders", { "fragment" } )
+		  end
+		end,
+		GetBuilderRelativePath = function()
+			return "EffectBuilder.exe"
+		end,
+		ShouldTargetBeBuilt = function( i_lastWriteTime_builtAsset )
+			-- If the shaders.inc file has changed since the last time this shader was built
+			-- then it should be built again
+			local lastWriteTime_includeFile = GetLastWriteTime( EngineSourceContentDir .. "Shaders/shaders.inc" )
+			return lastWriteTime_includeFile > i_lastWriteTime_builtAsset
+		end
+	}
+)
 -- Local Function Definitions
 --===========================
 

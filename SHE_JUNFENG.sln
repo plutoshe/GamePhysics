@@ -92,6 +92,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MayaGeometryExporter", "Too
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EffectBuilder", "Tools\EffectBuilder\EffectBuilder.vcxproj", "{D4F13930-35AE-4656-A1C3-60D81189FACF}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PhysicsSystem", "Engine\PhysicsSystem\PhysicsSystem.vcxproj", "{D15D768D-49A7-4901-9626-B4457D9F41A1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -348,6 +350,14 @@ Global
 		{D4F13930-35AE-4656-A1C3-60D81189FACF}.Release|x64.Build.0 = Release|x64
 		{D4F13930-35AE-4656-A1C3-60D81189FACF}.Release|x86.ActiveCfg = Release|Win32
 		{D4F13930-35AE-4656-A1C3-60D81189FACF}.Release|x86.Build.0 = Release|Win32
+		{D15D768D-49A7-4901-9626-B4457D9F41A1}.Debug|x64.ActiveCfg = Debug|x64
+		{D15D768D-49A7-4901-9626-B4457D9F41A1}.Debug|x64.Build.0 = Debug|x64
+		{D15D768D-49A7-4901-9626-B4457D9F41A1}.Debug|x86.ActiveCfg = Debug|Win32
+		{D15D768D-49A7-4901-9626-B4457D9F41A1}.Debug|x86.Build.0 = Debug|Win32
+		{D15D768D-49A7-4901-9626-B4457D9F41A1}.Release|x64.ActiveCfg = Release|x64
+		{D15D768D-49A7-4901-9626-B4457D9F41A1}.Release|x64.Build.0 = Release|x64
+		{D15D768D-49A7-4901-9626-B4457D9F41A1}.Release|x86.ActiveCfg = Release|Win32
+		{D15D768D-49A7-4901-9626-B4457D9F41A1}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -385,6 +395,7 @@ Global
 		{B0166807-E24C-418E-B630-B0BDFE059584} = {31B05C03-4BB2-4A0D-B621-B41DA6B0F57E}
 		{29932845-9B7B-4E7D-9194-AD4EE1A035C7} = {31B05C03-4BB2-4A0D-B621-B41DA6B0F57E}
 		{D4F13930-35AE-4656-A1C3-60D81189FACF} = {31B05C03-4BB2-4A0D-B621-B41DA6B0F57E}
+		{D15D768D-49A7-4901-9626-B4457D9F41A1} = {E5C51EF7-81D3-4030-A4CE-0D2D666CEF4F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A89F366F-0B7F-464F-90A8-A4828B273298}

@@ -9,6 +9,7 @@
 #include <Engine/Graphics/cEffect.h>
 #include <Engine/Graphics/cGeometry.h>
 #include <vector>
+#include <Engine/PhysicsSystem/PhysicsSystem.h>
 #define M_PI 3.1415926f
 #define Deg2Rad(x) (x * M_PI / 180.f)
 #define Rad2Deg(x) (x * 180.f / M_PI)
@@ -17,6 +18,22 @@
 
 // Run
 //----
+
+PlutoShe::Physics::Polythedron GetPolythedronFromGameObject(eae6320::Application::GameObject &i_b)
+{
+	std::vector<PlutoShe::Physics::Vector3> vs;
+	auto *renderobject = eae6320::Graphics::Geometry::cGeometryRenderTarget::s_manager.Get(i_b.m_renderObject.m_geometry.m_handler);
+	eae6320::Math::sVector sv;
+	for (size_t i = 0; i < renderobject->m_vertices.size(); i++)
+	{
+		sv.x = renderobject->m_vertices[i].m_x;
+		sv.y = renderobject->m_vertices[i].m_y;
+		sv.z = renderobject->m_vertices[i].m_z;
+		sv = i_b.m_renderObject.m_Transformation * sv;
+		vs.push_back(PlutoShe::Physics::Vector3(sv.x, sv.y, sv.z));
+	}
+	return PlutoShe::Physics::Polythedron(vs);
+}
 
 void eae6320::cMyGame::UpdateSimulationBasedOnInput()
 {
@@ -147,6 +164,13 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 			m_effectChangeA->SetToPointer(m_gameObjects[0].m_renderObject.m_effect);
 		}
 	}*/
+	if (m_gameObjects.size() >= 3)
+	{
+		if (PlutoShe::Physics::IsCollided(GetPolythedronFromGameObject(m_gameObjects[0]), GetPolythedronFromGameObject(m_gameObjects[1])))
+		{
+			Logging::OutputMessage("collision detected!");
+		}
+	}
 }
 
 // Initialization / Clean Up

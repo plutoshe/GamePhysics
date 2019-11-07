@@ -11,7 +11,7 @@ namespace PlutoShe
 		Vector3 SupportFunction(Polythedron &i_A, Polythedron &i_B, Vector3 i_dir)
 		{
 			auto a = i_A.getFarthestPointInDirection(i_dir);
-			auto b = i_B.getFarthestPointInDirection(i_dir);
+			auto b = i_B.getFarthestPointInDirection(i_dir.Negate());
 			return a - b;
 		}
 			
@@ -71,22 +71,28 @@ namespace PlutoShe
 				auto db = b - d;
 				auto dc = c - d;
 				auto normal_dab = da.cross(db);
-				auto normal_dac = da.cross(dc);
+				auto normal_dac = dc.cross(da);
 				auto normal_dbc = db.cross(dc);
 				auto do_ = d.Negate(); // (0,0,0) - point d
-				if (normal_dab.dot(do_) > 0)
+				auto ndab = normal_dab.dot(do_); 
+				auto ndac = normal_dac.dot(do_);
+				auto ndbc = normal_dbc.dot(do_);
+				if (ndab > 0)
 				{
 					t_s.RemoveC();
+
 					t_direction = normal_dab;
 				}
-				else if (normal_dac.dot(do_) > 0)
+				else if (ndac > 0)
 				{
-					t_s.RemoveB();
+					t_s.m_points[1] = d;
+					t_s.RemoveD();
 					t_direction = normal_dac;
 				}
-				else if (normal_dbc.dot(do_) > 0)
+				else if (ndbc > 0)
 				{
-					t_s.RemoveA();
+					t_s.m_points[0] = d;
+					t_s.RemoveD();
 					t_direction = normal_dbc;
 				}
 				else

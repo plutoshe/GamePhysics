@@ -25,7 +25,7 @@ namespace PlutoShe
 			Vector3 operator / (const float i_v) { return Vector3(m_x / i_v, m_y / i_v, m_z / i_v); }
 
 			Vector3 cross(const Vector3& i_v) {
-				return Vector3(m_y * i_v.m_z - m_z * i_v.m_y, -(m_x * i_v.m_z - m_z * i_v.m_x), m_y * i_v.m_z - m_z * i_v.m_y);
+				return Vector3(m_y * i_v.m_z - m_z * i_v.m_y, -(m_x * i_v.m_z - m_z * i_v.m_x), m_x * i_v.m_y - m_y * i_v.m_x);
 			}
 			Vector3 Negate()
 			{

@@ -81,6 +81,7 @@ namespace eae6320
 		virtual cResult CleanUp() override;
 		Graphics::cEffect m_effectChangeA;
 		Graphics::cEffect m_effectChangeB;
+		Graphics::cEffect m_effectChangeC;
 		bool m_isJPressed = false;
 		bool m_isLPressed = false;
 

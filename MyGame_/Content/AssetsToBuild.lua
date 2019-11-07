@@ -8,6 +8,7 @@ return
 	{
 		{path = "effects/effectA.bin"},
 		{path = "effects/effectB.bin"},
+		{path = "effects/effectC.bin"},
 	},
 
 	shaders =
@@ -17,6 +18,9 @@ return
 	geometries = 
 	{
 		{ path = "geometries/objectRectangle.bin"},
+		{ path = "geometries/objectCube1.bin"},
+		{ path = "geometries/objectCube2.bin"},
+		{ path = "geometries/objectCube3.bin"},
 		{ path = "geometries/object1.bin"},
 		{ path = "geometries/object2.bin"},
 		{ path = "geometries/object3.bin"},

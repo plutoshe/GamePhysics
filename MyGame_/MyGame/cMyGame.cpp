@@ -153,21 +153,28 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 		m_isLPressed = false;
 		//m_gameObjects[0].m_renderObject.m_geometry->SetIndices(std::vector<unsigned int>{ 0, 1, 2, 1, 3, 2 });
 	}
-	/*if (m_gameObjects.size() > 0) 
+	if (m_gameObjects.size() > 0) 
 	{
 		if (UserInput::IsKeyPressed(UserInput::KeyCodes::K))
 		{
-			m_effectChangeB->SetToPointer(m_gameObjects[0].m_renderObject.m_effect);
+			m_gameObjects[0].m_renderObject.m_effect = m_effectChangeA;
 		}
 		else
 		{
-			m_effectChangeA->SetToPointer(m_gameObjects[0].m_renderObject.m_effect);
+			m_gameObjects[0].m_renderObject.m_effect = m_effectChangeB;
+			
 		}
-	}*/
+	}
 	if (m_gameObjects.size() >= 3)
 	{
+		if (PlutoShe::Physics::IsCollided(GetPolythedronFromGameObject(m_gameObjects[0]), GetPolythedronFromGameObject(m_gameObjects[2])))
+		{
+			m_gameObjects[0].m_renderObject.m_effect = m_effectChangeA;
+			Logging::OutputMessage("collision detected!");
+		}
 		if (PlutoShe::Physics::IsCollided(GetPolythedronFromGameObject(m_gameObjects[0]), GetPolythedronFromGameObject(m_gameObjects[1])))
 		{
+			m_gameObjects[0].m_renderObject.m_effect = m_effectChangeC;
 			Logging::OutputMessage("collision detected!");
 		}
 	}
@@ -191,22 +198,22 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 	eae6320::Graphics::Geometry::cGeometry geometryA("data/geometries/object2.bin");
 	eae6320::Graphics::Geometry::cGeometry geometryB("data/geometries/object3.bin");
-	eae6320::Graphics::Geometry::cGeometry geometryC("data/geometries/object1.bin");
+	eae6320::Graphics::Geometry::cGeometry geometryC("data/geometries/objectCube2.bin");
 	auto resultGeometryA = geometryA.Load();
 	auto resultGeometryB = geometryB.Load();
 	auto resultGeometryC = geometryC.Load();
 	eae6320::Graphics::cEffect effectA("data/effects/effectA.bin");
 	eae6320::Graphics::cEffect effectB("data/effects/effectB.bin");
+	eae6320::Graphics::cEffect effectC("data/effects/effectC.bin");
+
 	auto resultEffectA = effectA.Load();
 	auto resultEffectB = effectB.Load();
-
-
-
+	auto resultEffectC = effectC.Load();
+	m_effectChangeA = effectA;
+	m_effectChangeB = effectB;
+	m_effectChangeC = effectC;
 	std::vector<Application::GameObject> objs;
-	if (eae6320::Results::Success)
-	{
-		int a = 0;
-	}
+
 	if (resultGeometryA && resultEffectB)
 	{
 		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryA, effectB)));

@@ -22,6 +22,7 @@ namespace eae6320
 			{
 				m_geometry = c.m_geometry;
 				m_effect = c.m_effect;
+				m_Transformation = c.m_Transformation;
 			}
 			RenderObject() { }
 			~RenderObject() { 

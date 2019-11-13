@@ -19,6 +19,56 @@
 // Run
 //----
 
+
+eae6320::cResult eae6320::cMyGame::Initialize()
+{
+	m_camera.m_AspectRatio = 1;
+	m_camera.m_rigidBodyStatue.position = Math::sVector(0, 0, 10);
+
+
+	m_camera.m_FOV = Deg2Rad(45);
+	m_camera.m_ZFarPlane = 100.f;
+	m_camera.m_ZNearPlane = 0.01f;
+	m_isCameraFollow = true;
+
+
+	eae6320::Graphics::Geometry::cGeometry geometryA("data/geometries/object2.bin");
+	eae6320::Graphics::Geometry::cGeometry geometryB("data/geometries/object3.bin");
+	eae6320::Graphics::Geometry::cGeometry geometryC("data/geometries/objectCube2.bin");
+	auto resultGeometryA = geometryA.Load();
+	auto resultGeometryB = geometryB.Load();
+	auto resultGeometryC = geometryC.Load();
+	eae6320::Graphics::cEffect effectA("data/effects/effectA.bin");
+	eae6320::Graphics::cEffect effectB("data/effects/effectB.bin");
+	eae6320::Graphics::cEffect effectC("data/effects/effectC.bin");
+
+	auto resultEffectA = effectA.Load();
+	auto resultEffectB = effectB.Load();
+	auto resultEffectC = effectC.Load();
+	m_effectChangeA = effectA;
+	m_effectChangeB = effectB;
+	m_effectChangeC = effectC;
+	std::vector<Application::GameObject> objs;
+
+	if (resultGeometryA && resultEffectB)
+	{
+		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryA, effectB)));
+	}
+	if (resultGeometryC && resultEffectB)
+	{
+		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryC, effectB)));
+	}
+	if (resultGeometryB && resultEffectB)
+	{
+		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryB, effectB)));
+	}
+
+	SetGameObjects(objs);
+
+	return Results::Success;
+}
+
+
 PlutoShe::Physics::Polythedron GetPolythedronFromGameObject(eae6320::Application::GameObject &i_b)
 {
 	std::vector<PlutoShe::Physics::Vector3> vs;
@@ -38,34 +88,54 @@ PlutoShe::Physics::Polythedron GetPolythedronFromGameObject(eae6320::Application
 void eae6320::cMyGame::UpdateSimulationBasedOnInput()
 {
 	// Object movement
+	// camera Movement;
 	Math::sVector objectVelocity(0, 0, 0);
+	Math::sVector cameraVelocity(0, 0, 0), cameraAngularVelocity(0, 0, 0);
+	
 	float objectSpeed = 2.f;
+
+	// TODO: 
+	// currently 
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Up))
 	{
 		objectVelocity.y += objectSpeed;
+		if (m_isCameraFollow)
+		{
+			cameraVelocity.y += objectSpeed;
+		}
 	}
 
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Down))
 	{
 		objectVelocity.y -= objectSpeed;
+		if (m_isCameraFollow)
+		{
+			cameraVelocity.y -= objectSpeed;
+		}
 	}
 	
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Left))
 	{
 		objectVelocity.x -= objectSpeed;
+		if (m_isCameraFollow)
+		{
+			cameraVelocity.x -= objectSpeed;
+		}
 	}
 
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Right))
 	{
 		objectVelocity.x += objectSpeed;
+		if (m_isCameraFollow)
+		{
+			cameraVelocity.x += objectSpeed;
+		}
 	}
 	if (m_gameObjects.size() > 0)
 	{
 		m_gameObjects[0].m_rigidBodyStatue.velocity = objectVelocity;
 	}
 
-	// camera Movement;
-	Math::sVector cameraVelocity(0, 0, 0), cameraAngularVelocity(0, 0, 0);
 	float cameraSpeed = 5.f;
 	float cameraAngularSpeed = 1.f;
 	
@@ -184,53 +254,6 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 //--------------------------
 
 
-eae6320::cResult eae6320::cMyGame::Initialize()
-{
-	m_camera.m_AspectRatio = 1;
-	m_camera.m_rigidBodyStatue.position = Math::sVector(0, 0, 10);
-
-
-	m_camera.m_FOV = Deg2Rad(45);
-	m_camera.m_ZFarPlane = 100.f;
-	m_camera.m_ZNearPlane = 0.01f;
-
-	
-
-	eae6320::Graphics::Geometry::cGeometry geometryA("data/geometries/object2.bin");
-	eae6320::Graphics::Geometry::cGeometry geometryB("data/geometries/object3.bin");
-	eae6320::Graphics::Geometry::cGeometry geometryC("data/geometries/objectCube2.bin");
-	auto resultGeometryA = geometryA.Load();
-	auto resultGeometryB = geometryB.Load();
-	auto resultGeometryC = geometryC.Load();
-	eae6320::Graphics::cEffect effectA("data/effects/effectA.bin");
-	eae6320::Graphics::cEffect effectB("data/effects/effectB.bin");
-	eae6320::Graphics::cEffect effectC("data/effects/effectC.bin");
-
-	auto resultEffectA = effectA.Load();
-	auto resultEffectB = effectB.Load();
-	auto resultEffectC = effectC.Load();
-	m_effectChangeA = effectA;
-	m_effectChangeB = effectB;
-	m_effectChangeC = effectC;
-	std::vector<Application::GameObject> objs;
-
-	if (resultGeometryA && resultEffectB)
-	{
-		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryA, effectB)));
-	}
-	if (resultGeometryC && resultEffectB)
-	{
-		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryC, effectB)));
-	}
-	if (resultGeometryB && resultEffectB)
-	{
-		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryB, effectB)));
-	}
-
-	SetGameObjects(objs);
-
-	return Results::Success;
-}
 
 eae6320::cResult eae6320::cMyGame::CleanUp()
 {

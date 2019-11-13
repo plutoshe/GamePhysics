@@ -84,6 +84,7 @@ namespace eae6320
 		Graphics::cEffect m_effectChangeC;
 		bool m_isJPressed = false;
 		bool m_isLPressed = false;
+		bool m_isCameraFollow = false;
 
 	};
 }

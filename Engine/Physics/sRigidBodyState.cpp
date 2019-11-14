@@ -22,11 +22,12 @@ void eae6320::Physics::sRigidBodyState::Update( const float i_secondCountToInteg
 	if (polarVelocity != Math::sVector(0,0,0))
 	{
 		Math::sVector poloarConversion = position - polarOrigin;
+		//poloarConversion.z = position.z + polarOrigin.z;
 		Math::sVector polarPosition = poloarConversion.CartesianToPolarCoordinate();
 
 		polarPosition += polarVelocity * i_secondCountToIntegrate;
-		position = polarPosition.PolarTocartesianCoordinate();
-		const auto rotationXZ = Math::cQuaternion(-polarVelocity.y * i_secondCountToIntegrate, Math::sVector(0, 1, 0));
+		position = polarPosition.PolarTocartesianCoordinate() + polarOrigin;
+		const auto rotationXZ = Math::cQuaternion(polarVelocity.y * i_secondCountToIntegrate, Math::sVector(0, 1, 0));
 		orientation = rotationXZ * orientation;
 		orientation.Normalize();
 	}

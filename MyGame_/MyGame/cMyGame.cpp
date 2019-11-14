@@ -23,7 +23,7 @@
 eae6320::cResult eae6320::cMyGame::Initialize()
 {
 	m_camera.m_AspectRatio = 1;
-	m_camera.m_rigidBodyStatue.position = Math::sVector(0, 15, -15);
+	m_camera.m_rigidBodyStatue.position = Math::sVector(0, 15, 15);
 	const auto rotationZY = Math::cQuaternion(-45.0f / 180 * M_PI, Math::sVector(1, 0, 0));
 	//const auto rotationXZ = Math::cQuaternion(M_PI, Math::sVector(0, 1, 0));
 	//const auto rotationXZ = Math::cQuaternion(45, Math::sVector(0, 0, 1));
@@ -68,7 +68,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	}
 
 	SetGameObjects(objs);
-	m_camera.m_rigidBodyStatue.polarOrigin = m_gameObjects[0].m_rigidBodyStatue.position;
+	
 	return Results::Success;
 }
 
@@ -91,46 +91,48 @@ PlutoShe::Physics::Polythedron GetPolythedronFromGameObject(eae6320::Application
 
 void eae6320::cMyGame::UpdateSimulationBasedOnInput()
 {
+	m_camera.m_rigidBodyStatue.polarOrigin = m_gameObjects[0].m_rigidBodyStatue.position;
 	// Object movement
 	// camera Movement;
 	Math::sVector objectVelocity(0, 0, 0);
 	Math::sVector cameraVelocity(0, 0, 0), cameraAngularVelocity(0, 0, 0), cameraPolarVelocity(0, 0, 0);
-	
+	auto rotationZY = Math::cQuaternion(45.0f / 180 * M_PI, Math::sVector(1, 0, 0));
+	auto go = m_camera.m_rigidBodyStatue.orientation * rotationZY;
 	float objectSpeed = 2.f;
-
+	auto playerXZ = Math::cMatrix_transformation(go, m_camera.m_rigidBodyStatue.position);
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Up))
 	{
-		objectVelocity.y += objectSpeed;
+		objectVelocity -= objectSpeed * playerXZ.GetBackDirection();
 		if (m_isCameraFollow)
 		{
-			cameraVelocity.y += objectSpeed;
+			cameraVelocity -= objectSpeed * playerXZ.GetBackDirection();
 		}
 	}
 
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Down))
 	{
-		objectVelocity.y -= objectSpeed;
+		objectVelocity += objectSpeed * playerXZ.GetBackDirection();
 		if (m_isCameraFollow)
 		{
-			cameraVelocity.y -= objectSpeed;
+			cameraVelocity += objectSpeed * playerXZ.GetBackDirection();
 		}
 	}
 	
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Left))
 	{
-		objectVelocity.x -= objectSpeed;
+		objectVelocity -= objectSpeed * playerXZ.GetRightDirection();
 		if (m_isCameraFollow)
 		{
-			cameraVelocity.x -= objectSpeed;
+			cameraVelocity -= objectSpeed * playerXZ.GetRightDirection();
 		}
 	}
 
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Right))
 	{
-		objectVelocity.x += objectSpeed;
+		objectVelocity += objectSpeed * playerXZ.GetRightDirection();
 		if (m_isCameraFollow)
 		{
-			cameraVelocity.x += objectSpeed;
+			cameraVelocity += objectSpeed * playerXZ.GetRightDirection();
 		}
 	}
 	if (m_gameObjects.size() > 0)
@@ -170,7 +172,8 @@ void eae6320::cMyGame::UpdateSimulationBasedOnInput()
 		//cameraAngularVelocity.y -= cameraAngularSpeed;
 		cameraPolarVelocity.y -= 60.0f / 180 * M_PI;
 	}
-	m_camera.SetVelocityInCameraAxis(cameraVelocity);
+	//m_camera.SetVelocityInCameraAxis(cameraVelocity);
+	m_camera.m_rigidBodyStatue.velocity = cameraVelocity;
 	m_camera.SetAngularVelocity(cameraAngularVelocity);
 	m_camera.SetPolarVelocity(cameraPolarVelocity);
 }

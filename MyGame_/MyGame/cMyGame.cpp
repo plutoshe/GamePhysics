@@ -36,8 +36,8 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	m_isCameraFollow = true;
 
 
-	eae6320::Graphics::Geometry::cGeometry geometryA("data/geometries/object2.bin");
-	eae6320::Graphics::Geometry::cGeometry geometryB("data/geometries/object3.bin");
+	eae6320::Graphics::Geometry::cGeometry geometryA("data/geometries/sphereOrigin.bin");
+	eae6320::Graphics::Geometry::cGeometry geometryB("data/geometries/plane.bin");
 	eae6320::Graphics::Geometry::cGeometry geometryC("data/geometries/objectCube2.bin");
 	auto resultGeometryA = geometryA.Load();
 	auto resultGeometryB = geometryB.Load();

@@ -25,6 +25,8 @@ return
 		{ path = "geometries/object2.bin"},
 		{ path = "geometries/object3.bin"},
 		{ path = "geometries/objectTriangle.bin"},
+		{ path = "geometries/plane.bin"},
+		{ path = "geometries/sphereOrigin.bin"},
 	},
 }
 

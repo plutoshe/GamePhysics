@@ -72,6 +72,7 @@ namespace eae6320
 		// Run
 		//----
 
+		virtual void UpdateBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate);
 		virtual void UpdateBasedOnInput() override;
 		virtual void UpdateSimulationBasedOnInput() override;
 		// Initialization / Clean Up
@@ -85,6 +86,7 @@ namespace eae6320
 		bool m_isJPressed = false;
 		bool m_isLPressed = false;
 		bool m_isCameraFollow = false;
+		float isJump = 0;
 
 	};
 }

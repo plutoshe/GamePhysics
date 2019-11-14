@@ -34,3 +34,8 @@ void eae6320::Application::Camera::SetAngularVelocity(eae6320::Math::sVector i_a
 {
 	m_rigidBodyStatue.angularSpeed = i_angularVelocity.y;
 }
+
+void eae6320::Application::Camera::SetPolarVelocity(eae6320::Math::sVector i_polarVelocity)
+{
+	m_rigidBodyStatue.polarVelocity = i_polarVelocity;
+}

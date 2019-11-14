@@ -36,6 +36,7 @@ namespace PlutoShe
 				return m_x * i_v.m_x + m_y * i_v.m_y + m_z * i_v.m_z;
 			}
 		};
+
 		class Polythedron
 		{
 		public:

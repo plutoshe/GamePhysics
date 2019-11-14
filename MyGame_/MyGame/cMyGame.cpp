@@ -23,8 +23,12 @@
 eae6320::cResult eae6320::cMyGame::Initialize()
 {
 	m_camera.m_AspectRatio = 1;
-	m_camera.m_rigidBodyStatue.position = Math::sVector(0, 0, 10);
-
+	m_camera.m_rigidBodyStatue.position = Math::sVector(0, 15, -15);
+	const auto rotationZY = Math::cQuaternion(-45.0f / 180 * M_PI, Math::sVector(1, 0, 0));
+	//const auto rotationXZ = Math::cQuaternion(M_PI, Math::sVector(0, 1, 0));
+	//const auto rotationXZ = Math::cQuaternion(45, Math::sVector(0, 0, 1));
+	m_camera.m_rigidBodyStatue.orientation = m_camera.m_rigidBodyStatue.orientation * rotationZY;
+	m_camera.m_rigidBodyStatue.orientation.Normalize();
 
 	m_camera.m_FOV = Deg2Rad(45);
 	m_camera.m_ZFarPlane = 100.f;
@@ -64,7 +68,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	}
 
 	SetGameObjects(objs);
-
+	m_camera.m_rigidBodyStatue.polarOrigin = m_gameObjects[0].m_rigidBodyStatue.position;
 	return Results::Success;
 }
 
@@ -90,12 +94,10 @@ void eae6320::cMyGame::UpdateSimulationBasedOnInput()
 	// Object movement
 	// camera Movement;
 	Math::sVector objectVelocity(0, 0, 0);
-	Math::sVector cameraVelocity(0, 0, 0), cameraAngularVelocity(0, 0, 0);
+	Math::sVector cameraVelocity(0, 0, 0), cameraAngularVelocity(0, 0, 0), cameraPolarVelocity(0, 0, 0);
 	
 	float objectSpeed = 2.f;
 
-	// TODO: 
-	// currently 
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Up))
 	{
 		objectVelocity.y += objectSpeed;
@@ -160,15 +162,17 @@ void eae6320::cMyGame::UpdateSimulationBasedOnInput()
 	}
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Q))
 	{
-		cameraAngularVelocity.y += cameraAngularSpeed;
-		
+		//cameraAngularVelocity.y += cameraAngularSpeed;
+		cameraPolarVelocity.y += 60.0f  / 180 * M_PI;
 	}
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::E))
 	{
-		cameraAngularVelocity.y -= cameraAngularSpeed;
+		//cameraAngularVelocity.y -= cameraAngularSpeed;
+		cameraPolarVelocity.y -= 60.0f / 180 * M_PI;
 	}
 	m_camera.SetVelocityInCameraAxis(cameraVelocity);
 	m_camera.SetAngularVelocity(cameraAngularVelocity);
+	m_camera.SetPolarVelocity(cameraPolarVelocity);
 }
 
 void eae6320::cMyGame::UpdateBasedOnInput()

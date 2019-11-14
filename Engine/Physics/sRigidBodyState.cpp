@@ -2,7 +2,7 @@
 //=========
 
 #include "sRigidBodyState.h"
-
+#include <cmath>
 #include <Engine/Math/cMatrix_transformation.h>
 
 // Interface
@@ -18,9 +18,26 @@ void eae6320::Physics::sRigidBodyState::Update( const float i_secondCountToInteg
 	{
 		velocity += acceleration * i_secondCountToIntegrate;
 	}
+	// update position based on polar velocity
+	if (polarVelocity != Math::sVector(0,0,0))
+	{
+		Math::sVector poloarConversion = position - polarOrigin;
+		Math::sVector polarPosition = poloarConversion.CartesianToPolarCoordinate();
+
+		polarPosition += polarVelocity * i_secondCountToIntegrate;
+		position = polarPosition.PolarTocartesianCoordinate();
+		const auto rotationXZ = Math::cQuaternion(-polarVelocity.y * i_secondCountToIntegrate, Math::sVector(0, 1, 0));
+		orientation = rotationXZ * orientation;
+		orientation.Normalize();
+	}
+	// update polar velocity
+	{
+		polarVelocity += polarAcceleration;
+	}
+	
 	// Update orientation
 	{
-		const auto rotation = Math::cQuaternion( angularSpeed * i_secondCountToIntegrate, angularVelocity_axis_local );
+		const auto rotation = Math::cQuaternion(angularSpeed * i_secondCountToIntegrate, angularVelocity_axis_local);
 		orientation = orientation * rotation;
 		orientation.Normalize();
 	}

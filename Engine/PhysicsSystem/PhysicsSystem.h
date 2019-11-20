@@ -53,25 +53,22 @@ namespace PlutoShe
 		class Collider
 		{
 		public:
-			Collider() { m_vertices.clear(); }
-			Collider(std::vector<Vector3>& i_v) { m_vertices = i_v; }
-			
-			Collider(const Collider& i_v) { m_vertices = i_v.m_vertices; }
-			Collider(std::string i_path) { InitData(i_path); }
+			Collider();
+			Collider(std::vector<Vector3>& i_v);
+			Collider(const Collider& i_v);
+			Collider(std::string i_path);
 
-			bool IsCollided(Collider& i_B);
-
-			Vector3 Center();
-
-			std::vector<Vector3> m_vertices;
-			eae6320::Math::cMatrix_transformation m_transformation;
-			
 			eae6320::cResult InitData(std::string i_path);;
-
-
+			void UpdateTransformation(eae6320::Math::cMatrix_transformation i_t);
+			Vector3 Center();
+			bool IsCollided(Collider& i_B);
+			
+			std::vector<Vector3> m_vertices;
 		private:
 			static Vector3 supportFunction(Collider& i_A, Collider& i_B, Vector3 i_dir);
 			Vector3 getFarthestPointInDirection(Vector3 i_dir);
+			eae6320::Math::cMatrix_transformation m_transformation;
+
 		};
 
 		class Simplex
@@ -98,38 +95,17 @@ namespace PlutoShe
 		class ColliderList
 		{
 		public:
-			ColliderList() {}
-			ColliderList(const Collider& i_c) { m_colliders.clear(); m_colliders.push_back(i_c); }
-			ColliderList(const ColliderList& i_c) { m_colliders = i_c.m_colliders; }
+			ColliderList();
+			ColliderList(const Collider& i_c);
+			ColliderList(const ColliderList& i_c);
 
-			void ClearAllCollider() { m_colliders.clear(); }
-			void AddCollider(Collider i_c) { m_colliders.push_back(i_c); }
-			size_t GetSize() { return m_colliders.size();  }
-			Collider GetColliderByIndex(int i_index) { return m_colliders[i_index]; }
-
-			bool IsCollided(ColliderList &i_cl)
-			{
-				for (auto i = 0; i < m_colliders.size(); i++)
-				{
-					for (auto j = 0; j < i_cl.m_colliders.size(); j++)
-					{
-						if (m_colliders[i].IsCollided(i_cl.m_colliders[j]))
-						{
-							return true;
-						}
-					}
-				}
-				return false;
-			}
-
-			void UpdateTransformation(eae6320::Math::cMatrix_transformation i_t)
-			{
-				for (int i = 0; i < m_colliders.size(); i++)
-				{
-					m_colliders[i].m_transformation = i_t;
-				}
-			}
-
+			void ClearAllCollider();
+			void AddCollider(Collider i_c);
+			size_t GetSize();
+			Collider GetColliderByIndex(int i_index);
+			bool IsCollided(ColliderList& i_queryColliderList);
+			void UpdateTransformation(eae6320::Math::cMatrix_transformation i_t);
+		protected:
 			std::vector<Collider> m_colliders;
 		};
 

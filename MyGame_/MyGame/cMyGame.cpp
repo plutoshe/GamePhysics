@@ -9,6 +9,7 @@
 #include <Engine/Graphics/cEffect.h>
 #include <Engine/Graphics/cGeometry.h>
 #include <vector>
+#include <Engine/Math/sVector.h>
 #include <Engine/PhysicsSystem/PhysicsSystem.h>
 #define M_PI 3.1415926f
 #define Deg2Rad(x) (x * M_PI / 180.f)
@@ -69,24 +70,21 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 	SetGameObjects(objs);
 	
-	return Results::Success;
-}
-
-
-PlutoShe::Physics::Polythedron GetPolythedronFromGameObject(eae6320::Application::GameObject &i_b)
-{
-	std::vector<PlutoShe::Physics::Vector3> vs;
-	auto *renderobject = eae6320::Graphics::Geometry::cGeometryRenderTarget::s_manager.Get(i_b.m_renderObject.m_geometry.m_handler);
-	eae6320::Math::sVector sv;
-	for (size_t i = 0; i < renderobject->m_vertices.size(); i++)
+	for (int i = 0; i < m_gameObjects.size(); i++)
 	{
-		sv.x = renderobject->m_vertices[i].m_x;
-		sv.y = renderobject->m_vertices[i].m_y;
-		sv.z = renderobject->m_vertices[i].m_z;
-		sv = i_b.m_renderObject.m_Transformation * sv;
-		vs.push_back(PlutoShe::Physics::Vector3(sv.x, sv.y, sv.z));
+		auto* renderobject = eae6320::Graphics::Geometry::cGeometryRenderTarget::s_manager.Get(m_gameObjects[i].m_renderObject.m_geometry.m_handler);
+		std::vector<PlutoShe::Physics::Vector3> vertices;
+		if (renderobject)
+		{
+			for (int vi = 0; vi < renderobject->m_vertices.size(); vi++)
+			{
+				vertices.push_back(PlutoShe::Physics::Vector3(renderobject->m_vertices[vi].m_x, renderobject->m_vertices[vi].m_y, renderobject->m_vertices[vi].m_z));
+			}
+			m_gameObjects[i].m_colliders.AddCollider(PlutoShe::Physics::Collider(vertices));
+		}
 	}
-	return PlutoShe::Physics::Polythedron(vs);
+
+	return Results::Success;
 }
 
 void eae6320::cMyGame::UpdateBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate)
@@ -260,15 +258,13 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 	}
 	if (m_gameObjects.size() >= 3)
 	{
-		if (PlutoShe::Physics::IsCollided(GetPolythedronFromGameObject(m_gameObjects[0]), GetPolythedronFromGameObject(m_gameObjects[2])))
+		if (m_gameObjects[0].m_colliders.IsCollided(m_gameObjects[2].m_colliders))
 		{
 			m_gameObjects[0].m_renderObject.m_effect = m_effectChangeA;
-			Logging::OutputMessage("collision detected!");
 		}
-		if (PlutoShe::Physics::IsCollided(GetPolythedronFromGameObject(m_gameObjects[0]), GetPolythedronFromGameObject(m_gameObjects[1])))
+		if (m_gameObjects[0].m_colliders.IsCollided(m_gameObjects[1].m_colliders))
 		{
 			m_gameObjects[0].m_renderObject.m_effect = m_effectChangeC;
-			Logging::OutputMessage("collision detected!");
 		}
 	}
 }

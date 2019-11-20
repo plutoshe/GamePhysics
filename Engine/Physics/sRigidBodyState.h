@@ -43,6 +43,8 @@ namespace eae6320
 			Math::sVector polarOrigin;
 			Math::cQuaternion orientation;
 			Math::sVector angularVelocity_axis_local = Math::sVector( 0.0f, 1.0f, 0.0f );	// In local space (not world space)
+			Math::sVector forceAccumulator;
+			Math::sVector torqueAccumulator;
 			float angularSpeed = 0.0f;	// Radians per-second (positive values rotate right-handed, negative rotate left-handed)
 
 			// Interface
@@ -52,6 +54,7 @@ namespace eae6320
 			Math::sVector PredictFuturePosition( const float i_secondCountToExtrapolate ) const;
 			Math::cQuaternion PredictFutureOrientation( const float i_secondCountToExtrapolate ) const;
 			Math::cMatrix_transformation PredictFutureTransform( const float i_secondCountToExtrapolate ) const;
+			
 		};
 	}
 }

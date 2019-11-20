@@ -294,6 +294,7 @@ void eae6320::Application::cbApplication::SubmitDataToBeRendered(const float i_e
 			m_gameObjects[i].m_renderObject.m_Transformation =
 				m_gameObjects[i].m_rigidBodyStatue.PredictFutureTransform(i_elapsedSecondCount_sinceLastSimulationUpdate);
 			eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread->m_renderObjects.push_back(m_gameObjects[i].m_renderObject);
+			m_gameObjects[i].m_colliders.UpdateTransformation(m_gameObjects[i].m_renderObject.m_Transformation);
 		}
 	}
 }

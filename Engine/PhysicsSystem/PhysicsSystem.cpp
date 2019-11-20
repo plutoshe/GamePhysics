@@ -8,54 +8,83 @@ namespace PlutoShe
 {
 	namespace Physics
 	{
-		Vector3 SupportFunction(Polythedron &i_A, Polythedron &i_B, Vector3 i_dir)
+		Vector3 Collider::getFarthestPointInDirection(Vector3 i_dir)
+		{
+			int selection = 0;
+			float maxDist = (m_transformation * m_vertices[0]).dot(i_dir);
+			for (size_t i = 1; i < m_vertices.size(); i++)
+			{
+				float dist = (m_transformation * m_vertices[i]).dot(i_dir);
+				if (dist > maxDist)
+				{
+					maxDist = dist;
+					selection = (int)i;
+				}
+			}
+			return m_transformation * m_vertices[selection];
+		}
+
+		Vector3 Collider::supportFunction(Collider&i_A, Collider&i_B, Vector3 i_dir)
 		{
 			auto a = i_A.getFarthestPointInDirection(i_dir);
 			auto b = i_B.getFarthestPointInDirection(i_dir.Negate());
-			return a - b;
+			return a - b;	
 		}
-			
-		bool IsCollided(Polythedron &i_A, Polythedron &i_B)
+
+
+		Vector3 Collider::Center()
 		{
-			Vector3 dir = i_B.Center() - i_A.Center();
+			Vector3 center;
+			int count = 0;
+			for (size_t i = 0; i < m_vertices.size(); i++)
+			{
+				center = center + m_transformation * m_vertices[i];
+				count++;
+			}
+			return center / float(count);
+		}
+
+		bool Collider::IsCollided(Collider&i_B)
+		{
+			Vector3 dir = i_B.Center() - this->Center();
 			Simplex simplex;
 			simplex.Clear();
 			while (true)
 			{
-				simplex.Add(SupportFunction(i_A, i_B, dir));
+				simplex.Add(supportFunction(*this, i_B, dir));
 
 				if (simplex.GetLast().dot(dir) < 0) {
 					return false;
 				}
 				else {
-					if (ContainsOrigin(simplex, dir)) {
+					if (simplex.ContainsOrigin(dir)) {
 						return true;
 					}
 				}
 			}
 		}
 
-		bool ContainsOrigin(Simplex &t_s, Vector3 &t_direction)
+		bool Simplex::ContainsOrigin(Vector3 &t_direction)
 		{
 			Vector3 a, b, c, d;
 			Vector3 ab, ac, ao;
-			switch (t_s.GetSize())
+			switch (this->GetSize())
 			{
 			case 1:
 				t_direction = t_direction * -1;
 				break;
 			case 2:
-				a = t_s.GetA();
-			    b = t_s.GetB();
+				a = this->GetA();
+			    b = this->GetB();
 				ab = b - a;
 				ao = a.Negate();
 				t_direction = ab.cross(ao).cross(ab);
 				break;
 
 			case 3:
-				a = t_s.GetA();
-				b = t_s.GetB();
-				c = t_s.GetC();
+				a = this->GetA();
+				b = this->GetB();
+				c = this->GetC();
 				ab = b - a;
 				ac = c - a;
 				ao = a.Negate();
@@ -63,10 +92,10 @@ namespace PlutoShe
 				if (t_direction.dot(ao) < 0) t_direction = t_direction * -1;
 				break;
 			case 4:
-			    a = t_s.GetA();
-				b = t_s.GetB();
-				c = t_s.GetC();
-				d = t_s.GetD();
+			    a = this->GetA();
+				b = this->GetB();
+				c = this->GetC();
+				d = this->GetD();
 				auto da = a - d;
 				auto db = b - d;
 				auto dc = c - d;
@@ -79,20 +108,20 @@ namespace PlutoShe
 				auto ndbc = normal_dbc.dot(do_);
 				if (ndab > 0)
 				{
-					t_s.RemoveC();
+					this->RemoveC();
 
 					t_direction = normal_dab;
 				}
 				else if (ndac > 0)
 				{
-					t_s.m_points[1] = d;
-					t_s.RemoveD();
+					this->m_points[1] = d;
+					this->RemoveD();
 					t_direction = normal_dac;
 				}
 				else if (ndbc > 0)
 				{
-					t_s.m_points[0] = d;
-					t_s.RemoveD();
+					this->m_points[0] = d;
+					this->RemoveD();
 					t_direction = normal_dbc;
 				}
 				else

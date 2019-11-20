@@ -2,6 +2,10 @@
 #include <vector>
 #include <Engine/Math/sVector.h>
 #include <Engine/Math/cMatrix_transformation.h>
+#include <Engine/Platform/Platform.h>
+#include <Engine/Logging/Logging.h>
+#include <string>
+
 namespace PlutoShe
 {
 	namespace Physics
@@ -53,6 +57,7 @@ namespace PlutoShe
 			Collider(std::vector<Vector3>& i_v) { m_vertices = i_v; }
 			
 			Collider(const Collider& i_v) { m_vertices = i_v.m_vertices; }
+			Collider(std::string i_path) { InitData(i_path); }
 
 			bool IsCollided(Collider& i_B);
 
@@ -60,6 +65,10 @@ namespace PlutoShe
 
 			std::vector<Vector3> m_vertices;
 			eae6320::Math::cMatrix_transformation m_transformation;
+			
+			eae6320::cResult InitData(std::string i_path);;
+
+
 		private:
 			static Vector3 supportFunction(Collider& i_A, Collider& i_B, Vector3 i_dir);
 			Vector3 getFarthestPointInDirection(Vector3 i_dir);

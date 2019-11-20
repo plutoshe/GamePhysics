@@ -1,0 +1,28 @@
+return
+{
+    vertices = {
+       {position={9,1.19209e-07,1},color={0,0,255,255}},
+       {position={9,1.19209e-07,1},color={0,0,255,255}},
+       {position={9,1.19209e-07,1},color={0,0,255,255}},
+       {position={11,0,1},color={28,255,0,255}},
+       {position={11,0,1},color={28,255,0,255}},
+       {position={11,0,1},color={28,255,0,255}},
+       {position={9,2,1},color={0,0,255,255}},
+       {position={9,2,1},color={0,0,255,255}},
+       {position={9,2,1},color={0,0,255,255}},
+       {position={11,2,1},color={28,255,0,255}},
+       {position={11,2,1},color={28,255,0,255}},
+       {position={11,2,1},color={28,255,0,255}},
+       {position={9,2,-1},color={255,255,255,255}},
+       {position={9,2,-1},color={255,255,255,255}},
+       {position={9,2,-1},color={255,255,255,255}},
+       {position={11,2,-1},color={28,255,0,255}},
+       {position={11,2,-1},color={28,255,0,255}},
+       {position={11,2,-1},color={28,255,0,255}},
+       {position={9,0,-1},color={255,255,255,255}},
+       {position={9,0,-1},color={255,255,255,255}},
+       {position={9,0,-1},color={255,255,255,255}},
+       {position={11,0,-1},color={28,255,0,255}},
+       {position={11,0,-1},color={28,255,0,255}},
+       {position={11,0,-1},color={28,255,0,255}}},
+}

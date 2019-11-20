@@ -132,5 +132,43 @@ namespace PlutoShe
 			}
 			return false;
 		}
+
+		eae6320::cResult PlutoShe::Physics::Collider::InitData(std::string i_path)
+		{
+			auto result = eae6320::Results::Success;
+			std::string errorMessage;
+			eae6320::Platform::sDataFromFile dataFromFile;
+
+			auto resultReadBinaryFile = eae6320::Platform::LoadBinaryFile(i_path.c_str(), dataFromFile, &errorMessage);
+			if (!resultReadBinaryFile)
+			{
+				result = resultReadBinaryFile;
+				eae6320::Logging::OutputError("Couldn't read binary file at path %s", i_path.c_str());
+				return result;
+			}
+
+			auto currentOffset = reinterpret_cast<uintptr_t>(dataFromFile.data);
+			uint16_t vertexCount;
+			size_t sizeS = 0;
+			if (sizeS + sizeof(uint16_t) > dataFromFile.size)
+			{
+				eae6320::Logging::OutputError("Wrong file size at path %s", i_path.c_str());
+				return result;
+			}
+
+			memcpy(&vertexCount, reinterpret_cast<void*>(currentOffset), sizeof(uint16_t));
+			
+			currentOffset += sizeof(uint16_t);
+			sizeS += sizeof(uint16_t);
+			if (sizeS + vertexCount * sizeof(Vector3) > dataFromFile.size)
+			{
+				eae6320::Logging::OutputError("Wrong file size at path %s", i_path.c_str());
+				return result;
+			}
+
+			m_vertices.resize(vertexCount);
+			memcpy(&m_vertices[0], reinterpret_cast<void*>(currentOffset), vertexCount * sizeof(Vector3));
+			return result;
+		}
 	}
 }

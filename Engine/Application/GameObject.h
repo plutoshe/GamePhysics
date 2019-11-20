@@ -15,6 +15,7 @@ namespace eae6320
 			bool m_isVisiable;
 			GameObject() : m_renderObject(), m_rigidBodyStatue(), m_isVisiable(true), m_colliders() {}
 			GameObject(eae6320::Graphics::RenderObject i_renderObject) :m_renderObject(i_renderObject), m_isVisiable(true) {}
+			GameObject(eae6320::Graphics::RenderObject i_renderObject, PlutoShe::Physics::ColliderList i_colliderList) :m_renderObject(i_renderObject), m_isVisiable(true), m_colliders(i_colliderList) {}
 		};
 
 	}

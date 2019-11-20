@@ -46,6 +46,9 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	eae6320::Graphics::cEffect effectA("data/effects/effectA.bin");
 	eae6320::Graphics::cEffect effectB("data/effects/effectB.bin");
 	eae6320::Graphics::cEffect effectC("data/effects/effectC.bin");
+	PlutoShe::Physics::Collider colliderA("data/colliders/sphereOrigin.bin");
+	PlutoShe::Physics::Collider colliderB("data/colliders/plane.bin");
+	PlutoShe::Physics::Collider colliderC("data/colliders/objectCube2.bin");
 
 	auto resultEffectA = effectA.Load();
 	auto resultEffectB = effectB.Load();
@@ -57,32 +60,33 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 	if (resultGeometryA && resultEffectB)
 	{
-		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryA, effectB)));
+		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryA, effectB), colliderA));
+
 	}
 	if (resultGeometryC && resultEffectB)
 	{
-		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryC, effectB)));
+		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryC, effectB), colliderC));
 	}
 	if (resultGeometryB && resultEffectB)
 	{
-		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryB, effectB)));
+		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryB, effectB), colliderB));
 	}
 
 	SetGameObjects(objs);
 	
-	for (int i = 0; i < m_gameObjects.size(); i++)
-	{
-		auto* renderobject = eae6320::Graphics::Geometry::cGeometryRenderTarget::s_manager.Get(m_gameObjects[i].m_renderObject.m_geometry.m_handler);
-		std::vector<PlutoShe::Physics::Vector3> vertices;
-		if (renderobject)
-		{
-			for (int vi = 0; vi < renderobject->m_vertices.size(); vi++)
-			{
-				vertices.push_back(PlutoShe::Physics::Vector3(renderobject->m_vertices[vi].m_x, renderobject->m_vertices[vi].m_y, renderobject->m_vertices[vi].m_z));
-			}
-			m_gameObjects[i].m_colliders.AddCollider(PlutoShe::Physics::Collider(vertices));
-		}
-	}
+	//for (int i = 0; i < m_gameObjects.size(); i++)
+	//{
+	//	auto* renderobject = eae6320::Graphics::Geometry::cGeometryRenderTarget::s_manager.Get(m_gameObjects[i].m_renderObject.m_geometry.m_handler);
+	//	std::vector<PlutoShe::Physics::Vector3> vertices;
+	//	if (renderobject)
+	//	{
+	//		for (int vi = 0; vi < renderobject->m_vertices.size(); vi++)
+	//		{
+	//			vertices.push_back(PlutoShe::Physics::Vector3(renderobject->m_vertices[vi].m_x, renderobject->m_vertices[vi].m_y, renderobject->m_vertices[vi].m_z));
+	//		}
+	//		m_gameObjects[i].m_colliders.AddCollider(PlutoShe::Physics::Collider(vertices));
+	//	}
+	//}
 
 	return Results::Success;
 }

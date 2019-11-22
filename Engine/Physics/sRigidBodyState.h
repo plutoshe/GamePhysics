@@ -38,8 +38,13 @@ namespace eae6320
 			Math::sVector position;	// In arbitrary units determined by the applicaton's convention
 			Math::sVector velocity;	// Distance per-second
 			Math::sVector acceleration;	// Distance per-second^2
+			Math::sVector polarVelocity;
+			Math::sVector polarAcceleration;
+			Math::sVector polarOrigin;
 			Math::cQuaternion orientation;
 			Math::sVector angularVelocity_axis_local = Math::sVector( 0.0f, 1.0f, 0.0f );	// In local space (not world space)
+			Math::sVector forceAccumulator;
+			Math::sVector torqueAccumulator;
 			float angularSpeed = 0.0f;	// Radians per-second (positive values rotate right-handed, negative rotate left-handed)
 
 			// Interface
@@ -49,6 +54,7 @@ namespace eae6320
 			Math::sVector PredictFuturePosition( const float i_secondCountToExtrapolate ) const;
 			Math::cQuaternion PredictFutureOrientation( const float i_secondCountToExtrapolate ) const;
 			Math::cMatrix_transformation PredictFutureTransform( const float i_secondCountToExtrapolate ) const;
+			
 		};
 	}
 }

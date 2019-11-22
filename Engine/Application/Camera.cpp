@@ -24,10 +24,18 @@ void eae6320::Application::Camera::SetVelocityInCameraAxis(eae6320::Math::sVecto
 {
 	auto tranform = eae6320::Math::cMatrix_transformation(m_rigidBodyStatue.orientation, m_rigidBodyStatue.position);
 	
-	m_rigidBodyStatue.velocity = tranform.GetRightDirection() * i_VelocityCameraAxis.x - tranform.GetBackDirection() * i_VelocityCameraAxis.z;
+	m_rigidBodyStatue.velocity = 
+		tranform.GetRightDirection() * i_VelocityCameraAxis.x +
+		tranform.GetUpDirection() * i_VelocityCameraAxis.y -
+		tranform.GetBackDirection() * i_VelocityCameraAxis.z;
 }
 
 void eae6320::Application::Camera::SetAngularVelocity(eae6320::Math::sVector i_angularVelocity)
 {
 	m_rigidBodyStatue.angularSpeed = i_angularVelocity.y;
+}
+
+void eae6320::Application::Camera::SetPolarVelocity(eae6320::Math::sVector i_polarVelocity)
+{
+	m_rigidBodyStatue.polarVelocity = i_polarVelocity;
 }

@@ -1,0 +1,5 @@
+return
+{
+    vertex = "shaders/vertex/standard.shader",
+    fragment = "shaders/fragment/blue.shader",
+}

@@ -9,6 +9,8 @@
 #include <Engine/Graphics/cEffect.h>
 #include <Engine/Graphics/cGeometry.h>
 #include <vector>
+#include <Engine/Math/sVector.h>
+#include <Engine/PhysicsSystem/PhysicsSystem.h>
 #define M_PI 3.1415926f
 #define Deg2Rad(x) (x * M_PI / 180.f)
 #define Rad2Deg(x) (x * 180.f / M_PI)
@@ -18,70 +20,180 @@
 // Run
 //----
 
+
+eae6320::cResult eae6320::cMyGame::Initialize()
+{
+	m_camera.m_AspectRatio = 1;
+	m_camera.m_rigidBodyStatue.position = Math::sVector(0, 15, 15);
+	const auto rotationZY = Math::cQuaternion(-45.0f / 180 * M_PI, Math::sVector(1, 0, 0));
+	//const auto rotationXZ = Math::cQuaternion(M_PI, Math::sVector(0, 1, 0));
+	//const auto rotationXZ = Math::cQuaternion(45, Math::sVector(0, 0, 1));
+	m_camera.m_rigidBodyStatue.orientation = m_camera.m_rigidBodyStatue.orientation * rotationZY;
+	m_camera.m_rigidBodyStatue.orientation.Normalize();
+
+	m_camera.m_FOV = Deg2Rad(45);
+	m_camera.m_ZFarPlane = 100.f;
+	m_camera.m_ZNearPlane = 0.01f;
+	m_isCameraFollow = true;
+
+
+	eae6320::Graphics::Geometry::cGeometry geometryA("data/geometries/sphereOrigin.bin");
+	eae6320::Graphics::Geometry::cGeometry geometryB("data/geometries/plane.bin");
+	eae6320::Graphics::Geometry::cGeometry geometryC("data/geometries/objectCube2.bin");
+	auto resultGeometryA = geometryA.Load();
+	auto resultGeometryB = geometryB.Load();
+	auto resultGeometryC = geometryC.Load();
+	eae6320::Graphics::cEffect effectA("data/effects/effectA.bin");
+	eae6320::Graphics::cEffect effectB("data/effects/effectB.bin");
+	eae6320::Graphics::cEffect effectC("data/effects/effectC.bin");
+	PlutoShe::Physics::Collider colliderA("data/colliders/sphereOrigin.bin");
+	PlutoShe::Physics::Collider colliderB("data/colliders/plane.bin");
+	PlutoShe::Physics::Collider colliderC("data/colliders/objectCube2.bin");
+
+	auto resultEffectA = effectA.Load();
+	auto resultEffectB = effectB.Load();
+	auto resultEffectC = effectC.Load();
+	m_effectChangeA = effectA;
+	m_effectChangeB = effectB;
+	m_effectChangeC = effectC;
+	std::vector<Application::GameObject> objs;
+
+	if (resultGeometryA && resultEffectB)
+	{
+		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryA, effectB), colliderA));
+
+	}
+	if (resultGeometryC && resultEffectB)
+	{
+		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryC, effectB), colliderC));
+	}
+	if (resultGeometryB && resultEffectB)
+	{
+		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryB, effectB), colliderB));
+	}
+
+	SetGameObjects(objs);
+	
+	//for (int i = 0; i < m_gameObjects.size(); i++)
+	//{
+	//	auto* renderobject = eae6320::Graphics::Geometry::cGeometryRenderTarget::s_manager.Get(m_gameObjects[i].m_renderObject.m_geometry.m_handler);
+	//	std::vector<PlutoShe::Physics::Vector3> vertices;
+	//	if (renderobject)
+	//	{
+	//		for (int vi = 0; vi < renderobject->m_vertices.size(); vi++)
+	//		{
+	//			vertices.push_back(PlutoShe::Physics::Vector3(renderobject->m_vertices[vi].m_x, renderobject->m_vertices[vi].m_y, renderobject->m_vertices[vi].m_z));
+	//		}
+	//		m_gameObjects[i].m_colliders.AddCollider(PlutoShe::Physics::Collider(vertices));
+	//	}
+	//}
+
+	return Results::Success;
+}
+
+void eae6320::cMyGame::UpdateBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate)
+{
+	isJump -= i_elapsedSecondCount_sinceLastUpdate;
+}
+
 void eae6320::cMyGame::UpdateSimulationBasedOnInput()
 {
+	
+	
 	// Object movement
+	// camera Movement;
 	Math::sVector objectVelocity(0, 0, 0);
+	Math::sVector objectAcceleration(0, 0, 0);
+	Math::sVector cameraVelocity(0, 0, 0), cameraAngularVelocity(0, 0, 0), cameraPolarVelocity(0, 0, 0);
+	auto rotationZY = Math::cQuaternion(45.0f / 180 * M_PI, Math::sVector(1, 0, 0));
+	auto go = m_camera.m_rigidBodyStatue.orientation * rotationZY;
 	float objectSpeed = 2.f;
-	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Up))
+	auto playerXZ = Math::cMatrix_transformation(go, m_camera.m_rigidBodyStatue.position);
+
+
+	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Space))
 	{
-		objectVelocity.y += objectSpeed;
+		isJump = 0.3f;
+	}
+	else
+	{
+		if (isJump > 0)
+		{
+			objectAcceleration.y = 10;
+		}
 	}
 
-	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Down))
+
+	if (UserInput::IsKeyPressed(UserInput::KeyCodes::W))
 	{
-		objectVelocity.y -= objectSpeed;
+		objectVelocity -= objectSpeed * playerXZ.GetBackDirection();
+	}
+
+	if (UserInput::IsKeyPressed(UserInput::KeyCodes::S))
+	{
+		objectVelocity += objectSpeed * playerXZ.GetBackDirection();
+
 	}
 	
-	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Left))
+	if (UserInput::IsKeyPressed(UserInput::KeyCodes::A))
 	{
-		objectVelocity.x -= objectSpeed;
+		objectVelocity -= objectSpeed * playerXZ.GetRightDirection();
 	}
 
-	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Right))
+	if (UserInput::IsKeyPressed(UserInput::KeyCodes::D))
 	{
-		objectVelocity.x += objectSpeed;
+		objectVelocity += objectSpeed * playerXZ.GetRightDirection();
 	}
 	if (m_gameObjects.size() > 0)
 	{
-		m_gameObjects[0].m_rigidBodyStatue.velocity = objectVelocity;
+		m_gameObjects[0].m_rigidBodyStatue.velocity.x = objectVelocity.x;
+		m_gameObjects[0].m_rigidBodyStatue.velocity.z = objectVelocity.z;
+		m_gameObjects[0].m_rigidBodyStatue.acceleration = objectAcceleration;
 	}
 
-	// camera Movement;
-	Math::sVector cameraVelocity(0, 0, 0), cameraAngularVelocity(0, 0, 0);
 	float cameraSpeed = 5.f;
 	float cameraAngularSpeed = 1.f;
 	
-	if (UserInput::IsKeyPressed(UserInput::KeyCodes::W))
+	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Up))
 	{
 		cameraVelocity.z += cameraSpeed;
 	}
 	
-	if (UserInput::IsKeyPressed(UserInput::KeyCodes::S))
+	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Down))
 	{
 		cameraVelocity.z -= cameraSpeed;
 	}
 
-	if (UserInput::IsKeyPressed(UserInput::KeyCodes::A))
+	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Left))
 	{
 		cameraVelocity.x -= cameraSpeed;
 	}
 	
-	if (UserInput::IsKeyPressed(UserInput::KeyCodes::D))
+	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Right))
 	{
 		cameraVelocity.x += cameraSpeed;
 	}
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Q))
 	{
-		cameraAngularVelocity.y += cameraAngularSpeed;
-		
+		//cameraAngularVelocity.y += cameraAngularSpeed;
+		cameraPolarVelocity.y += 60.0f  / 180 * M_PI;
 	}
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::E))
 	{
-		cameraAngularVelocity.y -= cameraAngularSpeed;
+		//cameraAngularVelocity.y -= cameraAngularSpeed;
+		cameraPolarVelocity.y -= 60.0f / 180 * M_PI;
 	}
-	m_camera.SetVelocityInCameraAxis(cameraVelocity);
+	//m_camera.SetVelocityInCameraAxis(cameraVelocity);
+
+	if (m_isCameraFollow)
+	{
+		m_camera.m_rigidBodyStatue.polarOrigin = m_gameObjects[0].m_rigidBodyStatue.position;
+		m_camera.m_rigidBodyStatue.velocity = objectVelocity;
+		m_camera.m_rigidBodyStatue.acceleration = objectAcceleration;
+	}
+
 	m_camera.SetAngularVelocity(cameraAngularVelocity);
+	m_camera.SetPolarVelocity(cameraPolarVelocity);
 }
 
 void eae6320::cMyGame::UpdateBasedOnInput()
@@ -136,70 +248,35 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 		m_isLPressed = false;
 		//m_gameObjects[0].m_renderObject.m_geometry->SetIndices(std::vector<unsigned int>{ 0, 1, 2, 1, 3, 2 });
 	}
-	/*if (m_gameObjects.size() > 0) 
+	if (m_gameObjects.size() > 0) 
 	{
 		if (UserInput::IsKeyPressed(UserInput::KeyCodes::K))
 		{
-			m_effectChangeB->SetToPointer(m_gameObjects[0].m_renderObject.m_effect);
+			m_gameObjects[0].m_renderObject.m_effect = m_effectChangeA;
 		}
 		else
 		{
-			m_effectChangeA->SetToPointer(m_gameObjects[0].m_renderObject.m_effect);
+			m_gameObjects[0].m_renderObject.m_effect = m_effectChangeB;
+			
 		}
-	}*/
+	}
+	if (m_gameObjects.size() >= 3)
+	{
+		if (m_gameObjects[0].m_colliders.IsCollided(m_gameObjects[2].m_colliders))
+		{
+			m_gameObjects[0].m_renderObject.m_effect = m_effectChangeA;
+		}
+		if (m_gameObjects[0].m_colliders.IsCollided(m_gameObjects[1].m_colliders))
+		{
+			m_gameObjects[0].m_renderObject.m_effect = m_effectChangeC;
+		}
+	}
 }
 
 // Initialization / Clean Up
 //--------------------------
 
 
-eae6320::cResult eae6320::cMyGame::Initialize()
-{
-	m_camera.m_AspectRatio = 1;
-	m_camera.m_rigidBodyStatue.position = Math::sVector(0, 0, 10);
-
-
-	m_camera.m_FOV = Deg2Rad(45);
-	m_camera.m_ZFarPlane = 100.f;
-	m_camera.m_ZNearPlane = 0.01f;
-
-	
-
-	eae6320::Graphics::Geometry::cGeometry geometryA("data/geometries/object2.bin");
-	eae6320::Graphics::Geometry::cGeometry geometryB("data/geometries/object3.bin");
-	eae6320::Graphics::Geometry::cGeometry geometryC("data/geometries/object1.bin");
-	auto resultGeometryA = geometryA.Load();
-	auto resultGeometryB = geometryB.Load();
-	auto resultGeometryC = geometryC.Load();
-	eae6320::Graphics::cEffect effectA("data/effects/effectA.bin");
-	eae6320::Graphics::cEffect effectB("data/effects/effectB.bin");
-	auto resultEffectA = effectA.Load();
-	auto resultEffectB = effectB.Load();
-
-
-
-	std::vector<Application::GameObject> objs;
-	if (eae6320::Results::Success)
-	{
-		int a = 0;
-	}
-	if (resultGeometryA && resultEffectB)
-	{
-		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryA, effectB)));
-	}
-	if (resultGeometryC && resultEffectB)
-	{
-		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryC, effectB)));
-	}
-	if (resultGeometryB && resultEffectB)
-	{
-		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryB, effectB)));
-	}
-
-	SetGameObjects(objs);
-
-	return Results::Success;
-}
 
 eae6320::cResult eae6320::cMyGame::CleanUp()
 {

@@ -104,7 +104,7 @@ const eae6320::Math::sVector& eae6320::Math::cMatrix_transformation::GetTranslat
 eae6320::Math::cMatrix_transformation eae6320::Math::cMatrix_transformation::CreateWorldToCameraTransform(
 	const cQuaternion& i_cameraOrientation, const sVector i_cameraPosition )
 {
-	return CreateWorldToCameraTransform( cMatrix_transformation( i_cameraOrientation, i_cameraPosition ) );
+	return CreateWorldToCameraTransform( cMatrix_transformation( i_cameraOrientation, i_cameraPosition) );
 }
 
 eae6320::Math::cMatrix_transformation eae6320::Math::cMatrix_transformation::CreateWorldToCameraTransform( const cMatrix_transformation& i_transform_localCameraToWorld )

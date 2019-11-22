@@ -72,6 +72,7 @@ namespace eae6320
 		// Run
 		//----
 
+		virtual void UpdateBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate);
 		virtual void UpdateBasedOnInput() override;
 		virtual void UpdateSimulationBasedOnInput() override;
 		// Initialization / Clean Up
@@ -81,8 +82,11 @@ namespace eae6320
 		virtual cResult CleanUp() override;
 		Graphics::cEffect m_effectChangeA;
 		Graphics::cEffect m_effectChangeB;
+		Graphics::cEffect m_effectChangeC;
 		bool m_isJPressed = false;
 		bool m_isLPressed = false;
+		bool m_isCameraFollow = false;
+		float isJump = 0;
 
 	};
 }

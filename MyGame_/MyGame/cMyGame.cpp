@@ -73,7 +73,14 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	}
 
 	SetGameObjects(objs);
-	
+	eae6320::Audio3D::AudioSource* MySource;
+	auto result = eae6320::Audio3D::AudioSource::Load("data/audiosources/a.wav", MySource);
+	if (!result)
+	{
+		Logging::OutputError("Load audio failed");
+		return result;
+	}
+	MySource->PlayLooped();
 	//for (int i = 0; i < m_gameObjects.size(); i++)
 	//{
 	//	auto* renderobject = eae6320::Graphics::Geometry::cGeometryRenderTarget::s_manager.Get(m_gameObjects[i].m_renderObject.m_geometry.m_handler);

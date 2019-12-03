@@ -418,7 +418,16 @@ eae6320::cResult eae6320::Application::cbApplication::Initialize_engine()
 			return result;
 		}
 	}
-
+	 // Audio
+    {
+        Audio3D::sInitializationParameters initParams;
+        // you don't need to populate them. It's just a placeholder for future updates.
+        if (!(result = Audio3D::Initialize(initParams)))
+        {
+            EAE6320_ASSERTF(false, "Application can't be initialized without Audio");
+            return result;
+        }
+    }
 	return result;
 }
 

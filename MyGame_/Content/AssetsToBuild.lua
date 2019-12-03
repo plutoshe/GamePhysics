@@ -4,6 +4,11 @@
 
 return
 {
+	audiosources = 
+    {
+		{path = "audiosources/a.wav"},
+		{path = "audiosources/b.wav"},
+	},
 	effects =
 	{
 		{path = "effects/effectA.bin"},

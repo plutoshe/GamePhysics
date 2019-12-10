@@ -24,12 +24,12 @@
 eae6320::cResult eae6320::cMyGame::Initialize()
 {
 	m_camera.m_AspectRatio = 1;
-	m_camera.m_rigidBodyStatue.position = Math::sVector(0, 15, 15);
+	m_camera.m_rigidBodyState.position = Math::sVector(0, 15, 15);
 	const auto rotationZY = Math::cQuaternion(-45.0f / 180 * M_PI, Math::sVector(1, 0, 0));
 	//const auto rotationXZ = Math::cQuaternion(M_PI, Math::sVector(0, 1, 0));
 	//const auto rotationXZ = Math::cQuaternion(45, Math::sVector(0, 0, 1));
-	m_camera.m_rigidBodyStatue.orientation = m_camera.m_rigidBodyStatue.orientation * rotationZY;
-	m_camera.m_rigidBodyStatue.orientation.Normalize();
+	m_camera.m_rigidBodyState.orientation = m_camera.m_rigidBodyState.orientation * rotationZY;
+	m_camera.m_rigidBodyState.orientation.Normalize();
 
 	m_camera.m_FOV = Deg2Rad(45);
 	m_camera.m_ZFarPlane = 100.f;
@@ -60,16 +60,16 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 	if (resultGeometryA && resultEffectB)
 	{
-		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryA, effectB), colliderA));
+		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryA, effectB), eae6320::Physics::sRigidBodyState(colliderA)));
 
 	}
 	if (resultGeometryC && resultEffectB)
 	{
-		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryC, effectB), colliderC));
+		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryC, effectB), eae6320::Physics::sRigidBodyState(colliderC)));
 	}
 	if (resultGeometryB && resultEffectB)
 	{
-		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryB, effectB), colliderB));
+		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryB, effectB), eae6320::Physics::sRigidBodyState(colliderB)));
 	}
 
 	SetGameObjects(objs);
@@ -113,9 +113,9 @@ void eae6320::cMyGame::UpdateSimulationBasedOnInput()
 	Math::sVector objectAcceleration(0, 0, 0);
 	Math::sVector cameraVelocity(0, 0, 0), cameraAngularVelocity(0, 0, 0), cameraPolarVelocity(0, 0, 0);
 	auto rotationZY = Math::cQuaternion(45.0f / 180 * M_PI, Math::sVector(1, 0, 0));
-	auto go = m_camera.m_rigidBodyStatue.orientation * rotationZY;
+	auto go = m_camera.m_rigidBodyState.orientation * rotationZY;
 	float objectSpeed = 2.f;
-	auto playerXZ = Math::cMatrix_transformation(go, m_camera.m_rigidBodyStatue.position);
+	auto playerXZ = Math::cMatrix_transformation(go, m_camera.m_rigidBodyState.position);
 
 
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Space))
@@ -153,9 +153,9 @@ void eae6320::cMyGame::UpdateSimulationBasedOnInput()
 	}
 	if (m_gameObjects.size() > 0)
 	{
-		m_gameObjects[0].m_rigidBodyStatue.velocity.x = objectVelocity.x;
-		m_gameObjects[0].m_rigidBodyStatue.velocity.z = objectVelocity.z;
-		m_gameObjects[0].m_rigidBodyStatue.acceleration = objectAcceleration;
+		m_gameObjects[0].m_rigidBodyState.velocity.x = objectVelocity.x;
+		m_gameObjects[0].m_rigidBodyState.velocity.z = objectVelocity.z;
+		m_gameObjects[0].m_rigidBodyState.acceleration = objectAcceleration;
 	}
 
 	float cameraSpeed = 5.f;
@@ -194,13 +194,13 @@ void eae6320::cMyGame::UpdateSimulationBasedOnInput()
 
 	if (m_isCameraFollow)
 	{
-		m_camera.m_rigidBodyStatue.polarOrigin = m_gameObjects[0].m_rigidBodyStatue.position;
-		m_camera.m_rigidBodyStatue.velocity = objectVelocity;
-		m_camera.m_rigidBodyStatue.acceleration = objectAcceleration;
+		m_camera.m_rigidBodyState.polarOrigin = m_gameObjects[0].m_rigidBodyState.position;
+		m_camera.m_rigidBodyState.velocity = objectVelocity;
+		m_camera.m_rigidBodyState.acceleration = objectAcceleration;
 	}
 
-	m_camera.SetAngularVelocity(cameraAngularVelocity);
-	m_camera.SetPolarVelocity(cameraPolarVelocity);
+	//m_camera.SetAngularVelocity(cameraAngularVelocity);
+	//m_camera.SetPolarVelocity(cameraPolarVelocity);
 }
 
 void eae6320::cMyGame::UpdateBasedOnInput()
@@ -269,11 +269,11 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 	}
 	if (m_gameObjects.size() >= 3)
 	{
-		if (m_gameObjects[0].m_colliders.IsCollided(m_gameObjects[2].m_colliders))
+		if (m_gameObjects[0].m_rigidBodyState.colliders.IsCollided(m_gameObjects[2].m_rigidBodyState.colliders))
 		{
 			m_gameObjects[0].m_renderObject.m_effect = m_effectChangeA;
 		}
-		if (m_gameObjects[0].m_colliders.IsCollided(m_gameObjects[1].m_colliders))
+		if (m_gameObjects[0].m_rigidBodyState.colliders.IsCollided(m_gameObjects[1].m_rigidBodyState.colliders))
 		{
 			m_gameObjects[0].m_renderObject.m_effect = m_effectChangeC;
 		}

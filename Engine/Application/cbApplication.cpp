@@ -275,10 +275,10 @@ void eae6320::Application::cbApplication::UpdateSimulationBasedOnTime(const floa
 {
 	for (size_t i = 0; i < m_gameObjects.size(); i++)
 	{
-		m_gameObjects[i].m_rigidBodyStatue.Update(i_elapsedSecondCount_sinceLastUpdate);
+		m_gameObjects[i].m_rigidBodyState.Update(i_elapsedSecondCount_sinceLastUpdate);
 		
 	}
-	m_camera.m_rigidBodyStatue.Update(i_elapsedSecondCount_sinceLastUpdate);
+	m_camera.m_rigidBodyState.Update(i_elapsedSecondCount_sinceLastUpdate);
 }
 
 void eae6320::Application::cbApplication::SubmitDataToBeRendered(const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
@@ -290,8 +290,8 @@ void eae6320::Application::cbApplication::SubmitDataToBeRendered(const float i_e
 	for (size_t i = 0; i < m_gameObjects.size(); i++)
 	{
 		m_gameObjects[i].m_renderObject.m_Transformation =
-			m_gameObjects[i].m_rigidBodyStatue.PredictFutureTransform(i_elapsedSecondCount_sinceLastSimulationUpdate);
-		m_gameObjects[i].m_colliders.UpdateTransformation(m_gameObjects[i].m_renderObject.m_Transformation);
+			m_gameObjects[i].m_rigidBodyState.PredictFutureTransform(i_elapsedSecondCount_sinceLastSimulationUpdate);
+		m_gameObjects[i].m_rigidBodyState.colliders.UpdateTransformation(m_gameObjects[i].m_renderObject.m_Transformation);
 		if (m_gameObjects[i].m_isVisiable)
 		{
 			eae6320::Graphics::Env::s_dataBeingSubmittedByApplicationThread->m_renderObjects.push_back(m_gameObjects[i].m_renderObject);

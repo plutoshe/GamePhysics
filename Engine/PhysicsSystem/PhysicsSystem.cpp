@@ -221,5 +221,17 @@ namespace PlutoShe
 		void PlutoShe::Physics::ColliderList::AddCollider(Collider i_c) { m_colliders.push_back(i_c); }
 
 		void PlutoShe::Physics::ColliderList::ClearAllCollider() { m_colliders.clear(); }
+
+		Vector3 PlutoShe::Physics::ColliderList::GetCenter()
+		{
+			Vector3 center;
+			for (auto i = 0; i < m_colliders.size(); i++)
+			{
+				center = center + m_colliders[i].Center();
+			}
+			center = center / m_colliders.size();
+			return center;
+		}
+
 	}
 }

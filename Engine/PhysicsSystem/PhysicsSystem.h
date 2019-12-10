@@ -48,6 +48,11 @@ namespace PlutoShe
 				return i_m * eae6320::Math::sVector(i_rhs.m_x, i_rhs.m_y, i_rhs.m_z);
 			}
 
+			eae6320::Math::sVector TosVector()
+			{
+				return eae6320::Math::sVector(m_x, m_y, m_z);
+			}
+
 		};
 
 		class Collider
@@ -105,6 +110,9 @@ namespace PlutoShe
 			Collider GetColliderByIndex(int i_index);
 			bool IsCollided(ColliderList& i_queryColliderList);
 			void UpdateTransformation(eae6320::Math::cMatrix_transformation i_t);
+
+			Vector3 GetCenter();
+
 		protected:
 			std::vector<Collider> m_colliders;
 		};

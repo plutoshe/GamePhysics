@@ -52,8 +52,8 @@ namespace eae6320
 			Math::sVector forceAccumulator;
 			Math::sVector torqueAccumulator;
 
-			float inverseMass;
-			Math::cMatrix_transformation inverseInertia;
+			float inverseMass = 1;
+			Math::cMatrix_transformation inverseInertia = Math::cMatrix_transformation(2.5f, 0, 0, 0, 0, 2.5f, 0, 0, 0, 0, 2.5f, 0, 0, 0, 0, 2.5f);
 
 			Math::sVector linearMomentum;
 			Math::sVector angularMomentum;
@@ -75,8 +75,13 @@ namespace eae6320
 			void AddCollider(PlutoShe::Physics::Collider i_collider);
 
 			sRigidBodyState() : colliders() {}
-			sRigidBodyState(PlutoShe::Physics::Collider i_colliders) { colliders = i_colliders; }
-			sRigidBodyState(PlutoShe::Physics::ColliderList i_colliders) { colliders = i_colliders; }
+			sRigidBodyState(PlutoShe::Physics::Collider i_colliders) { 
+				colliders = i_colliders; 
+				localCenter = colliders.GetCenter().TosVector(); 
+			}
+			sRigidBodyState(PlutoShe::Physics::ColliderList i_colliders) { colliders = i_colliders; localCenter = colliders.GetCenter().TosVector();}
+
+			Math::sVector WorldCenter() { return position + orientation * localCenter; }
 		};
 	}
 }

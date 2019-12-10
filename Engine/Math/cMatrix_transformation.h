@@ -115,7 +115,7 @@ namespace eae6320
 			// Implementation
 			//===============
 
-		private:
+		public:
 
 			// Initialization / Shut Down
 			//---------------------------

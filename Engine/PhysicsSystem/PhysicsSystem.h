@@ -113,7 +113,6 @@ namespace PlutoShe
 
 			Vector3 GetCenter();
 
-		protected:
 			std::vector<Collider> m_colliders;
 		};
 

@@ -53,8 +53,8 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	auto resultEffectA = effectA.Load();
 	auto resultEffectB = effectB.Load();
 	auto resultEffectC = effectC.Load();
-	m_effectChangeA = effectA;
-	m_effectChangeB = effectB;
+	m_effectChangeA = effectB;
+	m_effectChangeB = effectA;
 	m_effectChangeC = effectC;
 	std::vector<Application::GameObject> objs;
 
@@ -118,44 +118,49 @@ void eae6320::cMyGame::UpdateSimulationBasedOnInput()
 	auto playerXZ = Math::cMatrix_transformation(go, m_camera.m_rigidBodyState.position);
 
 
+	//if(UserInput::IsKeyPressed(UserInput::KeyCodes::Space))
+	//{
+	//	isJump = 0.3f;
+	//}
+	//else
+	//{
+	//	if (isJump > 0)
+	//	{
+	//		objectAcceleration.y = 10;
+	//	}
+	//}
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Space))
 	{
-		isJump = 0.3f;
+		m_gameObjects[0].m_rigidBodyState.ApplyForce(eae6320::Math::sVector(0, 0, -10), m_gameObjects[0].m_rigidBodyState.WorldCenter() + eae6320::Math::sVector(0, 1.414f, 1.414f));
 	}
-	else
-	{
-		if (isJump > 0)
-		{
-			objectAcceleration.y = 10;
-		}
-	}
-
 
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::W))
 	{
-		objectVelocity -= objectSpeed * playerXZ.GetBackDirection();
+		m_gameObjects[0].m_rigidBodyState.ApplyForce(eae6320::Math::sVector(0, 0, -10), m_gameObjects[0].m_rigidBodyState.WorldCenter() + eae6320::Math::sVector(0, 0.7f, 0.7f));
+		//objectVelocity -= objectSpeed * playerXZ.GetBackDirection();
+		
 	}
 
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::S))
 	{
-		objectVelocity += objectSpeed * playerXZ.GetBackDirection();
-
+		//objectVelocity += objectSpeed * playerXZ.GetBackDirection();
+		m_gameObjects[0].m_rigidBodyState.ApplyForce(eae6320::Math::sVector(0, 0, 10), m_gameObjects[0].m_rigidBodyState.WorldCenter() + eae6320::Math::sVector(0, 0.7f, -0.7f));
 	}
 	
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::A))
 	{
-		objectVelocity -= objectSpeed * playerXZ.GetRightDirection();
+		m_gameObjects[0].m_rigidBodyState.ApplyForce(eae6320::Math::sVector(-10, 0, 0), m_gameObjects[0].m_rigidBodyState.WorldCenter() + eae6320::Math::sVector(0.7f, 0.7f, 0));
 	}
 
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::D))
 	{
-		objectVelocity += objectSpeed * playerXZ.GetRightDirection();
+		m_gameObjects[0].m_rigidBodyState.ApplyForce(eae6320::Math::sVector(10, 0, 0), m_gameObjects[0].m_rigidBodyState.WorldCenter() + eae6320::Math::sVector(-0.7f, 0.7f, 0));
 	}
 	if (m_gameObjects.size() > 0)
 	{
-		m_gameObjects[0].m_rigidBodyState.velocity.x = objectVelocity.x;
-		m_gameObjects[0].m_rigidBodyState.velocity.z = objectVelocity.z;
-		m_gameObjects[0].m_rigidBodyState.acceleration = objectAcceleration;
+		//m_gameObjects[0].m_rigidBodyState.velocity.x = objectVelocity.x;
+		//m_gameObjects[0].m_rigidBodyState.velocity.z = objectVelocity.z;
+		//m_gameObjects[0].m_rigidBodyState.acceleration = objectAcceleration;
 	}
 
 	float cameraSpeed = 5.f;
@@ -255,7 +260,7 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 		m_isLPressed = false;
 		//m_gameObjects[0].m_renderObject.m_geometry->SetIndices(std::vector<unsigned int>{ 0, 1, 2, 1, 3, 2 });
 	}
-	if (m_gameObjects.size() > 0) 
+	/*if (m_gameObjects.size() > 0) 
 	{
 		if (UserInput::IsKeyPressed(UserInput::KeyCodes::K))
 		{
@@ -266,17 +271,21 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 			m_gameObjects[0].m_renderObject.m_effect = m_effectChangeB;
 			
 		}
-	}
+	}*/
 	if (m_gameObjects.size() >= 3)
 	{
-		if (m_gameObjects[0].m_rigidBodyState.colliders.IsCollided(m_gameObjects[2].m_rigidBodyState.colliders))
+		if (m_gameObjects[0].m_rigidBodyState.colliders.IsCollided(m_gameObjects[1].m_rigidBodyState.colliders))
+		{
+			m_gameObjects[0].m_renderObject.m_effect = m_effectChangeB;
+		}
+		else
 		{
 			m_gameObjects[0].m_renderObject.m_effect = m_effectChangeA;
 		}
-		if (m_gameObjects[0].m_rigidBodyState.colliders.IsCollided(m_gameObjects[1].m_rigidBodyState.colliders))
+		/*if (m_gameObjects[0].m_rigidBodyState.colliders.IsCollided(m_gameObjects[1].m_rigidBodyState.colliders))
 		{
 			m_gameObjects[0].m_renderObject.m_effect = m_effectChangeC;
-		}
+		}*/
 	}
 }
 

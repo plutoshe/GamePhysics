@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <vector>
 #include <Engine/Math/sVector.h>
 #include <Engine/Math/cMatrix_transformation.h>
@@ -55,25 +55,12 @@ namespace PlutoShe
 
 		};
 
-		class Collider
+		class Face
 		{
 		public:
-			Collider();
-			Collider(std::vector<Vector3>& i_v);
-			Collider(const Collider& i_v);
-			Collider(std::string i_path);
-
-			eae6320::cResult InitData(std::string i_path);;
-			void UpdateTransformation(eae6320::Math::cMatrix_transformation i_t);
-			Vector3 Center();
-			bool IsCollided(Collider& i_B);
-			
-			std::vector<Vector3> m_vertices;
-		private:
-			static Vector3 supportFunction(Collider& i_A, Collider& i_B, Vector3 i_dir);
-			Vector3 getFarthestPointInDirection(Vector3 i_dir);
-			eae6320::Math::cMatrix_transformation m_transformation;
-
+			Face() {}
+			Face(Vector3 i_a, Vector3 i_b, Vector3 i_c) { a = i_a; b = i_b; c = i_c; }
+			Vector3 a, b, c;
 		};
 
 		class Simplex
@@ -96,6 +83,28 @@ namespace PlutoShe
 			Vector3 GetLast() { return m_points[m_points.size() - 1]; }
 			bool ContainsOrigin(Vector3& i_d);
 		};
+
+		class Collider
+		{
+		public:
+			Collider();
+			Collider(std::vector<Vector3>& i_v);
+			Collider(const Collider& i_v);
+			Collider(std::string i_path);
+
+			eae6320::cResult InitData(std::string i_path);;
+			void UpdateTransformation(eae6320::Math::cMatrix_transformation i_t);
+			Vector3 Center();
+			bool IsCollided(Collider& i_B, Vector3& t_contactPoints);
+			float GetPenetration(Simplex& i_simplex, Vector3& contactNormal);
+			
+			std::vector<Vector3> m_vertices;
+		private:
+			static Vector3 supportFunction(Collider& i_A, Collider& i_B, Vector3 i_dir);
+			Vector3 getFarthestPointInDirection(Vector3 i_dir);
+			eae6320::Math::cMatrix_transformation m_transformation;
+
+		};	
 
 		class ColliderList
 		{

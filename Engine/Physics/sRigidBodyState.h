@@ -30,10 +30,19 @@ namespace eae6320
 {
 	namespace Physics
 	{
+		struct sRigidBodyState;
+
+		struct contactInfo {
+			Math::sVector contactPointA, contactPointB;
+			sRigidBodyState* sa, * sb;
+		};
+
 		struct sRigidBodyState
 		{
 			// Data
 			//=====
+			static std::vector<contactInfo> contacts;
+			static std::vector<sRigidBodyState*> collisionObjs;
 
 			Math::sVector position;	// In arbitrary units determined by the applicaton's convention
 			Math::sVector velocity;	// Distance per-second
@@ -82,6 +91,8 @@ namespace eae6320
 			sRigidBodyState(PlutoShe::Physics::ColliderList i_colliders) { colliders = i_colliders; localCenter = colliders.GetCenter().TosVector();}
 
 			Math::sVector WorldCenter() { return position + orientation * localCenter; }
+
+			bool isCollide(sRigidBodyState& i_b) { return colliders.IsCollided(i_b.colliders); }
 		};
 	}
 }

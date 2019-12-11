@@ -1,4 +1,4 @@
-// PhysicsSystem.cpp : Defines the functions for the static library.
+﻿// PhysicsSystem.cpp : Defines the functions for the static library.
 //
 
 #include "pch.h"
@@ -44,8 +44,89 @@ namespace PlutoShe
 			return center / float(count);
 		}
 
-		bool Collider::IsCollided(Collider&i_B)
+		/*float Collider::GetClosetFaceDistance( &t_dir)
 		{
+
+			if (GetSize() < 4) return -1;
+			float minDist = this->GetD().dot(this->GetD());
+			int index = 0;
+			for (int i = 0; i < 4; i++)
+			{
+				auto a = m_points[(i + 1) % 4];
+				auto b = m_points[(i + 2) % 4];
+				auto c = m_points[(i + 3) % 4];
+				auto ab = b - a;
+				auto ac = c - a;
+				auto normal_abc = ab.cross(ac);
+				auto ndac = normal_abc.dot(a);
+				if (ndac < minDist)
+				{
+					minDist = ndac;
+					t_dir = normal_abc;
+					index = i;
+				}
+			}
+			m_points.erase(m_points.begin() + index);
+			return minDist;
+		}*/
+
+		float Collider::GetPenetration(Simplex& i_simplex, Vector3& contactNormal)
+		{
+			Vector3 a, b, c, d;
+			a = i_simplex.GetA();
+			b = i_simplex.GetB();
+			c = i_simplex.GetC();
+			d = i_simplex.GetD();
+			std::vector<Face> faces;
+			faces.push_back(Face(a, b, c));
+			faces.push_back(Face(d, a, c));
+			faces.push_back(Face(d, b, c));
+			faces.push_back(Face(d, a, c));
+			while (true)
+			{
+				float minDist = faces[0].a.dot(faces[0].a);
+				Vector3 selectedFaceNormal;
+				size_t selectedFaceIndex = 0;
+				for (size_t i = 0; i < faces.size(); i++)
+				{
+					auto a = faces[i].a;
+					auto b = faces[i].b;
+					auto c = faces[i].c;
+					auto ab = b - a;
+					auto ac = c - a;
+					auto normal_abc = ab.cross(ac);
+					auto ndac = normal_abc.dot(a);
+					if (ndac < minDist)
+					{
+						minDist = ndac;
+						selectedFaceNormal = normal_abc;
+						selectedFaceIndex = i;
+					}
+				}
+				
+				auto nextPoint = getFarthestPointInDirection(selectedFaceNormal);
+				double d = nextPoint.dot(selectedFaceNormal);
+				if (d - minDist < 0.0001f)
+				{
+					contactNormal = selectedFaceNormal;
+					return d;
+				}
+				else
+				{
+					faces.push_back(Face(nextPoint, faces[selectedFaceIndex].a, faces[selectedFaceIndex].b));
+					faces.push_back(Face(nextPoint, faces[selectedFaceIndex].b, faces[selectedFaceIndex].c));
+					faces.push_back(Face(nextPoint, faces[selectedFaceIndex].a, faces[selectedFaceIndex].c));
+					faces.erase(faces.begin() + selectedFaceIndex);
+
+				}
+
+			}
+		}
+
+		bool Collider::IsCollided(Collider&i_B, Vector3 &t_contactPoints)
+		{
+			bool isCollided = false;
+			//GJK
 			Vector3 dir = i_B.Center() - this->Center();
 			Simplex simplex;
 			simplex.Clear();
@@ -54,14 +135,22 @@ namespace PlutoShe
 				simplex.Add(supportFunction(*this, i_B, dir));
 
 				if (simplex.GetLast().dot(dir) < 0) {
-					return false;
+					isCollided = false;
+					break;
 				}
 				else {
 					if (simplex.ContainsOrigin(dir)) {
-						return true;
+						isCollided = true;
+						break;
 					}
 				}
 			}
+			if (isCollided)
+			{
+				GetContactPoint(simplex, t_contactPoints);
+			}
+
+
 		}
 
 		bool Simplex::ContainsOrigin(Vector3 &t_direction)
@@ -201,7 +290,8 @@ namespace PlutoShe
 			{
 				for (auto j = 0; j < i_queryColliderList.m_colliders.size(); j++)
 				{
-					if (m_colliders[i].IsCollided(i_queryColliderList.m_colliders[j]))
+					Vector3 contacts;
+					if (m_colliders[i].IsCollided(i_queryColliderList.m_colliders[j], contacts))
 					{
 						return true;
 					}

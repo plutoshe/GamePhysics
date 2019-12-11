@@ -87,13 +87,15 @@ namespace PlutoShe
 			c = i_simplex.GetC();
 			d = i_simplex.GetD();
 			std::vector<Face> faces;
-			faces.push_back(Face(a, b, c));
-			faces.push_back(Face(d, a, c));
+			faces.push_back(Face(a, c, b));
+			faces.push_back(Face(d, a, b));
 			faces.push_back(Face(d, b, c));
-			faces.push_back(Face(d, a, c));
+			faces.push_back(Face(d, c, a));
+
+			auto lastMinDist = faces[0].a.m_position.dot(faces[0].a.m_position);
 			while (true)
 			{
-				float minDist = faces[0].a.m_position.dot(faces[0].a.m_position);
+				float minDist = faces[0].a.m_position.dot(faces[0].a.m_position) - eps * 2;
 				Vector3 selectedFaceNormal;
 				size_t selectedFaceIndex = 0;
 				for (size_t i = 0; i < faces.size(); i++)
@@ -104,6 +106,7 @@ namespace PlutoShe
 					auto ab = b.m_position - a.m_position;
 					auto ac = c.m_position - a.m_position;
 					auto normal_abc = ab.cross(ac);
+					normal_abc.Normalized();
 					auto ndac = normal_abc.dot(a.m_position);
 					if (ndac < minDist)
 					{
@@ -113,30 +116,40 @@ namespace PlutoShe
 					}
 				}
 				
+
+				selectedFaceNormal.Normalized();
+				t_contactNormal = selectedFaceNormal;
+				auto a = faces[selectedFaceIndex].a;
+				auto b = faces[selectedFaceIndex].b;
+				auto ao = a.m_position.Negate() - a.m_position.Negate().cross(selectedFaceNormal);
+				auto ab = b.m_position - a.m_position;
+				//auto ac = c.m_position - a.m_position;
+				auto a1 = m_vertices[faces[selectedFaceIndex].a.m_indexA];
+				auto a2 = m_vertices[faces[selectedFaceIndex].b.m_indexA];
+				auto b1 = i_B.m_vertices[faces[selectedFaceIndex].a.m_indexB];
+				auto b2 = i_B.m_vertices[faces[selectedFaceIndex].a.m_indexB];
+				//auto a3 = m_vertices[faces[selectedFaceIndex].c.m_indexA];
+
+				t_contactPointA = (a2 - a1) / ab * ao + a1;
+				t_contactPointB = (b2 - b1) / ab * ao + b1;
+				if (minDist > lastMinDist)
+				{
+					return lastMinDist;
+				}
+
+				lastMinDist = minDist;
 				auto nextPoint = supportFunction(*this, i_B, selectedFaceNormal);
 				double d = nextPoint.m_position.dot(selectedFaceNormal);
+
 				if (d - minDist < eps)
 				{
-					selectedFaceNormal.Normalized();
-					t_contactNormal = selectedFaceNormal;
-					auto ao = a.m_position.Negate() - a.m_position.Negate().cross(selectedFaceNormal);
-					auto ab = b.m_position - a.m_position;
-					//auto ac = c.m_position - a.m_position;
-					auto a1 = m_vertices[faces[selectedFaceIndex].a.m_indexA];
-					auto a2 = m_vertices[faces[selectedFaceIndex].b.m_indexA];
-					auto b1 = i_B.m_vertices[faces[selectedFaceIndex].a.m_indexB];
-					auto b2 = i_B.m_vertices[faces[selectedFaceIndex].a.m_indexB];
-					//auto a3 = m_vertices[faces[selectedFaceIndex].c.m_indexA];
-
-					t_contactPointA = (a2 - a1) / ab * ao + a1;
-					t_contactPointB = (b2 - b1) / ab * ao + b1;
 					return d;
 				}
 				else
 				{
 					faces.push_back(Face(nextPoint, faces[selectedFaceIndex].a, faces[selectedFaceIndex].b));
 					faces.push_back(Face(nextPoint, faces[selectedFaceIndex].b, faces[selectedFaceIndex].c));
-					faces.push_back(Face(nextPoint, faces[selectedFaceIndex].a, faces[selectedFaceIndex].c));
+					faces.push_back(Face(nextPoint, faces[selectedFaceIndex].c, faces[selectedFaceIndex].a));
 					faces.erase(faces.begin() + selectedFaceIndex);
 
 				}
@@ -293,7 +306,7 @@ namespace PlutoShe
 
 		PlutoShe::Physics::Collider::Collider() { m_vertices.clear(); }
 		PlutoShe::Physics::Collider::Collider(std::vector<Vector3>& i_v) { m_vertices = i_v; }
-		PlutoShe::Physics::Collider::Collider(const Collider& i_v) { m_vertices = i_v.m_vertices; }
+		PlutoShe::Physics::Collider::Collider(const Collider& i_v) { m_vertices = i_v.m_vertices; m_transformation = i_v.m_transformation; }
 		PlutoShe::Physics::Collider::Collider(std::string i_path) { InitData(i_path); }
 
 		void PlutoShe::Physics::Collider::UpdateTransformation(eae6320::Math::cMatrix_transformation i_t)

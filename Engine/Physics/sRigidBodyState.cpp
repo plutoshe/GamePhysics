@@ -118,7 +118,7 @@ void eae6320::Physics::sRigidBodyState::Update( const float i_secondCountToInteg
 
 	forceAccumulator = Math::sVector(0, 0, 0);
 	torqueAccumulator = Math::sVector(0, 0, 0);
-	colliders.UpdateTransformation(PredictFutureTransform(i_secondCountToIntegrate));
+	colliders.UpdateTransformation(PredictFutureTransform(0));
 }
 
 eae6320::Math::sVector eae6320::Physics::sRigidBodyState::PredictFuturePosition( const float i_secondCountToExtrapolate ) const

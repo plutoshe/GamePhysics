@@ -3,7 +3,7 @@
 
 #include "pch.h"
 #include "PhysicsSystem.h"
-
+#include <map>
 
 namespace PlutoShe
 {
@@ -107,15 +107,19 @@ namespace PlutoShe
 					auto ac = c.m_position - a.m_position;
 					auto normal_abc = ab.cross(ac);
 					normal_abc.Normalized();
-					auto ndac = normal_abc.dot(a.m_position);
-					if (ndac < minDist)
+					auto nabc = normal_abc.dot(a.m_position);
+					if (nabc < minDist)
 					{
-						minDist = ndac;
+						minDist = nabc;
 						selectedFaceNormal = normal_abc;
 						selectedFaceIndex = i;
 					}
 				}
 				
+				//if (minDist > lastMinDist)
+				//{
+				//	return lastMinDist;
+				//}
 
 				selectedFaceNormal.Normalized();
 				t_contactNormal = selectedFaceNormal;
@@ -132,10 +136,7 @@ namespace PlutoShe
 
 				t_contactPointA = (a2 - a1) / ab * ao + a1;
 				t_contactPointB = (b2 - b1) / ab * ao + b1;
-				if (minDist > lastMinDist)
-				{
-					return lastMinDist;
-				}
+
 
 				lastMinDist = minDist;
 				auto nextPoint = supportFunction(*this, i_B, selectedFaceNormal);
@@ -147,12 +148,56 @@ namespace PlutoShe
 				}
 				else
 				{
-					faces.push_back(Face(nextPoint, faces[selectedFaceIndex].a, faces[selectedFaceIndex].b));
-					faces.push_back(Face(nextPoint, faces[selectedFaceIndex].b, faces[selectedFaceIndex].c));
-					faces.push_back(Face(nextPoint, faces[selectedFaceIndex].c, faces[selectedFaceIndex].a));
-					faces.erase(faces.begin() + selectedFaceIndex);
+					for (int i = faces.size() - 1; i >= 0; i--)
+					{
+						auto a = faces[i].a;
+						auto b = faces[i].b;
+						auto c = faces[i].c;
+						auto ab = b.m_position - a.m_position;
+						auto ac = c.m_position - a.m_position;
+						auto normal_abc = ab.cross(ac);
+						normal_abc.Normalized();
+						if (normal_abc.dot(nextPoint.m_position) > 0)
+						{
+							faces.erase(faces.begin() + i);
+						}
+					}
+					std::map<std::string, SimplexEdge> edges;
+					for (int i = 0; i < faces.size(); i++)
+					{
+						auto a = faces[i].a;
+						auto b = faces[i].b;
+						auto c = faces[i].c;
+						auto ab = SimplexEdge(a, b);
+						auto ca = SimplexEdge(c, a);
+						auto bc = SimplexEdge(b, c);
+						if (edges.find(ab.getReverseKey()) != edges.end()) {
+							edges.erase(ab.getReverseKey());
+						}
+						else {
+							edges.insert(std::pair<std::string, SimplexEdge>(ab.GetKey(), ab));
+						}
+						if (edges.find(ca.getReverseKey()) != edges.end()) {
+							edges.erase(ca.getReverseKey());
+						}
+						else {
+							edges.insert(std::pair<std::string, SimplexEdge>(ca.GetKey(), ca));
+						}
+						if (edges.find(bc.getReverseKey()) != edges.end()) {
+							edges.erase(bc.getReverseKey());
+						}
+						else {
+							edges.insert(std::pair<std::string, SimplexEdge>(bc.GetKey(), bc));
+						}
+					}
+					for (auto it = edges.begin(); it != edges.end(); it++)
+					{
 
+						faces.push_back(Face(nextPoint, it->second.b, it->second.a));
+
+					}
 				}
+
 
 			}
 		}
@@ -221,8 +266,13 @@ namespace PlutoShe
 				ab = b.m_position - a.m_position;
 				ac = c.m_position - a.m_position;
 				ao = a.m_position.Negate();
-				t_direction = ac.cross(ab);
-				if (t_direction.dot(ao) < 0) t_direction = t_direction * -1;
+				t_direction = ab.cross(ac);
+				if (t_direction.dot(ao) < 0) {
+					t_direction = t_direction * -1;
+					auto tmp = this->m_points[1];
+					this->m_points[2] = this->m_points[1];
+					this->m_points[1] = tmp;
+				}
 				break;
 			case 4:
 			    a = this->GetA();

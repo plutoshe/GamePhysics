@@ -5,12 +5,14 @@
 #include <Engine/Platform/Platform.h>
 #include <Engine/Logging/Logging.h>
 #include <string>
-
+#include <iostream>
+#include <sstream>  
 namespace PlutoShe
 {
 	namespace Physics
 	{
 		static float eps = 1e-5f;
+
 		class Vector3
 		{
 		public:
@@ -68,7 +70,8 @@ namespace PlutoShe
 			{
 				m_indexA = m_indexB = 0;
 			}
-			simplexPoint(Vector3 i_point, int i_a, int i_b) : m_position(i_point) {
+			simplexPoint(Vector3 i_point, int i_a, int i_b)  {
+				m_position = i_point;
 				m_indexA = i_a;
 				m_indexB = i_b;
 			}
@@ -80,7 +83,43 @@ namespace PlutoShe
 			}
 			Vector3 m_position;
 			int m_indexA, m_indexB;
+			bool operator == (const simplexPoint& i_v)
+			{
+				return (m_indexA == i_v.m_indexA) && (m_indexB == i_v.m_indexB);
+			}
+			void operator =(const simplexPoint& i_v)
+			{
+				m_position = i_v.m_position;
+				m_indexA = i_v.m_indexA;
+				m_indexB = i_v.m_indexB;
+			}
+			std::string getKey() 
+			{
+				std::ostringstream ss;
+				ss << m_indexA << ' ' << m_indexB << ' ';
+				return ss.str();
+
+			}
 		};
+
+		struct SimplexEdge
+		{
+			simplexPoint a, b;
+			SimplexEdge() {}
+			SimplexEdge(simplexPoint i_a, simplexPoint i_b) : a(i_a), b(i_b) {}
+			bool operator == (const SimplexEdge& i_v)
+			{
+				return ((a == i_v.a) && (b == i_v.b)) || ((a == i_v.b) && (b == i_v.a));
+			}
+			std::string GetKey() {
+				return a.getKey() + b.getKey();
+			}
+			std::string getReverseKey()
+			{
+				return b.getKey() + a.getKey();
+			}
+		};
+
 		class Face
 		{
 		public:

@@ -47,6 +47,10 @@ void eae6320::Physics::sRigidBodyState::UpdatePhysics()
 							JWB.dot(rigidbodyB->inverseInertia * JWB.TosVector());
 						auto b = 0;
 						auto param = (numerator + b) / denominator;
+						rigidbodyA->velocity = rigidbodyA->velocity + (JVA * param * rigidbodyA->inverseMass).TosVector();
+						rigidbodyA->angularVelocity = rigidbodyA->velocity + rigidbodyA->inverseInertia * JWA.TosVector() * param;
+						rigidbodyB->velocity = rigidbodyB->velocity + (JVB * param * rigidbodyB->inverseMass).TosVector();
+						rigidbodyB->angularVelocity = rigidbodyB->velocity + rigidbodyB->inverseInertia * JWA.TosVector() * param;
 					}
 				}
 			}

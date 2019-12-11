@@ -71,10 +71,11 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	{
 		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryB, effectB), eae6320::Physics::sRigidBodyState(colliderB)));
 	}
-	objs[0].m_rigidBodyState.EnablePhysicsSimulation();
-	objs[1].m_rigidBodyState.EnablePhysicsSimulation();
+
 
 	SetGameObjects(objs);
+	/*m_gameObjects[0].m_rigidBodyState.EnablePhysicsSimulation();
+	m_gameObjects[1].m_rigidBodyState.EnablePhysicsSimulation();*/
 	eae6320::Audio3D::AudioSource* MySource;
 	auto result = eae6320::Audio3D::AudioSource::Load("data/audiosources/a.wav", MySource);
 	if (!result)

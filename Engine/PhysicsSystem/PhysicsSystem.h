@@ -10,6 +10,7 @@ namespace PlutoShe
 {
 	namespace Physics
 	{
+		static float eps = 1e-5f;
 		class Vector3
 		{
 		public:
@@ -61,9 +62,12 @@ namespace PlutoShe
 			}
 
 		};
-		class simplexPoint : public Vector3 {
+		class simplexPoint  {
 		public:
-			simplexPoint() {}
+			simplexPoint() 
+			{
+				m_indexA = m_indexB = 0;
+			}
 			simplexPoint(Vector3 i_point, int i_a, int i_b) : m_position(i_point) {
 				m_indexA = i_a;
 				m_indexB = i_b;
@@ -118,7 +122,7 @@ namespace PlutoShe
 			void UpdateTransformation(eae6320::Math::cMatrix_transformation i_t);
 			Vector3 Center();
 			bool IsCollided(Collider& i_B);
-			bool IsCollidedReturnSimplex(Collider& i_B, Simplex t_simplex);
+			bool IsCollidedReturnSimplex(Collider& i_B, Simplex &t_simplex);
 			bool IsCollidedWithContact(Collider& i_B, float& t_depth, Vector3& t_contactNormal, Vector3& t_contactPointA, Vector3& t_contactPointB);
 			float GetCollisionContact(Collider& i_B, Simplex& i_simplex, Vector3& t_contactNormal, Vector3& t_contactPointA, Vector3& t_contactPointB);
 			

@@ -4,10 +4,12 @@
 #include "pch.h"
 #include "PhysicsSystem.h"
 
+
 namespace PlutoShe
 {
 	namespace Physics
 	{
+
 		Vector3 Collider::getFarthestPointInDirection(Vector3 i_dir, int &t_index)
 		{
 			t_index = 0;
@@ -91,7 +93,7 @@ namespace PlutoShe
 			faces.push_back(Face(d, a, c));
 			while (true)
 			{
-				float minDist = faces[0].a.dot(faces[0].a);
+				float minDist = faces[0].a.m_position.dot(faces[0].a.m_position);
 				Vector3 selectedFaceNormal;
 				size_t selectedFaceIndex = 0;
 				for (size_t i = 0; i < faces.size(); i++)
@@ -99,10 +101,10 @@ namespace PlutoShe
 					auto a = faces[i].a;
 					auto b = faces[i].b;
 					auto c = faces[i].c;
-					auto ab = b - a;
-					auto ac = c - a;
+					auto ab = b.m_position - a.m_position;
+					auto ac = c.m_position - a.m_position;
 					auto normal_abc = ab.cross(ac);
-					auto ndac = normal_abc.dot(a);
+					auto ndac = normal_abc.dot(a.m_position);
 					if (ndac < minDist)
 					{
 						minDist = ndac;
@@ -112,8 +114,8 @@ namespace PlutoShe
 				}
 				
 				auto nextPoint = supportFunction(*this, i_B, selectedFaceNormal);
-				double d = nextPoint.dot(selectedFaceNormal);
-				if (d - minDist < 0.0001f)
+				double d = nextPoint.m_position.dot(selectedFaceNormal);
+				if (d - minDist < eps)
 				{
 					selectedFaceNormal.Normalized();
 					t_contactNormal = selectedFaceNormal;
@@ -142,7 +144,7 @@ namespace PlutoShe
 			}
 		}
 
-		bool Collider::IsCollidedReturnSimplex(Collider& i_B, Simplex t_simplex)
+		bool Collider::IsCollidedReturnSimplex(Collider& i_B, Simplex &t_simplex)
 		{
 			bool isCollided = false;
 			//GJK
@@ -152,8 +154,8 @@ namespace PlutoShe
 			while (true)
 			{
 				t_simplex.Add(supportFunction(*this, i_B, dir));
-
-				if (t_simplex.GetLast().dot(dir) < 0) {
+				auto dist = t_simplex.GetLast().m_position.dot(dir);
+				if (dist < eps) {
 					return false;
 				}
 				else {

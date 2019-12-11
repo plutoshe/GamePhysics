@@ -12,6 +12,7 @@
 #include <Engine/Math/cQuaternion.h>
 #include <Engine/Math/sVector.h>
 #include <Engine/PhysicsSystem/PhysicsSystem.h>
+#include <set>
 // Forward Declarations
 //=====================
 
@@ -41,9 +42,13 @@ namespace eae6320
 		{
 			// Data
 			//=====
-			static std::vector<contactInfo> contacts;
-			static std::vector<sRigidBodyState*> collisionObjs;
+			static std::set<sRigidBodyState*> s_physicsObjs;
+			static void UpdatePhysics();
 
+			bool isStatic = false;
+			void EnablePhysicsSimulation() { s_physicsObjs.insert(this); }
+			void DisablePhysicsSimulation() { s_physicsObjs.erase(this); }
+			
 			Math::sVector position;	// In arbitrary units determined by the applicaton's convention
 			Math::sVector velocity;	// Distance per-second
 			Math::sVector acceleration;	// Distance per-second^2

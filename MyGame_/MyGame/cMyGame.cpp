@@ -71,6 +71,8 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	{
 		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryB, effectB), eae6320::Physics::sRigidBodyState(colliderB)));
 	}
+	objs[0].m_rigidBodyState.EnablePhysicsSimulation();
+	objs[1].m_rigidBodyState.EnablePhysicsSimulation();
 
 	SetGameObjects(objs);
 	eae6320::Audio3D::AudioSource* MySource;

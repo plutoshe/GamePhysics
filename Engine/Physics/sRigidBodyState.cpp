@@ -8,6 +8,19 @@
 // Interface
 //==========
 
+
+std::set<eae6320::Physics::sRigidBodyState*> eae6320::Physics::sRigidBodyState::s_physicsObjs;
+void eae6320::Physics::sRigidBodyState::UpdatePhysics()
+{
+	for (auto i = 0; i < s_physicsObjs.size(); i++)
+	{
+		for (auto j = 0; j < s_physicsObjs.size(); j++)
+		{
+
+		}
+	}
+}
+
 void eae6320::Physics::sRigidBodyState::Update( const float i_secondCountToIntegrate )
 {
 	// Update position
@@ -62,11 +75,7 @@ void eae6320::Physics::sRigidBodyState::Update( const float i_secondCountToInteg
 		Math::cMatrix_transformation(orientation, Math::sVector(0, 0, 0)) * 
 		inverseInertia * Math::cMatrix_transformation(invertOrientation, Math::sVector(0, 0, 0)) *
 		angularMomentumDelta;
-	if (angularVelocityDelta.x != 0 || angularVelocityDelta.y != 0 || angularVelocityDelta.z != 0)
-	{
-		int i = 0;
-		i = i + 1;
-	}
+
 	angularVelocity += angularVelocityDelta;
 	orientation = GetCurrentRotation(dt) * orientation;
 

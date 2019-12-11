@@ -8,9 +8,9 @@ namespace PlutoShe
 {
 	namespace Physics
 	{
-		Vector3 Collider::getFarthestPointInDirection(Vector3 i_dir)
+		Vector3 Collider::getFarthestPointInDirection(Vector3 i_dir, int &t_index)
 		{
-			int selection = 0;
+			t_index = 0;
 			float maxDist = (m_transformation * m_vertices[0]).dot(i_dir);
 			for (size_t i = 1; i < m_vertices.size(); i++)
 			{
@@ -18,17 +18,24 @@ namespace PlutoShe
 				if (dist > maxDist)
 				{
 					maxDist = dist;
-					selection = (int)i;
+					t_index = (int)i;
 				}
 			}
-			return m_transformation * m_vertices[selection];
+			return m_transformation * m_vertices[t_index];
 		}
 
-		Vector3 Collider::supportFunction(Collider&i_A, Collider&i_B, Vector3 i_dir)
+		Vector3 Collider::getFarthestPointInDirection(Vector3 i_dir)
 		{
-			auto a = i_A.getFarthestPointInDirection(i_dir);
-			auto b = i_B.getFarthestPointInDirection(i_dir.Negate());
-			return a - b;	
+			int index;
+			return getFarthestPointInDirection(i_dir, index);
+		}
+
+		simplexPoint Collider::supportFunction(Collider& i_A, Collider& i_B, Vector3 i_dir)
+		{
+			int indexA, indexB;
+			auto a = i_A.getFarthestPointInDirection(i_dir, indexA);
+			auto b = i_B.getFarthestPointInDirection(i_dir.Negate(), indexB);
+			return simplexPoint(a - b, indexA, indexB);
 		}
 
 
@@ -70,9 +77,9 @@ namespace PlutoShe
 			return minDist;
 		}*/
 
-		float Collider::GetPenetration(Simplex& i_simplex, Vector3& contactNormal)
+		float Collider::GetCollisionContact(Collider& i_B, Simplex& i_simplex, Vector3& t_contactNormal, Vector3& t_contactPointA, Vector3& t_contactPointB)
 		{
-			Vector3 a, b, c, d;
+			simplexPoint a, b, c, d;
 			a = i_simplex.GetA();
 			b = i_simplex.GetB();
 			c = i_simplex.GetC();
@@ -104,11 +111,11 @@ namespace PlutoShe
 					}
 				}
 				
-				auto nextPoint = getFarthestPointInDirection(selectedFaceNormal);
+				auto nextPoint = supportFunction(*this, i_B, selectedFaceNormal);
 				double d = nextPoint.dot(selectedFaceNormal);
 				if (d - minDist < 0.0001f)
 				{
-					contactNormal = selectedFaceNormal;
+					t_contactNormal = selectedFaceNormal;
 					return d;
 				}
 				else
@@ -123,39 +130,49 @@ namespace PlutoShe
 			}
 		}
 
-		bool Collider::IsCollided(Collider&i_B, Vector3 &t_contactPoints)
+		bool Collider::IsCollidedReturnSimplex(Collider& i_B, Simplex t_simplex)
 		{
 			bool isCollided = false;
 			//GJK
 			Vector3 dir = i_B.Center() - this->Center();
-			Simplex simplex;
-			simplex.Clear();
+			
+			t_simplex.Clear();
 			while (true)
 			{
-				simplex.Add(supportFunction(*this, i_B, dir));
+				t_simplex.Add(supportFunction(*this, i_B, dir));
 
-				if (simplex.GetLast().dot(dir) < 0) {
-					isCollided = false;
-					break;
+				if (t_simplex.GetLast().dot(dir) < 0) {
+					return false;
 				}
 				else {
-					if (simplex.ContainsOrigin(dir)) {
-						isCollided = true;
-						break;
+					if (t_simplex.ContainsOrigin(dir)) {
+						return true;
 					}
 				}
 			}
-			if (isCollided)
+
+		}
+
+		bool Collider::IsCollided(Collider& i_B)
+		{
+			Simplex simplex;
+			return IsCollidedReturnSimplex(i_B, simplex);
+		}
+
+		bool Collider::IsCollided(Collider&i_B, float &t_depth, Vector3 &t_contactNormal, Vector3& t_contactPointA, Vector3& t_contactPointB)
+		{
+			Simplex simplex;
+			if (IsCollidedReturnSimplex(i_B, simplex))
 			{
-				GetContactPoint(simplex, t_contactPoints);
+				t_depth = GetCollisionContact(i_B, simplex, t_contactNormal, t_contactPointA, t_contactPointB);
+				return true;
 			}
-
-
+			return false;
 		}
 
 		bool Simplex::ContainsOrigin(Vector3 &t_direction)
 		{
-			Vector3 a, b, c, d;
+			simplexPoint a, b, c, d;
 			Vector3 ab, ac, ao;
 			switch (this->GetSize())
 			{
@@ -165,8 +182,8 @@ namespace PlutoShe
 			case 2:
 				a = this->GetA();
 			    b = this->GetB();
-				ab = b - a;
-				ao = a.Negate();
+				ab = b.m_position - a.m_position;
+				ao = a.m_position.Negate();
 				t_direction = ab.cross(ao).cross(ab);
 				break;
 
@@ -174,9 +191,9 @@ namespace PlutoShe
 				a = this->GetA();
 				b = this->GetB();
 				c = this->GetC();
-				ab = b - a;
-				ac = c - a;
-				ao = a.Negate();
+				ab = b.m_position - a.m_position;
+				ac = c.m_position - a.m_position;
+				ao = a.m_position.Negate();
 				t_direction = ac.cross(ab);
 				if (t_direction.dot(ao) < 0) t_direction = t_direction * -1;
 				break;
@@ -185,13 +202,13 @@ namespace PlutoShe
 				b = this->GetB();
 				c = this->GetC();
 				d = this->GetD();
-				auto da = a - d;
-				auto db = b - d;
-				auto dc = c - d;
+				auto da = a.m_position - d.m_position;
+				auto db = b.m_position - d.m_position;
+				auto dc = c.m_position - d.m_position;
 				auto normal_dab = da.cross(db);
 				auto normal_dac = dc.cross(da);
 				auto normal_dbc = db.cross(dc);
-				auto do_ = d.Negate(); // (0,0,0) - point d
+				auto do_ = d.m_position.Negate(); // (0,0,0) - point d
 				auto ndab = normal_dab.dot(do_); 
 				auto ndac = normal_dac.dot(do_);
 				auto ndbc = normal_dbc.dot(do_);
@@ -291,7 +308,7 @@ namespace PlutoShe
 				for (auto j = 0; j < i_queryColliderList.m_colliders.size(); j++)
 				{
 					Vector3 contacts;
-					if (m_colliders[i].IsCollided(i_queryColliderList.m_colliders[j], contacts))
+					if (m_colliders[i].IsCollided(i_queryColliderList.m_colliders[j]))
 					{
 						return true;
 					}

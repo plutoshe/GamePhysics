@@ -279,6 +279,7 @@ void eae6320::Application::cbApplication::UpdateSimulationBasedOnTime(const floa
 		
 	}
 	m_camera.m_rigidBodyState.Update(i_elapsedSecondCount_sinceLastUpdate);
+	eae6320::Physics::sRigidBodyState::UpdatePhysics();
 }
 
 void eae6320::Application::cbApplication::SubmitDataToBeRendered(const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
@@ -298,6 +299,7 @@ void eae6320::Application::cbApplication::SubmitDataToBeRendered(const float i_e
 		}
 		
 	}
+
 
 }
 

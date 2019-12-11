@@ -158,7 +158,7 @@ namespace PlutoShe
 						auto ac = c.m_position - a.m_position;
 						auto normal_abc = ab.cross(ac);
 						normal_abc.Normalized();
-						if (normal_abc.dot(nextPoint.m_position) > 0)
+						if (normal_abc.dot(nextPoint.m_position - a.m_position) > -eps)
 						{
 							faces.erase(faces.begin() + i);
 						}
@@ -207,14 +207,14 @@ namespace PlutoShe
 		{
 			bool isCollided = false;
 			//GJK
-			Vector3 dir = i_B.Center() - this->Center();
-			
+			Vector3 dir = i_B.m_transformation * i_B.Center() - this->m_transformation * this->Center();
+			dir = dir + 0.1f;
 			t_simplex.Clear();
 			while (true)
 			{
 				t_simplex.Add(supportFunction(*this, i_B, dir));
 				auto dist = t_simplex.GetLast().m_position.dot(dir);
-				if (dist < eps) {
+				if (dist < -eps) {
 					return false;
 				}
 				else {
@@ -258,6 +258,10 @@ namespace PlutoShe
 				ab = b.m_position - a.m_position;
 				ao = a.m_position.Negate();
 				t_direction = ab.cross(ao).cross(ab);
+				if (t_direction.m_x == 0 && t_direction.m_y == 0 && t_direction.m_z == 0) {
+					t_direction.m_x = ao.m_y;
+					t_direction.m_y = ao.m_x;
+				}
 				break;
 
 			case 3:

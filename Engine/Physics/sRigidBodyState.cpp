@@ -20,8 +20,8 @@ void eae6320::Physics::sRigidBodyState::UpdatePhysics(float i_deltaTime)
 		{
 			auto rigidbodyA = *elementI;
 			auto rigidbodyB = *elementJ;
-			PlutoShe::Physics::Vector3 centerA = rigidbodyA->localCenter;
-			PlutoShe::Physics::Vector3 centerB = rigidbodyB->localCenter;
+			PlutoShe::Physics::Vector3 centerA = rigidbodyA->WorldCenter();
+			PlutoShe::Physics::Vector3 centerB = rigidbodyB->WorldCenter();
 
 			for (int i = 0; i < rigidbodyA->colliders.GetSize(); i++)
 			{
@@ -46,7 +46,7 @@ void eae6320::Physics::sRigidBodyState::UpdatePhysics(float i_deltaTime)
 							JWA.dot(rigidbodyA->inverseInertia * JWA.TosVector()) +
 							JVB.dot(JVB) * rigidbodyB->inverseMass +
 							JWB.dot(rigidbodyB->inverseInertia * JWB.TosVector());
-						auto b = (contactB - contactA).dot(normal) / i_deltaTime * 0.002f ;
+						auto b = (contactB - contactA).dot(normal) / i_deltaTime * -0.002f ;
 						auto param = (numerator + b) / denominator;
 						auto deltaVA = (JVA * param * rigidbodyA->inverseMass).TosVector();
 						rigidbodyA->velocity = rigidbodyA->velocity + deltaVA;
@@ -63,8 +63,10 @@ void eae6320::Physics::sRigidBodyState::UpdatePhysics(float i_deltaTime)
 
 void eae6320::Physics::sRigidBodyState::UpdateState(const float dt)
 {
+	colliders.UpdateTransformation(PredictFutureTransform(dt));
 	position += velocity * dt;
 	orientation = GetCurrentRotation(dt) * orientation;
+	
 }
 
 void eae6320::Physics::sRigidBodyState::Update( const float i_secondCountToIntegrate )
@@ -126,7 +128,7 @@ void eae6320::Physics::sRigidBodyState::Update( const float i_secondCountToInteg
 
 	forceAccumulator = Math::sVector(0, 0, 0);
 	torqueAccumulator = Math::sVector(0, 0, 0);
-	colliders.UpdateTransformation(PredictFutureTransform(0));
+	
 }
 
 eae6320::Math::sVector eae6320::Physics::sRigidBodyState::PredictFuturePosition( const float i_secondCountToExtrapolate ) const

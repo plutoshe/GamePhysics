@@ -62,8 +62,24 @@ namespace PlutoShe
 			{
 				return eae6320::Math::sVector(m_x, m_y, m_z);
 			}
-
+			static void Barycentric(Vector3 p, Vector3 a, Vector3 b, Vector3 c, float& u, float& v, float& w)
+			{
+				Vector3 v0 = b - a, v1 = c - a, v2 = p - a;
+				float d00 = v0.dot(v0);
+				float d01 = v0.dot(v1);
+				float d11 = v1.dot(v1);
+				float d20 = v2.dot(v0);
+				float d21 = v2.dot(v1);
+				float denom = d00 * d11 - d01 * d01;
+				v = (d11 * d20 - d01 * d21) / denom;
+				w = (d00 * d21 - d01 * d20) / denom;
+				u = 1.0f - v - w;
+			}
 		};
+
+		
+
+
 		class simplexPoint  {
 		public:
 			simplexPoint() 

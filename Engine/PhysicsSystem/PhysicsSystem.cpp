@@ -92,10 +92,9 @@ namespace PlutoShe
 			faces.push_back(Face(d, b, c));
 			faces.push_back(Face(d, c, a));
 
-			auto lastMinDist = faces[0].a.m_position.dot(faces[0].a.m_position);
 			while (true)
 			{
-				float minDist = faces[0].a.m_position.dot(faces[0].a.m_position) - eps * 2;
+				float minDist = faces[0].a.m_position.dot(faces[0].a.m_position);
 				Vector3 selectedFaceNormal;
 				size_t selectedFaceIndex = 0;
 				for (size_t i = 0; i < faces.size(); i++)
@@ -121,29 +120,31 @@ namespace PlutoShe
 				//	return lastMinDist;
 				//}
 
-				selectedFaceNormal.Normalized();
-				t_contactNormal = selectedFaceNormal;
-				auto a = faces[selectedFaceIndex].a;
-				auto b = faces[selectedFaceIndex].b;
-				auto ao = a.m_position.Negate() - a.m_position.Negate().cross(selectedFaceNormal);
-				auto ab = b.m_position - a.m_position;
-				//auto ac = c.m_position - a.m_position;
-				auto a1 = m_vertices[faces[selectedFaceIndex].a.m_indexA];
-				auto a2 = m_vertices[faces[selectedFaceIndex].b.m_indexA];
-				auto b1 = i_B.m_vertices[faces[selectedFaceIndex].a.m_indexB];
-				auto b2 = i_B.m_vertices[faces[selectedFaceIndex].a.m_indexB];
-				//auto a3 = m_vertices[faces[selectedFaceIndex].c.m_indexA];
 
-				t_contactPointA = (a2 - a1) / ab * ao + a1;
-				t_contactPointB = (b2 - b1) / ab * ao + b1;
-
-
-				lastMinDist = minDist;
 				auto nextPoint = supportFunction(*this, i_B, selectedFaceNormal);
 				double d = nextPoint.m_position.dot(selectedFaceNormal);
 
 				if (d - minDist < eps)
 				{
+					selectedFaceNormal.Normalized();
+					t_contactNormal = selectedFaceNormal;
+
+					auto a = faces[selectedFaceIndex].a;
+					auto b = faces[selectedFaceIndex].b;
+					auto c = faces[selectedFaceIndex].c;
+					auto a1 = m_vertices[faces[selectedFaceIndex].a.m_indexA];
+					auto a2 = m_vertices[faces[selectedFaceIndex].b.m_indexA];
+					auto a3 = m_vertices[faces[selectedFaceIndex].c.m_indexA];
+					auto b1 = i_B.m_vertices[faces[selectedFaceIndex].a.m_indexB];
+					auto b2 = i_B.m_vertices[faces[selectedFaceIndex].b.m_indexB];
+					auto b3 = i_B.m_vertices[faces[selectedFaceIndex].c.m_indexB];
+					//auto a3 = m_vertices[faces[selectedFaceIndex].c.m_indexA];
+					float u, v, w;
+					Vector3::Barycentric(Vector3(0, 0, 0), a.m_position, b.m_position, c.m_position, u, v, w);
+
+					t_contactPointA = a1 * u + a2 * v + a3 * w;
+					t_contactPointB = b1 * u + b2 * v + b3 * w;
+
 					return d;
 				}
 				else

@@ -35,6 +35,9 @@ void eae6320::Physics::sRigidBodyState::UpdatePhysics(float i_deltaTime)
 
 					if (colliderA.IsCollidedWithContact(colliderB, depth, normal, contactA, contactB))
 					{
+						
+						auto aa = rigidbodyA->orientation * rigidbodyA->localCenter;
+						auto bb = rigidbodyA->position + aa;
 						normal = centerB - centerA;
 						auto JVA = normal.Negate(); // -nt
 						auto JWA = (contactA - centerA).cross(normal).Negate();
@@ -46,14 +49,20 @@ void eae6320::Physics::sRigidBodyState::UpdatePhysics(float i_deltaTime)
 							JWA.dot(rigidbodyA->inverseInertia * JWA.TosVector()) +
 							JVB.dot(JVB) * rigidbodyB->inverseMass +
 							JWB.dot(rigidbodyB->inverseInertia * JWB.TosVector());
-						auto b = (contactB - contactA).dot(normal) / i_deltaTime * -0.002f ;
+						auto b = (contactB - contactA).dot(normal) / i_deltaTime * -1.f ;
 						auto param = (numerator + b) / denominator;
-						auto deltaVA = (JVA * param * rigidbodyA->inverseMass).TosVector();
-						rigidbodyA->velocity = rigidbodyA->velocity + deltaVA;
-						//rigidbodyA->linearMomentum = rigidbodyA->linearMomentum + deltaVA * rigidbodyA->mass;
-						rigidbodyA->angularVelocity = rigidbodyA->angularVelocity + rigidbodyA->inverseInertia * JWA.TosVector() * param;
-						rigidbodyB->velocity = rigidbodyB->velocity + (JVB * param * rigidbodyB->inverseMass).TosVector();
-						rigidbodyB->angularVelocity = rigidbodyB->angularVelocity + rigidbodyB->inverseInertia * JWB.TosVector() * param;
+						if (!rigidbodyA->isStatic)
+						{
+							auto deltaVA = (JVA * param * rigidbodyA->inverseMass).TosVector();
+							rigidbodyA->velocity = rigidbodyA->velocity + deltaVA;
+							//rigidbodyA->linearMomentum = rigidbodyA->linearMomentum + deltaVA * rigidbodyA->mass;
+							rigidbodyA->angularVelocity = rigidbodyA->angularVelocity + rigidbodyA->inverseInertia * JWA.TosVector() * param;
+						}
+						if (!rigidbodyB->isStatic)
+						{
+							rigidbodyB->velocity = rigidbodyB->velocity + (JVB * param * rigidbodyB->inverseMass).TosVector();
+							rigidbodyB->angularVelocity = rigidbodyB->angularVelocity + rigidbodyB->inverseInertia * JWB.TosVector() * param;
+						}
 					}
 				}
 			}
@@ -63,10 +72,9 @@ void eae6320::Physics::sRigidBodyState::UpdatePhysics(float i_deltaTime)
 
 void eae6320::Physics::sRigidBodyState::UpdateState(const float dt)
 {
-	colliders.UpdateTransformation(PredictFutureTransform(dt));
 	position += velocity * dt;
 	orientation = GetCurrentRotation(dt) * orientation;
-	
+	colliders.UpdateTransformation(PredictFutureTransform(0));
 }
 
 void eae6320::Physics::sRigidBodyState::Update( const float i_secondCountToIntegrate )
@@ -156,6 +164,7 @@ eae6320::Math::cMatrix_transformation eae6320::Physics::sRigidBodyState::Predict
 		Math::cMatrix_transformation( PredictFutureOrientation( i_secondCountToExtrapolate ), Math::sVector(0,0,0)) *
 		Math::cMatrix_transformation(Math::cQuaternion(0, angularVelocity_axis_localYZ) ,- localCenter);
 }
+
 
 void eae6320::Physics::sRigidBodyState::ApplyForce(const Math::sVector& f, const Math::sVector& atPosition) // world space force and attach point
 {

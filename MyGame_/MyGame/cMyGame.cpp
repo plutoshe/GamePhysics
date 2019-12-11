@@ -90,9 +90,10 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 
 	SetGameObjects(objs);
-	m_gameObjects[0].m_rigidBodyState.position.x = -2.1f;
+	m_gameObjects[0].m_rigidBodyState.position.x = 0.f;
 	m_gameObjects[0].m_rigidBodyState.EnablePhysicsSimulation();
 	m_gameObjects[1].m_rigidBodyState.EnablePhysicsSimulation();
+	m_gameObjects[1].m_rigidBodyState.isStatic = true;
 	//m_gameObjects[3].m_rigidBodyState.EnablePhysicsSimulation();
 	/*m_gameObjects[4].m_rigidBodyState.EnablePhysicsSimulation();
 	m_gameObjects[5].m_rigidBodyState.EnablePhysicsSimulation();*/

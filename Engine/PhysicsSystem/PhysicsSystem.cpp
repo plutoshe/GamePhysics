@@ -128,16 +128,16 @@ namespace PlutoShe
 				{
 					selectedFaceNormal.Normalized();
 					t_contactNormal = selectedFaceNormal;
-
+					auto nextPoint1 = supportFunction(*this, i_B, selectedFaceNormal);
 					auto a = faces[selectedFaceIndex].a;
 					auto b = faces[selectedFaceIndex].b;
 					auto c = faces[selectedFaceIndex].c;
-					auto a1 = m_vertices[faces[selectedFaceIndex].a.m_indexA];
-					auto a2 = m_vertices[faces[selectedFaceIndex].b.m_indexA];
-					auto a3 = m_vertices[faces[selectedFaceIndex].c.m_indexA];
-					auto b1 = i_B.m_vertices[faces[selectedFaceIndex].a.m_indexB];
-					auto b2 = i_B.m_vertices[faces[selectedFaceIndex].b.m_indexB];
-					auto b3 = i_B.m_vertices[faces[selectedFaceIndex].c.m_indexB];
+					auto a1 = m_transformation * m_vertices[faces[selectedFaceIndex].a.m_indexA];
+					auto a2 = m_transformation * m_vertices[faces[selectedFaceIndex].b.m_indexA];
+					auto a3 = m_transformation * m_vertices[faces[selectedFaceIndex].c.m_indexA];
+					auto b1 = i_B.m_transformation * i_B.m_vertices[faces[selectedFaceIndex].a.m_indexB];
+					auto b2 = i_B.m_transformation * i_B.m_vertices[faces[selectedFaceIndex].b.m_indexB];
+					auto b3 = i_B.m_transformation * i_B.m_vertices[faces[selectedFaceIndex].c.m_indexB];
 					//auto a3 = m_vertices[faces[selectedFaceIndex].c.m_indexA];
 					float u, v, w;
 					Vector3::Barycentric(Vector3(0, 0, 0), a.m_position, b.m_position, c.m_position, u, v, w);

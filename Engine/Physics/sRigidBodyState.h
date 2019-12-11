@@ -95,7 +95,10 @@ namespace eae6320
 			}
 			sRigidBodyState(PlutoShe::Physics::ColliderList i_colliders) { colliders = i_colliders; localCenter = colliders.GetCenter().TosVector();}
 
-			Math::sVector WorldCenter() { return position + orientation * localCenter; }
+			Math::sVector WorldCenter() {
+				return PredictFutureTransform(0) * localCenter;
+				
+			}
 
 			bool isCollide(sRigidBodyState& i_b) { return colliders.IsCollided(i_b.colliders); }
 		};

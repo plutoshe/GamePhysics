@@ -115,7 +115,19 @@ namespace PlutoShe
 				double d = nextPoint.dot(selectedFaceNormal);
 				if (d - minDist < 0.0001f)
 				{
+					selectedFaceNormal.Normalized();
 					t_contactNormal = selectedFaceNormal;
+					auto ao = a.m_position.Negate() - a.m_position.Negate().cross(selectedFaceNormal);
+					auto ab = b.m_position - a.m_position;
+					//auto ac = c.m_position - a.m_position;
+					auto a1 = m_vertices[faces[selectedFaceIndex].a.m_indexA];
+					auto a2 = m_vertices[faces[selectedFaceIndex].b.m_indexA];
+					auto b1 = i_B.m_vertices[faces[selectedFaceIndex].a.m_indexB];
+					auto b2 = i_B.m_vertices[faces[selectedFaceIndex].a.m_indexB];
+					//auto a3 = m_vertices[faces[selectedFaceIndex].c.m_indexA];
+
+					t_contactPointA = (a2 - a1) / ab * ao + a1;
+					t_contactPointB = (b2 - b1) / ab * ao + b1;
 					return d;
 				}
 				else
@@ -159,7 +171,7 @@ namespace PlutoShe
 			return IsCollidedReturnSimplex(i_B, simplex);
 		}
 
-		bool Collider::IsCollided(Collider&i_B, float &t_depth, Vector3 &t_contactNormal, Vector3& t_contactPointA, Vector3& t_contactPointB)
+		bool Collider::IsCollidedWithContact(Collider&i_B, float &t_depth, Vector3 &t_contactNormal, Vector3& t_contactPointA, Vector3& t_contactPointB)
 		{
 			Simplex simplex;
 			if (IsCollidedReturnSimplex(i_B, simplex))

@@ -12,11 +12,44 @@
 std::set<eae6320::Physics::sRigidBodyState*> eae6320::Physics::sRigidBodyState::s_physicsObjs;
 void eae6320::Physics::sRigidBodyState::UpdatePhysics()
 {
-	for (auto i = 0; i < s_physicsObjs.size(); i++)
+	for (std::set<eae6320::Physics::sRigidBodyState*>::iterator elementI = s_physicsObjs.begin(); elementI != s_physicsObjs.end(); ++elementI)
 	{
-		for (auto j = 0; j < s_physicsObjs.size(); j++)
+		std::set<eae6320::Physics::sRigidBodyState*>::iterator elementJ = elementI;
+		elementJ++;
+		for (; elementJ != s_physicsObjs.end(); ++elementJ)
 		{
+			auto rigidbodyA = *elementI;
+			auto rigidbodyB = *elementJ;
+			PlutoShe::Physics::Vector3 centerA = rigidbodyA->localCenter;
+			PlutoShe::Physics::Vector3 centerB = rigidbodyB->localCenter;
 
+			for (int i = 0; i < rigidbodyA->colliders.GetSize(); i++)
+			{
+				for (int j = 0; j < rigidbodyB->colliders.GetSize(); j++)
+				{
+					auto colliderA = rigidbodyA->colliders.m_colliders[i];
+					auto colliderB = rigidbodyB->colliders.m_colliders[j];
+					float depth;
+					PlutoShe::Physics::Vector3 normal;
+					PlutoShe::Physics::Vector3 contactA, contactB;
+
+					if (colliderA.IsCollidedWithContact(colliderB, depth, normal, contactA, contactB))
+					{
+						auto JVA = normal.Negate(); // -nt
+						auto JWA = (contactA - centerA).cross(normal).Negate();
+						auto JVB = normal;
+						auto JWB = (contactB - centerB).cross(normal);
+						auto numerator = JVA.dot(rigidbodyA->velocity) + JWA.dot(rigidbodyA->angularVelocity) + JVB.dot(rigidbodyB->velocity) + JWB.dot(rigidbodyB->angularVelocity);
+						auto denominator =
+							JVA.dot(JVA) * rigidbodyA->inverseMass +
+							JWA.dot(rigidbodyA->inverseInertia * JWA.TosVector()) +
+							JVB.dot(JVB) * rigidbodyB->inverseMass +
+							JWB.dot(rigidbodyB->inverseInertia * JWB.TosVector());
+						auto b = 0;
+						auto param = (numerator + b) / denominator;
+					}
+				}
+			}
 		}
 	}
 }

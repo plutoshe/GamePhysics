@@ -25,6 +25,8 @@ namespace PlutoShe
 
 			Vector3 operator + (const Vector3& i_v) { return Vector3(m_x + i_v.m_x, m_y + i_v.m_y, m_z + i_v.m_z); }
 			Vector3 operator - (const Vector3& i_v) { return Vector3(m_x - i_v.m_x, m_y - i_v.m_y, m_z - i_v.m_z); }
+			Vector3 operator * (const Vector3& i_v) { return Vector3(m_x * i_v.m_x, m_y * i_v.m_y, m_z * i_v.m_z); }
+			Vector3 operator / (const Vector3& i_v) { return Vector3(m_x / i_v.m_x, m_y / i_v.m_y, m_z / i_v.m_z); }
 
 			Vector3 operator + (const float i_v) { return Vector3(m_x + i_v, m_y + i_v, m_z + i_v); }
 			Vector3 operator - (const float i_v) { return Vector3(m_x - i_v, m_y - i_v, m_z - i_v); }
@@ -46,6 +48,11 @@ namespace PlutoShe
 			friend Vector3 operator *(eae6320::Math::cMatrix_transformation &i_m, const Vector3 &i_rhs) 
 			{
 				return i_m * eae6320::Math::sVector(i_rhs.m_x, i_rhs.m_y, i_rhs.m_z);
+			}
+
+			void Normalized()
+			{
+				*this = *this / sqrt(this->dot(*this));
 			}
 
 			eae6320::Math::sVector TosVector()
@@ -112,7 +119,7 @@ namespace PlutoShe
 			Vector3 Center();
 			bool IsCollided(Collider& i_B);
 			bool IsCollidedReturnSimplex(Collider& i_B, Simplex t_simplex);
-			bool IsCollided(Collider& i_B, float& t_depth, Vector3& t_contactNormal, Vector3& t_contactPointA, Vector3& t_contactPointB);
+			bool IsCollidedWithContact(Collider& i_B, float& t_depth, Vector3& t_contactNormal, Vector3& t_contactPointA, Vector3& t_contactPointB);
 			float GetCollisionContact(Collider& i_B, Simplex& i_simplex, Vector3& t_contactNormal, Vector3& t_contactPointA, Vector3& t_contactPointB);
 			
 			std::vector<Vector3> m_vertices;

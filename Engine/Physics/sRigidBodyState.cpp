@@ -46,7 +46,7 @@ void eae6320::Physics::sRigidBodyState::UpdatePhysics(float i_deltaTime)
 							JWA.dot(rigidbodyA->inverseInertia * JWA.TosVector()) +
 							JVB.dot(JVB) * rigidbodyB->inverseMass +
 							JWB.dot(rigidbodyB->inverseInertia * JWB.TosVector());
-						auto b = (contactB - contactA).dot(normal) / i_deltaTime * 0.01f ;
+						auto b = (contactB - contactA).dot(normal) / i_deltaTime * 0.002f ;
 						auto param = (numerator + b) / denominator;
 						auto deltaVA = (JVA * param * rigidbodyA->inverseMass).TosVector();
 						rigidbodyA->velocity = rigidbodyA->velocity + deltaVA;
@@ -59,6 +59,12 @@ void eae6320::Physics::sRigidBodyState::UpdatePhysics(float i_deltaTime)
 			}
 		}
 	}
+}
+
+void eae6320::Physics::sRigidBodyState::UpdateState(const float dt)
+{
+	position += velocity * dt;
+	orientation = GetCurrentRotation(dt) * orientation;
 }
 
 void eae6320::Physics::sRigidBodyState::Update( const float i_secondCountToIntegrate )
@@ -105,7 +111,7 @@ void eae6320::Physics::sRigidBodyState::Update( const float i_secondCountToInteg
 	
 	linearMomentum += linearMomentum;
 	velocity += velocityDelta;
-	position += velocity * dt;
+	
 	
 	auto angularMomentumDelta = dt * torqueAccumulator;
 	
@@ -117,7 +123,6 @@ void eae6320::Physics::sRigidBodyState::Update( const float i_secondCountToInteg
 		angularMomentumDelta;
 
 	angularVelocity += angularVelocityDelta;
-	orientation = GetCurrentRotation(dt) * orientation;
 
 	forceAccumulator = Math::sVector(0, 0, 0);
 	torqueAccumulator = Math::sVector(0, 0, 0);

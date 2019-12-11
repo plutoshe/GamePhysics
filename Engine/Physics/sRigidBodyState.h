@@ -77,7 +77,7 @@ namespace eae6320
 
 			// Interface
 			//==========
-
+			void UpdateState(const float dt);
 			void Update( const float i_secondCountToIntegrate );
 
 			Math::cQuaternion GetCurrentRotation(const float dt) const;

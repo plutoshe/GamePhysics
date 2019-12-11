@@ -31,19 +31,19 @@ namespace eae6320
 {
 	namespace Physics
 	{
-		struct sRigidBodyState;
+		class sRigidBodyState;
 
 		struct contactInfo {
 			Math::sVector contactPointA, contactPointB;
 			sRigidBodyState* sa, * sb;
 		};
 
-		struct sRigidBodyState
-		{
-			// Data
+		class sRigidBodyState
+		{			// Data
+		public:
 			//=====
 			static std::set<sRigidBodyState*> s_physicsObjs;
-			static void UpdatePhysics();
+			static void UpdatePhysics(float i_deltaTime);
 
 			bool isStatic = false;
 			void EnablePhysicsSimulation() { s_physicsObjs.insert(this); }

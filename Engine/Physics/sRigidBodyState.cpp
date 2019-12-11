@@ -10,7 +10,7 @@
 
 
 std::set<eae6320::Physics::sRigidBodyState*> eae6320::Physics::sRigidBodyState::s_physicsObjs;
-void eae6320::Physics::sRigidBodyState::UpdatePhysics()
+void eae6320::Physics::sRigidBodyState::UpdatePhysics(float i_deltaTime)
 {
 	for (std::set<eae6320::Physics::sRigidBodyState*>::iterator elementI = s_physicsObjs.begin(); elementI != s_physicsObjs.end(); ++elementI)
 	{
@@ -35,6 +35,7 @@ void eae6320::Physics::sRigidBodyState::UpdatePhysics()
 
 					if (colliderA.IsCollidedWithContact(colliderB, depth, normal, contactA, contactB))
 					{
+						normal = centerB - centerA;
 						auto JVA = normal.Negate(); // -nt
 						auto JWA = (contactA - centerA).cross(normal).Negate();
 						auto JVB = normal;
@@ -45,12 +46,14 @@ void eae6320::Physics::sRigidBodyState::UpdatePhysics()
 							JWA.dot(rigidbodyA->inverseInertia * JWA.TosVector()) +
 							JVB.dot(JVB) * rigidbodyB->inverseMass +
 							JWB.dot(rigidbodyB->inverseInertia * JWB.TosVector());
-						auto b = 0;
+						auto b = (contactB - contactA).dot(normal) / i_deltaTime * 0.01f ;
 						auto param = (numerator + b) / denominator;
-						rigidbodyA->velocity = rigidbodyA->velocity + (JVA * param * rigidbodyA->inverseMass).TosVector();
-						rigidbodyA->angularVelocity = rigidbodyA->velocity + rigidbodyA->inverseInertia * JWA.TosVector() * param;
+						auto deltaVA = (JVA * param * rigidbodyA->inverseMass).TosVector();
+						rigidbodyA->velocity = rigidbodyA->velocity + deltaVA;
+						//rigidbodyA->linearMomentum = rigidbodyA->linearMomentum + deltaVA * rigidbodyA->mass;
+						rigidbodyA->angularVelocity = rigidbodyA->angularVelocity + rigidbodyA->inverseInertia * JWA.TosVector() * param;
 						rigidbodyB->velocity = rigidbodyB->velocity + (JVB * param * rigidbodyB->inverseMass).TosVector();
-						rigidbodyB->angularVelocity = rigidbodyB->velocity + rigidbodyB->inverseInertia * JWA.TosVector() * param;
+						rigidbodyB->angularVelocity = rigidbodyB->angularVelocity + rigidbodyB->inverseInertia * JWB.TosVector() * param;
 					}
 				}
 			}

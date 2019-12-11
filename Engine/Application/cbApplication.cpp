@@ -273,13 +273,13 @@ void eae6320::Application::cbApplication::UpdateBasedOnTime(const float i_elapse
 
 void eae6320::Application::cbApplication::UpdateSimulationBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate)
 {
+	eae6320::Physics::sRigidBodyState::UpdatePhysics(i_elapsedSecondCount_sinceLastUpdate);
 	for (size_t i = 0; i < m_gameObjects.size(); i++)
 	{
 		m_gameObjects[i].m_rigidBodyState.Update(i_elapsedSecondCount_sinceLastUpdate);
 		
 	}
 	m_camera.m_rigidBodyState.Update(i_elapsedSecondCount_sinceLastUpdate);
-	eae6320::Physics::sRigidBodyState::UpdatePhysics();
 }
 
 void eae6320::Application::cbApplication::SubmitDataToBeRendered(const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate)

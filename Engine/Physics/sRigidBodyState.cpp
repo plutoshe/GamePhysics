@@ -36,8 +36,6 @@ void eae6320::Physics::sRigidBodyState::UpdatePhysics(float i_deltaTime)
 					if (colliderA.IsCollidedWithContact(colliderB, depth, normal, contactA, contactB))
 					{
 						
-						auto aa = rigidbodyA->orientation * rigidbodyA->localCenter;
-						auto bb = rigidbodyA->position + aa;
 						normal = centerB - centerA;
 						auto JVA = normal.Negate(); // -nt
 						auto JWA = (contactA - centerA).cross(normal).Negate();
@@ -49,14 +47,14 @@ void eae6320::Physics::sRigidBodyState::UpdatePhysics(float i_deltaTime)
 							JWA.dot(rigidbodyA->inverseInertia * JWA.TosVector()) +
 							JVB.dot(JVB) * rigidbodyB->inverseMass +
 							JWB.dot(rigidbodyB->inverseInertia * JWB.TosVector());
-						auto b = (contactB - contactA).dot(normal) / i_deltaTime * -1.f ;
+						auto b = (contactB - contactA).dot(normal) / i_deltaTime * -3.f;
 						auto param = (numerator + b) / denominator;
 						if (!rigidbodyA->isStatic)
 						{
 							auto deltaVA = (JVA * param * rigidbodyA->inverseMass).TosVector();
 							rigidbodyA->velocity = rigidbodyA->velocity + deltaVA;
-							//rigidbodyA->linearMomentum = rigidbodyA->linearMomentum + deltaVA * rigidbodyA->mass;
-							rigidbodyA->angularVelocity = rigidbodyA->angularVelocity + rigidbodyA->inverseInertia * JWA.TosVector() * param;
+							auto deltaWA = rigidbodyA->inverseInertia * JWA.TosVector() * param;
+							rigidbodyA->angularVelocity = rigidbodyA->angularVelocity + deltaWA;
 						}
 						if (!rigidbodyB->isStatic)
 						{

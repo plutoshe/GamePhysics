@@ -76,16 +76,16 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryA, effectC), eae6320::Physics::sRigidBodyState(colliderA)));
 
 	}
-	//if (resultGeometryA && resultEffectC)
-	//{
-	//	objs.push_back(Application::GameObject(Graphics::RenderObject(geometryA, effectC), eae6320::Physics::sRigidBodyState(colliderA)));
+	if (resultGeometryA && resultEffectC)
+	{
+		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryA, effectC), eae6320::Physics::sRigidBodyState(colliderA)));
 
-	//}
-	//if (resultGeometryA && resultEffectC)
-	//{
-	//	objs.push_back(Application::GameObject(Graphics::RenderObject(geometryA, effectC), eae6320::Physics::sRigidBodyState(colliderA)));
+	}
+	if (resultGeometryA && resultEffectC)
+	{
+		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryA, effectC), eae6320::Physics::sRigidBodyState(colliderA)));
 
-	//}
+	}
 
 
 
@@ -94,13 +94,13 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	m_gameObjects[0].m_rigidBodyState.EnablePhysicsSimulation();
 	m_gameObjects[1].m_rigidBodyState.EnablePhysicsSimulation();
 	m_gameObjects[1].m_rigidBodyState.isStatic = true;
-	//m_gameObjects[3].m_rigidBodyState.EnablePhysicsSimulation();
-	/*m_gameObjects[4].m_rigidBodyState.EnablePhysicsSimulation();
-	m_gameObjects[5].m_rigidBodyState.EnablePhysicsSimulation();*/
+	m_gameObjects[3].m_rigidBodyState.EnablePhysicsSimulation();
+	m_gameObjects[4].m_rigidBodyState.EnablePhysicsSimulation();
+	m_gameObjects[5].m_rigidBodyState.EnablePhysicsSimulation();
 	m_gameObjects[3].m_rigidBodyState.position.x = 5;
-	//m_gameObjects[4].m_rigidBodyState.position.x = 5;
-	//m_gameObjects[4].m_rigidBodyState.position.z = 5;
-	//m_gameObjects[5].m_rigidBodyState.position.z = 5;
+	m_gameObjects[4].m_rigidBodyState.position.x = 5;
+	m_gameObjects[4].m_rigidBodyState.position.z = 5;
+	m_gameObjects[5].m_rigidBodyState.position.z = 5;
 	for (int i = 0; i < m_gameObjects.size(); i++)
 	{
 		m_gameObjects[i].m_rigidBodyState.UpdateState(0);

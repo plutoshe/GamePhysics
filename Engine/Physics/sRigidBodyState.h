@@ -67,7 +67,11 @@ namespace eae6320
 			Math::sVector torqueAccumulator;
 
 			float inverseMass = 1;
-			Math::cMatrix_transformation inverseInertia = Math::cMatrix_transformation(2.5f, 0, 0, 0, 0, 2.5f, 0, 0, 0, 0, 2.5f, 0, 0, 0, 0, 2.5f);
+			Math::cMatrix_transformation inverseInertia = Math::cMatrix_transformation(
+				1.25f, 0, 0, 0, 
+				0, 1.25f, 0, 0,
+				0, 0, 1.25f, 0,
+				0, 0, 0, 1.25f);
 
 			Math::sVector linearMomentum;
 			Math::sVector angularMomentum;

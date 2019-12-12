@@ -83,7 +83,7 @@ namespace eae6320
 		Graphics::cEffect m_effectChangeA;
 		Graphics::cEffect m_effectChangeB;
 		Graphics::cEffect m_effectChangeC;
-		eae6320::Audio3D::AudioSource *collisionA, *collisionB;
+		eae6320::Audio3D::AudioSource *collisionA, *collisionB, *collisionC;
 		bool m_isJPressed = false;
 		bool m_isLPressed = false;
 		bool m_isCameraFollow = false;

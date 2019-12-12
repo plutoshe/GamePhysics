@@ -90,14 +90,14 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 
 	SetGameObjects(objs);
-	m_gameObjects[0].m_rigidBodyState.position.x = 0.f;
+	m_gameObjects[0].m_rigidBodyState.position.x = 5.f;
 	m_gameObjects[0].m_rigidBodyState.EnablePhysicsSimulation();
 	m_gameObjects[1].m_rigidBodyState.EnablePhysicsSimulation();
 	m_gameObjects[1].m_rigidBodyState.isStatic = true;
 	m_gameObjects[3].m_rigidBodyState.EnablePhysicsSimulation();
 	m_gameObjects[4].m_rigidBodyState.EnablePhysicsSimulation();
 	m_gameObjects[5].m_rigidBodyState.EnablePhysicsSimulation();
-	m_gameObjects[3].m_rigidBodyState.position.x = 5;
+	m_gameObjects[3].m_rigidBodyState.position.x = 0;
 	m_gameObjects[4].m_rigidBodyState.position.x = 5;
 	m_gameObjects[4].m_rigidBodyState.position.z = 5;
 	m_gameObjects[5].m_rigidBodyState.position.z = 5;
@@ -107,8 +107,9 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	}
 	eae6320::Audio3D::AudioSource* MySource;
 	auto result = eae6320::Audio3D::AudioSource::Load("data/audiosources/a.wav", MySource);
-	 result = eae6320::Audio3D::AudioSource::Load("data/audiosources/collisiona.wav", collisionA);
-	 result = eae6320::Audio3D::AudioSource::Load("data/audiosources/collisionb.wav", collisionB);
+	result = eae6320::Audio3D::AudioSource::Load("data/audiosources/b.wav", collisionC);
+	result = eae6320::Audio3D::AudioSource::Load("data/audiosources/collisiona.wav", collisionA);
+	result = eae6320::Audio3D::AudioSource::Load("data/audiosources/collisionb.wav", collisionB);
 	if (!result)
 	{
 		Logging::OutputError("Load audio failed");
@@ -319,18 +320,51 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 		{
 			m_gameObjects[0].m_renderObject.m_effect = m_effectChangeC;
 		}*/
-	}
-
-	for (int i = 3; i < m_gameObjects.size(); i++)
-	{
-		if (m_gameObjects[0].m_rigidBodyState.isCollide(m_gameObjects[i].m_rigidBodyState))
+		for (int i = 3; i < m_gameObjects.size(); i++)
 		{
-			collisionA->PlayOnce();
+			if (m_gameObjects[0].m_rigidBodyState.isCollide(m_gameObjects[i].m_rigidBodyState))
+			{
+				collisionA->PlayOnce();
+			}
+		}
+		for (int i = 3; i < m_gameObjects.size(); i++)
+		{
+			if (m_gameObjects[1].m_rigidBodyState.isCollide(m_gameObjects[i].m_rigidBodyState))
+			{
+				collisionC->PlayOnce();
+				m_gameObjects[i].m_rigidBodyState.position.y = 1000;
+			}
 		}
 	}
+
+	
 	if (m_gameObjects[0].m_rigidBodyState.isCollide(m_gameObjects[1].m_rigidBodyState))
 	{
 		collisionB->PlayOnce();
+	}
+
+	if (UserInput::IsKeyPressed(UserInput::KeyCodes::R))
+	{
+		m_gameObjects[0].m_rigidBodyState.position = Math::sVector(5, 0, 0);
+		m_gameObjects[0].m_rigidBodyState.velocity = Math::sVector(0, 0, 0);
+		m_gameObjects[0].m_rigidBodyState.orientation = Math::cQuaternion(0, m_gameObjects[0].m_rigidBodyState.angularVelocity_axis_localXZ);
+		m_gameObjects[0].m_rigidBodyState.angularVelocity = Math::sVector(0, 0, 0);
+
+		m_gameObjects[1].m_rigidBodyState.isStatic = true;
+		if (m_gameObjects.size() >= 3)
+		{
+			for (int i = 3; i < m_gameObjects.size(); i++)
+			{
+				m_gameObjects[i].m_rigidBodyState.position = Math::sVector(0, 0, 0);
+				m_gameObjects[i].m_rigidBodyState.orientation = Math::cQuaternion(0, m_gameObjects[0].m_rigidBodyState.angularVelocity_axis_localXZ);
+				m_gameObjects[i].m_rigidBodyState.velocity = Math::sVector(0, 0, 0);
+				m_gameObjects[i].m_rigidBodyState.angularVelocity = Math::sVector(0, 0, 0);
+			}
+			m_gameObjects[3].m_rigidBodyState.position.x = 0;
+			m_gameObjects[4].m_rigidBodyState.position.x = 5;
+			m_gameObjects[4].m_rigidBodyState.position.z = 5;
+			m_gameObjects[5].m_rigidBodyState.position.z = 5;
+		}
 	}
 }
 

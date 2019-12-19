@@ -10,12 +10,11 @@ namespace eae6320
 		{
 		public:
 			eae6320::Graphics::RenderObject m_renderObject;
-			eae6320::Physics::sRigidBodyState m_rigidBodyStatue;
-			PlutoShe::Physics::ColliderList m_colliders;
+			eae6320::Physics::sRigidBodyState m_rigidBodyState;
 			bool m_isVisiable;
-			GameObject() : m_renderObject(), m_rigidBodyStatue(), m_isVisiable(true), m_colliders() {}
-			GameObject(eae6320::Graphics::RenderObject i_renderObject) :m_renderObject(i_renderObject), m_isVisiable(true) {}
-			GameObject(eae6320::Graphics::RenderObject i_renderObject, PlutoShe::Physics::ColliderList i_colliderList) :m_renderObject(i_renderObject), m_isVisiable(true), m_colliders(i_colliderList) {}
+			GameObject() : m_renderObject(), m_rigidBodyState(), m_isVisiable(true) {}
+			GameObject(eae6320::Graphics::RenderObject i_renderObject) :m_renderObject(i_renderObject), m_rigidBodyState(), m_isVisiable(true) {}
+			GameObject(eae6320::Graphics::RenderObject i_renderObject, eae6320::Physics::sRigidBodyState i_rigidbodyState) :m_renderObject(i_renderObject), m_rigidBodyState(i_rigidbodyState), m_isVisiable(true) {}
 		};
 
 	}

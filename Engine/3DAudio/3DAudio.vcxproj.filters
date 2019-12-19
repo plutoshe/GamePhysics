@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="3DAudio.cpp" />
+    <ClCompile Include="AudioSource.cpp" />
+    <ClCompile Include="AudioListener.cpp" />
+    <ClCompile Include="XAudio2\XAudio2Helpers.cpp">
+      <Filter>XAudio2</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioSource.xaudio.cpp">
+      <Filter>XAudio2</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="3DAudio.h" />
+    <ClInclude Include="AudioSource.h" />
+    <ClInclude Include="AudioListener.h" />
+    <ClInclude Include="XAudio2\XAudio2Helpers.h">
+      <Filter>XAudio2</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="XAudio2">
+      <UniqueIdentifier>{2e0d19cd-c3d1-4af5-89d9-7f0878ef5bc1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

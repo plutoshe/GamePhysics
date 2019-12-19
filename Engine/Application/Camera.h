@@ -10,7 +10,7 @@ namespace eae6320
 		{
 		public:
 			Camera() {}
-			eae6320::Physics::sRigidBodyState m_rigidBodyStatue;
+			eae6320::Physics::sRigidBodyState m_rigidBodyState;
 			float m_ZNearPlane;
 			float m_ZFarPlane;
 			float m_AspectRatio;
@@ -19,8 +19,6 @@ namespace eae6320
 			eae6320::Math::cMatrix_transformation GetWorldToCameraForPrediction(float i_predictTime);
 			eae6320::Math::cMatrix_transformation GetWorldToCamera();
 			void SetVelocityInCameraAxis(eae6320::Math::sVector i_VelocityCameraAxis);
-			void SetPolarVelocity(eae6320::Math::sVector i_polarVelocity);
-			void SetAngularVelocity(eae6320::Math::sVector i_angularVelocity);
 		};
 	}
 }

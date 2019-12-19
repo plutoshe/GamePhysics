@@ -24,12 +24,12 @@
 eae6320::cResult eae6320::cMyGame::Initialize()
 {
 	m_camera.m_AspectRatio = 1;
-	m_camera.m_rigidBodyStatue.position = Math::sVector(0, 15, 15);
-	const auto rotationZY = Math::cQuaternion(-45.0f / 180 * M_PI, Math::sVector(1, 0, 0));
+	m_camera.m_rigidBodyState.position = Math::sVector(0, 30, 15);
+	const auto rotationZY = Math::cQuaternion(-60.0f / 180 * M_PI, Math::sVector(1, 0, 0));
 	//const auto rotationXZ = Math::cQuaternion(M_PI, Math::sVector(0, 1, 0));
 	//const auto rotationXZ = Math::cQuaternion(45, Math::sVector(0, 0, 1));
-	m_camera.m_rigidBodyStatue.orientation = m_camera.m_rigidBodyStatue.orientation * rotationZY;
-	m_camera.m_rigidBodyStatue.orientation.Normalize();
+	m_camera.m_rigidBodyState.orientation = m_camera.m_rigidBodyState.orientation * rotationZY;
+	m_camera.m_rigidBodyState.orientation.Normalize();
 
 	m_camera.m_FOV = Deg2Rad(45);
 	m_camera.m_ZFarPlane = 100.f;
@@ -53,27 +53,69 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	auto resultEffectA = effectA.Load();
 	auto resultEffectB = effectB.Load();
 	auto resultEffectC = effectC.Load();
-	m_effectChangeA = effectA;
-	m_effectChangeB = effectB;
+	m_effectChangeA = effectB;
+	m_effectChangeB = effectA;
 	m_effectChangeC = effectC;
 	std::vector<Application::GameObject> objs;
 
 	if (resultGeometryA && resultEffectB)
 	{
-		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryA, effectB), colliderA));
+		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryA, effectB), eae6320::Physics::sRigidBodyState(colliderA)));
 
 	}
 	if (resultGeometryC && resultEffectB)
 	{
-		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryC, effectB), colliderC));
+		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryC, effectB), eae6320::Physics::sRigidBodyState(colliderC)));
 	}
 	if (resultGeometryB && resultEffectB)
 	{
-		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryB, effectB), colliderB));
+		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryB, effectB), eae6320::Physics::sRigidBodyState(colliderB)));
+	}
+	if (resultGeometryA && resultEffectC)
+	{
+		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryA, effectC), eae6320::Physics::sRigidBodyState(colliderA)));
+
+	}
+	if (resultGeometryA && resultEffectC)
+	{
+		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryA, effectC), eae6320::Physics::sRigidBodyState(colliderA)));
+
+	}
+	if (resultGeometryA && resultEffectC)
+	{
+		objs.push_back(Application::GameObject(Graphics::RenderObject(geometryA, effectC), eae6320::Physics::sRigidBodyState(colliderA)));
+
 	}
 
+
+
 	SetGameObjects(objs);
-	
+	m_gameObjects[0].m_rigidBodyState.position.x = 5.f;
+	m_gameObjects[0].m_rigidBodyState.EnablePhysicsSimulation();
+	m_gameObjects[1].m_rigidBodyState.EnablePhysicsSimulation();
+	m_gameObjects[1].m_rigidBodyState.isStatic = true;
+	m_gameObjects[3].m_rigidBodyState.EnablePhysicsSimulation();
+	m_gameObjects[4].m_rigidBodyState.EnablePhysicsSimulation();
+	m_gameObjects[5].m_rigidBodyState.EnablePhysicsSimulation();
+	m_gameObjects[3].m_rigidBodyState.position.x = 0;
+	m_gameObjects[4].m_rigidBodyState.position.x = 5;
+	m_gameObjects[4].m_rigidBodyState.position.z = 5;
+	m_gameObjects[5].m_rigidBodyState.position.z = 5;
+	for (int i = 0; i < m_gameObjects.size(); i++)
+	{
+		m_gameObjects[i].m_rigidBodyState.UpdateState(0);
+	}
+	eae6320::Audio3D::AudioSource* MySource;
+	auto result = eae6320::Audio3D::AudioSource::Load("data/audiosources/a.wav", MySource);
+	result = eae6320::Audio3D::AudioSource::Load("data/audiosources/b.wav", collisionC);
+	result = eae6320::Audio3D::AudioSource::Load("data/audiosources/collisiona.wav", collisionA);
+	result = eae6320::Audio3D::AudioSource::Load("data/audiosources/collisionb.wav", collisionB);
+	if (!result)
+	{
+		Logging::OutputError("Load audio failed");
+		return result;
+	}
+	MySource->PlayLooped();
 	//for (int i = 0; i < m_gameObjects.size(); i++)
 	//{
 	//	auto* renderobject = eae6320::Graphics::Geometry::cGeometryRenderTarget::s_manager.Get(m_gameObjects[i].m_renderObject.m_geometry.m_handler);
@@ -106,49 +148,54 @@ void eae6320::cMyGame::UpdateSimulationBasedOnInput()
 	Math::sVector objectAcceleration(0, 0, 0);
 	Math::sVector cameraVelocity(0, 0, 0), cameraAngularVelocity(0, 0, 0), cameraPolarVelocity(0, 0, 0);
 	auto rotationZY = Math::cQuaternion(45.0f / 180 * M_PI, Math::sVector(1, 0, 0));
-	auto go = m_camera.m_rigidBodyStatue.orientation * rotationZY;
+	auto go = m_camera.m_rigidBodyState.orientation * rotationZY;
 	float objectSpeed = 2.f;
-	auto playerXZ = Math::cMatrix_transformation(go, m_camera.m_rigidBodyStatue.position);
+	auto playerXZ = Math::cMatrix_transformation(go, m_camera.m_rigidBodyState.position);
 
 
+	//if(UserInput::IsKeyPressed(UserInput::KeyCodes::Space))
+	//{
+	//	isJump = 0.3f;
+	//}
+	//else
+	//{
+	//	if (isJump > 0)
+	//	{
+	//		objectAcceleration.y = 10;
+	//	}
+	//}
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Space))
 	{
-		isJump = 0.3f;
+		m_gameObjects[0].m_rigidBodyState.ApplyForce(eae6320::Math::sVector(0, 0, -10), m_gameObjects[0].m_rigidBodyState.WorldCenter() + eae6320::Math::sVector(0, 1.414f, 1.414f));
 	}
-	else
-	{
-		if (isJump > 0)
-		{
-			objectAcceleration.y = 10;
-		}
-	}
-
 
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::W))
 	{
-		objectVelocity -= objectSpeed * playerXZ.GetBackDirection();
+		m_gameObjects[0].m_rigidBodyState.ApplyForce(eae6320::Math::sVector(0, 0, -10), m_gameObjects[0].m_rigidBodyState.WorldCenter() + eae6320::Math::sVector(0, 0.7f, 0.7f));
+		//objectVelocity -= objectSpeed * playerXZ.GetBackDirection();
+		
 	}
 
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::S))
 	{
-		objectVelocity += objectSpeed * playerXZ.GetBackDirection();
-
+		//objectVelocity += objectSpeed * playerXZ.GetBackDirection();
+		m_gameObjects[0].m_rigidBodyState.ApplyForce(eae6320::Math::sVector(0, 0, 10), m_gameObjects[0].m_rigidBodyState.WorldCenter() + eae6320::Math::sVector(0, 0.7f, -0.7f));
 	}
 	
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::A))
 	{
-		objectVelocity -= objectSpeed * playerXZ.GetRightDirection();
+		m_gameObjects[0].m_rigidBodyState.ApplyForce(eae6320::Math::sVector(-10, 0, 0), m_gameObjects[0].m_rigidBodyState.WorldCenter() + eae6320::Math::sVector(0.7f, 0.7f, 0));
 	}
 
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::D))
 	{
-		objectVelocity += objectSpeed * playerXZ.GetRightDirection();
+		m_gameObjects[0].m_rigidBodyState.ApplyForce(eae6320::Math::sVector(10, 0, 0), m_gameObjects[0].m_rigidBodyState.WorldCenter() + eae6320::Math::sVector(-0.7f, 0.7f, 0));
 	}
 	if (m_gameObjects.size() > 0)
 	{
-		m_gameObjects[0].m_rigidBodyStatue.velocity.x = objectVelocity.x;
-		m_gameObjects[0].m_rigidBodyStatue.velocity.z = objectVelocity.z;
-		m_gameObjects[0].m_rigidBodyStatue.acceleration = objectAcceleration;
+		//m_gameObjects[0].m_rigidBodyState.velocity.x = objectVelocity.x;
+		//m_gameObjects[0].m_rigidBodyState.velocity.z = objectVelocity.z;
+		//m_gameObjects[0].m_rigidBodyState.acceleration = objectAcceleration;
 	}
 
 	float cameraSpeed = 5.f;
@@ -187,13 +234,12 @@ void eae6320::cMyGame::UpdateSimulationBasedOnInput()
 
 	if (m_isCameraFollow)
 	{
-		m_camera.m_rigidBodyStatue.polarOrigin = m_gameObjects[0].m_rigidBodyStatue.position;
-		m_camera.m_rigidBodyStatue.velocity = objectVelocity;
-		m_camera.m_rigidBodyStatue.acceleration = objectAcceleration;
+		m_camera.m_rigidBodyState.polarOrigin = m_gameObjects[0].m_rigidBodyState.position;
+		m_camera.m_rigidBodyState.velocity = objectVelocity;
+		m_camera.m_rigidBodyState.acceleration = objectAcceleration;
 	}
-
-	m_camera.SetAngularVelocity(cameraAngularVelocity);
-	m_camera.SetPolarVelocity(cameraPolarVelocity);
+	//m_camera.SetAngularVelocity(cameraAngularVelocity);
+	//m_camera.SetPolarVelocity(cameraPolarVelocity);
 }
 
 void eae6320::cMyGame::UpdateBasedOnInput()
@@ -248,7 +294,7 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 		m_isLPressed = false;
 		//m_gameObjects[0].m_renderObject.m_geometry->SetIndices(std::vector<unsigned int>{ 0, 1, 2, 1, 3, 2 });
 	}
-	if (m_gameObjects.size() > 0) 
+	/*if (m_gameObjects.size() > 0) 
 	{
 		if (UserInput::IsKeyPressed(UserInput::KeyCodes::K))
 		{
@@ -259,16 +305,65 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 			m_gameObjects[0].m_renderObject.m_effect = m_effectChangeB;
 			
 		}
-	}
+	}*/
 	if (m_gameObjects.size() >= 3)
 	{
-		if (m_gameObjects[0].m_colliders.IsCollided(m_gameObjects[2].m_colliders))
+		if (m_gameObjects[0].m_rigidBodyState.colliders.IsCollided(m_gameObjects[1].m_rigidBodyState.colliders))
+		{
+			m_gameObjects[0].m_renderObject.m_effect = m_effectChangeB;
+		}
+		else
 		{
 			m_gameObjects[0].m_renderObject.m_effect = m_effectChangeA;
 		}
-		if (m_gameObjects[0].m_colliders.IsCollided(m_gameObjects[1].m_colliders))
+		/*if (m_gameObjects[0].m_rigidBodyState.colliders.IsCollided(m_gameObjects[1].m_rigidBodyState.colliders))
 		{
 			m_gameObjects[0].m_renderObject.m_effect = m_effectChangeC;
+		}*/
+		for (int i = 3; i < m_gameObjects.size(); i++)
+		{
+			if (m_gameObjects[0].m_rigidBodyState.isCollide(m_gameObjects[i].m_rigidBodyState))
+			{
+				collisionA->PlayOnce();
+			}
+		}
+		for (int i = 3; i < m_gameObjects.size(); i++)
+		{
+			if (m_gameObjects[1].m_rigidBodyState.isCollide(m_gameObjects[i].m_rigidBodyState))
+			{
+				collisionC->PlayOnce();
+				m_gameObjects[i].m_rigidBodyState.position.y = 1000;
+			}
+		}
+	}
+
+	
+	if (m_gameObjects[0].m_rigidBodyState.isCollide(m_gameObjects[1].m_rigidBodyState))
+	{
+		collisionB->PlayOnce();
+	}
+
+	if (UserInput::IsKeyPressed(UserInput::KeyCodes::R))
+	{
+		m_gameObjects[0].m_rigidBodyState.position = Math::sVector(5, 0, 0);
+		m_gameObjects[0].m_rigidBodyState.velocity = Math::sVector(0, 0, 0);
+		m_gameObjects[0].m_rigidBodyState.orientation = Math::cQuaternion(0, m_gameObjects[0].m_rigidBodyState.angularVelocity_axis_localXZ);
+		m_gameObjects[0].m_rigidBodyState.angularVelocity = Math::sVector(0, 0, 0);
+
+		m_gameObjects[1].m_rigidBodyState.isStatic = true;
+		if (m_gameObjects.size() >= 3)
+		{
+			for (int i = 3; i < m_gameObjects.size(); i++)
+			{
+				m_gameObjects[i].m_rigidBodyState.position = Math::sVector(0, 0, 0);
+				m_gameObjects[i].m_rigidBodyState.orientation = Math::cQuaternion(0, m_gameObjects[0].m_rigidBodyState.angularVelocity_axis_localXZ);
+				m_gameObjects[i].m_rigidBodyState.velocity = Math::sVector(0, 0, 0);
+				m_gameObjects[i].m_rigidBodyState.angularVelocity = Math::sVector(0, 0, 0);
+			}
+			m_gameObjects[3].m_rigidBodyState.position.x = 0;
+			m_gameObjects[4].m_rigidBodyState.position.x = 5;
+			m_gameObjects[4].m_rigidBodyState.position.z = 5;
+			m_gameObjects[5].m_rigidBodyState.position.z = 5;
 		}
 	}
 }

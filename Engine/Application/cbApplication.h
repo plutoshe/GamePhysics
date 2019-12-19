@@ -19,6 +19,7 @@
 #include <Engine/Graphics/cRenderObject.h>
 #include <Engine/Application/GameObject.h>
 #include <Engine/Application/Camera.h>
+#include <Engine/3DAudio/3DAudio.h>
 
 #if defined( EAE6320_PLATFORM_WINDOWS )
 	#include <Engine/Windows/Includes.h>

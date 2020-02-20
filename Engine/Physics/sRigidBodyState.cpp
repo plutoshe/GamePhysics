@@ -37,17 +37,23 @@ void eae6320::Physics::sRigidBodyState::UpdatePhysics(float i_deltaTime)
 					{
 						
 						normal = centerB - centerA;
+						normal.Normalized();
 						auto JVA = normal.Negate(); // -nt
-						auto JWA = (contactA - centerA).cross(normal).Negate();
+						auto RA = contactA - centerA;
+						auto JWA = (RA).cross(normal).Negate();
 						auto JVB = normal;
-						auto JWB = (contactB - centerB).cross(normal);
+						auto RB = contactB - centerB;
+						auto JWB = (RB).cross(normal);
 						auto numerator = JVA.dot(rigidbodyA->velocity) + JWA.dot(rigidbodyA->angularVelocity) + JVB.dot(rigidbodyB->velocity) + JWB.dot(rigidbodyB->angularVelocity);
 						auto denominator =
 							JVA.dot(JVA) * rigidbodyA->inverseMass +
 							JWA.dot(rigidbodyA->inverseInertia * JWA.TosVector()) +
 							JVB.dot(JVB) * rigidbodyB->inverseMass +
 							JWB.dot(rigidbodyB->inverseInertia * JWB.TosVector());
-						auto b = (contactB - contactA).dot(normal) / i_deltaTime * -3.f;
+						auto restitutionParam = 1.3;
+						auto b = 
+							-(contactB - contactA).dot(normal) / i_deltaTime * 0.99 + 
+							restitutionParam * (JVB + JWB.dot(RB) - JVA - JWA.dot(RA)).dot(normal);
 						auto param = (numerator + b) / denominator;
 						if (!rigidbodyA->isStatic)
 						{
@@ -58,8 +64,10 @@ void eae6320::Physics::sRigidBodyState::UpdatePhysics(float i_deltaTime)
 						}
 						if (!rigidbodyB->isStatic)
 						{
-							rigidbodyB->velocity = rigidbodyB->velocity + (JVB * param * rigidbodyB->inverseMass).TosVector();
-							rigidbodyB->angularVelocity = rigidbodyB->angularVelocity + rigidbodyB->inverseInertia * JWB.TosVector() * param;
+							auto deltaVB = (JVB * param * rigidbodyB->inverseMass).TosVector();
+							rigidbodyB->velocity = rigidbodyB->velocity + deltaVB;
+							auto deltaWB = rigidbodyB->inverseInertia * JWB.TosVector() * param;
+							rigidbodyB->angularVelocity = rigidbodyB->angularVelocity + deltaWB;
 						}
 					}
 				}
